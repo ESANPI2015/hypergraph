@@ -23,9 +23,14 @@ add_definitions(${hypergraph_PKGCONFIG_CFLAGS_OTHER} -ggdb --pedantic -Wall -Wer
 
 set(SOURCES
     src/Hyperedge.cpp
+    src/Set.cpp
+    src/Fact.cpp
     )
 set(HEADERS
     include/Hyperedge.hpp
+    include/Set.hpp
+    include/Fact.hpp
+    include/Individual.hpp
     )
 
 #set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/")
