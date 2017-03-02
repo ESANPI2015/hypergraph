@@ -3,7 +3,8 @@
 
 Hyperedge::Hyperedge(const std::string& label)
 : _label(label)
-{}
+{
+}
 
 Hyperedge::Hyperedge(Hyperedges members, const std::string& label)
 {
