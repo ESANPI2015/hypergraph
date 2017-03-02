@@ -29,11 +29,11 @@ class Hyperedge
         Hyperedges members(const std::string& label="");
 
         /*Graph traversal*/
-        std::string serialize(unsigned lvl=0, const std::string& delimiter="\n"); // Full descend down the hierarchy
+        std::string serialize(); // DFS
+        static Hyperedge* deserialize(const std::string& from);
 
     private:
         std::string _label;
         Hyperedges _members;
 };
-
 #endif
