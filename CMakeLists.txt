@@ -25,6 +25,7 @@ set(SOURCES
     src/Hyperedge.cpp
     src/Set.cpp
     src/Fact.cpp
+    src/Individual.cpp
     )
 set(HEADERS
     include/Hyperedge.hpp

@@ -7,10 +7,7 @@
 class Individual : public Hyperedge
 {
     public:
-        Individual(const std::string& label="")
-        : Hyperedge(label)
-        {
-        }
+        Individual(const std::string& label="");
 };
 
 #endif

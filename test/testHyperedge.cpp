@@ -61,15 +61,16 @@ int main(void)
     members.clear();
     members = things.members();
     std::cout << "> Print things" << std::endl;
-    while (members.size())
-    {
-        // pop top of stack
-        auto member = members.front();
-        members.erase(members.begin());
-        auto others = member->members();
-        std::cout << "\t" << member->label() << ": " << others.size() << std::endl;
-        members.insert(members.begin(), others.begin(), others.end());
-    }
+    //while (members.size())
+    //{
+    //    // pop top of stack
+    //    auto member = members.front();
+    //    members.erase(members.begin());
+    //    auto others = member->members();
+    //    std::cout << "\t" << member->label() << ": " << others.size() << std::endl;
+    //    members.insert(members.begin(), others.begin(), others.end());
+    //}
+    std::cout << things.serialize() << std::endl;
 
     std::cout << "*** Derived Classes Test Finished ***" << std::endl;
 
