@@ -34,13 +34,13 @@ Hyperedge::Hyperedges Hyperedge::members(const std::string& label)
 }
 
 
-std::string Hyperedge::serialize()
+std::string Hyperedge::serialize(Hyperedge* root)
 {
     std::stringstream result;
     std::set< Hyperedge* > visited;
     std::queue< Hyperedge* > edges;
 
-    edges.push(this);
+    edges.push(root);
 
     // Run through queue of unknown edges
     while (!edges.empty())
