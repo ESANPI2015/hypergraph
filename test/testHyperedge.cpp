@@ -57,14 +57,14 @@ int main(void)
     members.push_back(&persons);
     members.push_back(&relations);
     things = Set(members, "Things");
-
-    members.clear();
-    members = things.members();
-    std::cout << "> Print things" << std::endl;
-    std::cout << things.serialize() << std::endl;
-    std::cout << (things.deserialize(things.serialize()))->serialize() << std::endl;
-
     std::cout << "*** Derived Classes Test Finished ***" << std::endl;
+
+    std::cout << "*** Built-in independent de-/serializer test ***" << std::endl;
+    std::cout << "> Print things (using serializer)" << std::endl;
+    std::cout << things.serialize() << std::endl;
+    std::cout << "> Print things (using serializer-deserializer-serializer chain)" << std::endl;
+    std::cout << (things.deserialize(things.serialize()))->serialize() << std::endl;
+    std::cout << "*** Built-in independent de-/serializer test finished ***" << std::endl;
 
     return 0;
 }
