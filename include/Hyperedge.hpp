@@ -31,9 +31,28 @@ class Hyperedge
         std::string label() const; 
         Hyperedges members(const std::string& label="");
 
-        /*Graph traversal*/
+        /*Graph serialization: Order preserving!!!*/
         static std::string serialize(Hyperedge* root); // DFS
         static Hyperedge* deserialize(const std::string& from);
+        
+        /*Graph traversal creating a new hyperedge:
+        * Conditions:
+        * > label must be part of entity label
+        * > cardinality less or equal size
+        */
+        Hyperedge query(const std::string& label="", const unsigned size=0, const std::string& name="Query");
+
+        /*Merge operations
+        * NOTE: If labels are equal than things are equal (by pointer as well!)
+        */
+        // Unite *this and other (but *this and other are NOT part of unification)
+        Hyperedge unite(const Hyperedge& other, const std::string& name="Union");
+        // Intersect *this and other (and *this and other cannot be part of it)
+        Hyperedge intersect(const Hyperedge& other, const std::string& name="Intersection");
+        // Difference between *this - other (and *this and other cannot be part of it)
+        Hyperedge subtract(const Hyperedge& other, const std::string& name="Difference");
+        // Difference between other - *this (and *this and other cannot be part of it)
+        Hyperedge complement(const Hyperedge& other, const std::string& name="Difference");
 
     private:
         std::string _label;

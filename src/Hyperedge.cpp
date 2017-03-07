@@ -33,6 +33,44 @@ Hyperedge::Hyperedges Hyperedge::members(const std::string& label)
     return result;
 }
 
+Hyperedge Hyperedge::query(const std::string& label, const unsigned size, const std::string& name)
+{
+    Hyperedges members;
+    std::set< Hyperedge* > visited;
+    std::queue< Hyperedge* > edges;
+
+    edges.push(this);
+
+    // Run through queue of unknown edges
+    while (!edges.empty())
+    {
+        auto edge = edges.front();
+        auto edgeMembers = edge->members();
+        edges.pop();
+
+        if (visited.count(edge))
+            continue;
+
+        // Visiting!!!
+        visited.insert(edge);
+        // TODO: In a generic algorithm you would call here a lambda or such
+        if ((label.empty()
+            || (edge->label().find(label) != std::string::npos))
+            && (edgeMembers.size() <= size)
+           )
+        {
+            members.push_back(edge);
+        }
+
+        // Inserting members into queue
+        for (auto unknown : edgeMembers)
+        {
+            edges.push(unknown);
+        }
+    }
+
+    return Hyperedge(members, name);
+}
 
 std::string Hyperedge::serialize(Hyperedge* root)
 {

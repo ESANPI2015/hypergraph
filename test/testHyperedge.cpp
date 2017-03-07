@@ -1,7 +1,6 @@
 #include "Hyperedge.hpp"
 #include "Set.hpp"
-#include "Individual.hpp"
-#include "Fact.hpp"
+#include "Relation.hpp"
 
 #include <iostream>
 #include <cassert>
@@ -25,38 +24,36 @@ int main(void)
 
     std::cout << "*** Derived Classes Test ***" << std::endl;
 
-    std::cout << "> Creating individuals" << std::endl;
+    std::cout << "> Creating persons" << std::endl;
     members.clear();
-    members.push_back(new Individual("John"));
-    members.push_back(new Individual("Bob"));
-    members.push_back(new Individual("Alice"));
-    std::cout << "> Creating set of individuals" << std::endl;
+    members.push_back(new Set("John"));
+    members.push_back(new Set("Bob"));
+    members.push_back(new Set("Alice"));
+    std::cout << "> Creating person set" << std::endl;
     Set persons(members, "Persons");
-    Fact related(members, "related"); // NOTE: Here it looks like Set and Fact are the same, but they are not!
+    Relation related(members, "related");
     std::cout << "> Creating set of sets" << std::endl;
     members.clear();
     members.push_back(&persons);
     Set things(members, "Things");
-    std::cout << "> Searching for individuals" << std::endl;
+    std::cout << "> Searching for persons" << std::endl;
     members.clear();
     members = persons.members("Alice");
     members.push_back(persons.members("Bob")[0]); 
-    std::cout << "> Creating fact between individuals" << std::endl;
-    Fact married(members, "married"); // NOTE: This states: "Every Alice is married to one Bob"
+    std::cout << "> Creating relation between persons" << std::endl;
+    Relation married(members, "married"); // NOTE: This states: "Every Alice is married to one Bob"
     members.clear();
     members.push_back(&related);
-    Set rel1(members, "Related");
+    Set rel1(members, "Relatives");
     members.clear();
     members.push_back(&married);
-    Set rel2(members, "Married");
+    Set rel2(members, "Couples");
     members.clear();
     members.push_back(&rel1);
     members.push_back(&rel2);
-    Set relations(members, "Relations");
-    members.clear();
-    members.push_back(&persons);
-    members.push_back(&relations);
-    things = Set(members, "Things");
+    auto oldMembers = persons.members();
+    members.insert(members.end(), oldMembers.begin(), oldMembers.end());
+    persons = Set(members, persons.label()); // This is an update
     std::cout << "*** Derived Classes Test Finished ***" << std::endl;
 
     std::cout << "*** Built-in independent de-/serializer test ***" << std::endl;
@@ -65,6 +62,13 @@ int main(void)
     std::cout << "> Print things (using serializer-deserializer-serializer compositional chain)" << std::endl;
     std::cout << Hyperedge::serialize(Hyperedge::deserialize(Hyperedge::serialize(&things))) << std::endl;
     std::cout << "*** Built-in independent de-/serializer test finished ***" << std::endl;
+
+    std::cout << "*** Queries Test ***" << std::endl;
+    auto individuals = things.query();
+    std::cout << Hyperedge::serialize(&individuals) << std::endl;
+    auto special = things.query("o",0,"Special");
+    std::cout << Hyperedge::serialize(&special) << std::endl;
+    std::cout << "*** Queries Test finished***" << std::endl;
 
     return 0;
 }
