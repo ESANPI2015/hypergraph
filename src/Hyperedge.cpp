@@ -13,12 +13,57 @@ Hyperedge::Hyperedge(const std::string& label)
 Hyperedge::Hyperedge(Hyperedges members, const std::string& label)
 {
     _label = label;
-    _members.insert(_members.end(), members.begin(), members.end());
+    for (auto member : members)
+    {
+        contains(member);
+    }
+}
+
+bool Hyperedge::contains(Hyperedge *member)
+{
+    auto nomember = member;
+    for (auto mine : _members)
+    {
+        if (mine == nomember)
+            return true;
+    }
+        // Check if we are in the super sets of member
+        bool found = false;
+        for (auto super : nomember->_supers)
+        {
+            if (super == this)
+            {
+                found = true;
+                break;
+            }
+        }
+
+        // Make sure we are in the super list
+        if (!found)
+        {
+            nomember->_supers.push_back(this);
+        }
+        // ... and the member registered in our member list
+        _members.push_back(nomember);
+    
+    return true;
 }
 
 std::string Hyperedge::label() const
 {
     return _label;
+}
+
+Hyperedge::Hyperedges Hyperedge::supers(const std::string& label)
+{
+    Hyperedges result;
+    for (auto edge : _supers)
+    {
+        // Filters by label if given. It suffices that the edge label contains the given one.
+        if (label.empty() || (edge->label().find(label) != std::string::npos))
+            result.push_back(edge);
+    }
+    return result;
 }
 
 Hyperedge::Hyperedges Hyperedge::members(const std::string& label)
@@ -34,27 +79,39 @@ Hyperedge::Hyperedges Hyperedge::members(const std::string& label)
 }
 
 
-Hyperedge Hyperedge::labelContains(const std::string& str)
+Hyperedge::Hyperedges Hyperedge::labelContains(const std::string& str, const Hyperedge::TraversalDirection dir)
 {
-    return traversal( [&](Hyperedge *x){ return (str.empty() || (x->label().find(str) != std::string::npos)) ? true : false; }  );
+    return traversal(
+        [&](Hyperedge *x){ return (str.empty() || (x->label().find(str) != std::string::npos)) ? true : false; },
+        dir
+    );
 }
 
-Hyperedge Hyperedge::labelPartOf(const std::string& str)
+Hyperedge::Hyperedges Hyperedge::labelPartOf(const std::string& str, const Hyperedge::TraversalDirection dir)
 {
-    return traversal( [&](Hyperedge *x){ return (str.empty() || (str.find(x->label()) != std::string::npos)) ? true : false; }  );
+    return traversal(
+        [&](Hyperedge *x){ return (str.empty() || (str.find(x->label()) != std::string::npos)) ? true : false; },
+        dir
+    );
 }
 
-Hyperedge Hyperedge::cardinalityLessThanOrEqual(const unsigned cardinality)
+Hyperedge::Hyperedges Hyperedge::cardinalityLessThanOrEqual(const unsigned cardinality, const Hyperedge::TraversalDirection dir)
 {
-    return traversal( [&](Hyperedge *x){ return (x->members().size() <= cardinality)? true : false; }  );
+    return traversal(
+        [&](Hyperedge *x){ return (x->members().size() <= cardinality)? true : false; },
+        dir
+    );
 }
 
-Hyperedge Hyperedge::cardinalityGreaterThan(const unsigned cardinality)
+Hyperedge::Hyperedges Hyperedge::cardinalityGreaterThan(const unsigned cardinality, const Hyperedge::TraversalDirection dir)
 {
-    return traversal( [&](Hyperedge *x){ return (x->members().size() > cardinality)? true : false; }  );
+    return traversal(
+        [&](Hyperedge *x){ return (x->members().size() > cardinality)? true : false; },
+        dir
+    );
 }
 
-template <typename Func> Hyperedge Hyperedge::traversal(Func f, const std::string& name)
+template <typename Func> Hyperedge::Hyperedges Hyperedge::traversal(Func f, const Hyperedge::TraversalDirection dir)
 {
     Hyperedges members;
     std::set< Hyperedge* > visited;
@@ -66,8 +123,24 @@ template <typename Func> Hyperedge Hyperedge::traversal(Func f, const std::strin
     while (!edges.empty())
     {
         auto edge = edges.front();
-        auto edgeMembers = edge->members();
         edges.pop();
+
+        // Handle search direction
+        Hyperedges unknowns;
+        switch (dir)
+        {
+            case DOWN:
+                unknowns.insert(unknowns.end(), edge->_members.begin(), edge->_members.end());
+                break;
+            case BOTH:
+                unknowns.insert(unknowns.end(), edge->_members.begin(), edge->_members.end());
+            case UP:
+                unknowns.insert(unknowns.end(), edge->_supers.begin(), edge->_supers.end());
+                break;
+            default:
+                members.clear();
+                return members;
+        }
 
         if (visited.count(edge))
             continue;
@@ -79,14 +152,14 @@ template <typename Func> Hyperedge Hyperedge::traversal(Func f, const std::strin
             members.push_back(edge);
         }
 
-        // Inserting members into queue
-        for (auto unknown : edgeMembers)
+        // Inserting members and supers into queue
+        for (auto unknown : unknowns)
         {
             edges.push(unknown);
         }
     }
 
-    return Hyperedge(members, name);
+    return members;
 }
 
 std::string Hyperedge::serialize(Hyperedge* root)
@@ -166,8 +239,11 @@ Hyperedge* Hyperedge::deserialize(const std::string& from)
             // Whenever a parent is created it might be a root
             roots.insert(label);
         } else {
-            // FIXME: This can be problematic if we have UUIDs at construction time
-            (*known[label]) = Hyperedge(members, label);
+            // Update already existing hyperedge
+            for (auto member : members)
+            {
+                known[label]->contains(member);
+            }
         }
 
         // Update positions

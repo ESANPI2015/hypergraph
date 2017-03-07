@@ -24,18 +24,16 @@ int main(void)
 
     std::cout << "*** Derived Classes Test ***" << std::endl;
 
-    std::cout << "> Creating persons" << std::endl;
-    members.clear();
-    members.push_back(new Set("John"));
-    members.push_back(new Set("Bob"));
-    members.push_back(new Set("Alice"));
     std::cout << "> Creating person set" << std::endl;
-    Set persons(members, "Persons");
-    Relation related(members, "related");
+    Set persons("Persons");
+    std::cout << "> Creating persons" << std::endl;
+    persons.contains(new Set("John"));
+    persons.contains(new Set("Bob"));
+    persons.contains(new Set("Alice"));
+    Relation related(persons.members(), "related");
     std::cout << "> Creating set of sets" << std::endl;
-    members.clear();
-    members.push_back(&persons);
-    Set things(members, "Things");
+    Set things("Things");
+    things.contains(&persons);
     std::cout << "> Searching for persons" << std::endl;
     members.clear();
     members = persons.members("Alice");
@@ -48,12 +46,8 @@ int main(void)
     members.clear();
     members.push_back(&married);
     Set rel2(members, "Couples");
-    members.clear();
-    members.push_back(&rel1);
-    members.push_back(&rel2);
-    auto oldMembers = persons.members();
-    members.insert(members.end(), oldMembers.begin(), oldMembers.end());
-    persons = Set(members, persons.label()); // This is an update
+    persons.contains(&rel1);
+    persons.contains(&rel2);
     std::cout << "*** Derived Classes Test Finished ***" << std::endl;
 
     std::cout << "*** Built-in independent de-/serializer test ***" << std::endl;
@@ -64,10 +58,11 @@ int main(void)
     std::cout << "*** Built-in independent de-/serializer test finished ***" << std::endl;
 
     std::cout << "*** Queries Test ***" << std::endl;
-    auto individuals = things.cardinalityLessThanOrEqual();
-    std::cout << Hyperedge::serialize(&individuals) << std::endl;
-    auto special = things.cardinalityGreaterThan();
-    std::cout << Hyperedge::serialize(&special) << std::endl;
+    auto individuals = new Hyperedge(things.cardinalityLessThanOrEqual(), "Individuals");
+    std::cout << Hyperedge::serialize(individuals) << std::endl;
+    auto special = new Hyperedge(things.cardinalityGreaterThan(), "Others");;
+    std::cout << Hyperedge::serialize(special) << std::endl;
+
     std::cout << "*** Queries Test finished***" << std::endl;
 
     return 0;

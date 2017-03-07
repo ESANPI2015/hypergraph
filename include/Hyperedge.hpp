@@ -30,26 +30,32 @@ class Hyperedge
         /*Read Access*/
         std::string label() const; 
         Hyperedges members(const std::string& label="");
+        Hyperedges supers(const std::string& label="");
 
-        /*Graph serialization: Order preserving!!!*/
+        /*Write access*/
+        bool contains(Hyperedge *member);
+
+        /*Graph serialization: Order preserving!!! TODO: Could use traversal member func*/
         static std::string serialize(Hyperedge* root); // DFS
         static Hyperedge* deserialize(const std::string& from);
         
-        /*Graph traversal creating a new hyperedge:
-        * Conditions:
-        * > label must be part of entity label
-        * > cardinality less or equal size
+        /*TODO: To ensure uniqueness and other things we have to override == and other operators*/
+        
         /*
             Graph traversals/Queries
-            NOTE: The returned Hyperedges are NEW Hyperedges
+            NOTE: These are collections of hyperedges but can be made permanent by creating a Hyperedge out of it
         */
-        template <typename Func> Hyperedge traversal(Func f, const std::string& name="Traversal");
-        Hyperedge labelContains(const std::string& str=""); // label of hyperedges must contain str
-        Hyperedge labelPartOf(const std::string& str="");   // label of hyperedges must be substr of str
-        Hyperedge cardinalityLessThanOrEqual(const unsigned cardinality=0);
-        Hyperedge cardinalityGreaterThan(const unsigned cardinality=0);
+        enum TraversalDirection {
+            DOWN,
+            UP,
+            BOTH
+        };
+        template <typename Func> Hyperedges traversal(Func f, const TraversalDirection dir = DOWN);
+        Hyperedges labelContains(const std::string& str="", const TraversalDirection dir = DOWN);
+        Hyperedges labelPartOf(const std::string& str="", const TraversalDirection dir = DOWN);
+        Hyperedges cardinalityLessThanOrEqual(const unsigned cardinality=0, const TraversalDirection dir = DOWN);
+        Hyperedges cardinalityGreaterThan(const unsigned cardinality=0, const TraversalDirection dir = DOWN);
 
-        /*Merge operations
         * NOTE: If labels are equal than things are equal (by pointer as well!)
         */
         // Unite *this and other (but *this and other are NOT part of unification)
@@ -63,6 +69,7 @@ class Hyperedge
 
     private:
         std::string _label;
-        Hyperedges _members;
+        Hyperedges _supers;  // This is the row of an incidence matrix
+        Hyperedges _members; // This is the column of an incidence matrix
 };
 #endif
