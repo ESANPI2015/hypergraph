@@ -33,7 +33,28 @@ Hyperedge::Hyperedges Hyperedge::members(const std::string& label)
     return result;
 }
 
-Hyperedge Hyperedge::query(const std::string& label, const unsigned size, const std::string& name)
+
+Hyperedge Hyperedge::labelContains(const std::string& str)
+{
+    return traversal( [&](Hyperedge *x){ return (str.empty() || (x->label().find(str) != std::string::npos)) ? true : false; }  );
+}
+
+Hyperedge Hyperedge::labelPartOf(const std::string& str)
+{
+    return traversal( [&](Hyperedge *x){ return (str.empty() || (str.find(x->label()) != std::string::npos)) ? true : false; }  );
+}
+
+Hyperedge Hyperedge::cardinalityLessThanOrEqual(const unsigned cardinality)
+{
+    return traversal( [&](Hyperedge *x){ return (x->members().size() <= cardinality)? true : false; }  );
+}
+
+Hyperedge Hyperedge::cardinalityGreaterThan(const unsigned cardinality)
+{
+    return traversal( [&](Hyperedge *x){ return (x->members().size() > cardinality)? true : false; }  );
+}
+
+template <typename Func> Hyperedge Hyperedge::traversal(Func f, const std::string& name)
 {
     Hyperedges members;
     std::set< Hyperedge* > visited;
@@ -53,11 +74,7 @@ Hyperedge Hyperedge::query(const std::string& label, const unsigned size, const 
 
         // Visiting!!!
         visited.insert(edge);
-        // TODO: In a generic algorithm you would call here a lambda or such
-        if ((label.empty()
-            || (edge->label().find(label) != std::string::npos))
-            && (edgeMembers.size() <= size)
-           )
+        if (f(edge))
         {
             members.push_back(edge);
         }
@@ -149,6 +166,7 @@ Hyperedge* Hyperedge::deserialize(const std::string& from)
             // Whenever a parent is created it might be a root
             roots.insert(label);
         } else {
+            // FIXME: This can be problematic if we have UUIDs at construction time
             (*known[label]) = Hyperedge(members, label);
         }
 

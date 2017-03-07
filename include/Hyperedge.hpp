@@ -39,8 +39,15 @@ class Hyperedge
         * Conditions:
         * > label must be part of entity label
         * > cardinality less or equal size
+        /*
+            Graph traversals/Queries
+            NOTE: The returned Hyperedges are NEW Hyperedges
         */
-        Hyperedge query(const std::string& label="", const unsigned size=0, const std::string& name="Query");
+        template <typename Func> Hyperedge traversal(Func f, const std::string& name="Traversal");
+        Hyperedge labelContains(const std::string& str=""); // label of hyperedges must contain str
+        Hyperedge labelPartOf(const std::string& str="");   // label of hyperedges must be substr of str
+        Hyperedge cardinalityLessThanOrEqual(const unsigned cardinality=0);
+        Hyperedge cardinalityGreaterThan(const unsigned cardinality=0);
 
         /*Merge operations
         * NOTE: If labels are equal than things are equal (by pointer as well!)
