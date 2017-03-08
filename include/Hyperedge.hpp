@@ -68,20 +68,33 @@ class Hyperedge
         Hyperedges cardinalityLessThanOrEqual(const unsigned cardinality=0, const TraversalDirection dir = DOWN);
         Hyperedges cardinalityGreaterThan(const unsigned cardinality=0, const TraversalDirection dir = DOWN);
 
-        * NOTE: If labels are equal than things are equal (by pointer as well!)
+        /*
+            Merge operations
+            NOTE: The returned Hyperedges are NEW Hyperedges
         */
         // Unite *this and other (but *this and other are NOT part of unification)
-        Hyperedge unite(const Hyperedge& other, const std::string& name="Union");
+        //Hyperedge unite(const Hyperedge& other);
         // Intersect *this and other (and *this and other cannot be part of it)
-        Hyperedge intersect(const Hyperedge& other, const std::string& name="Intersection");
+        //Hyperedge intersect(const Hyperedge& other);
         // Difference between *this - other (and *this and other cannot be part of it)
-        Hyperedge subtract(const Hyperedge& other, const std::string& name="Difference");
+        //Hyperedge subtract(const Hyperedge& other);
         // Difference between other - *this (and *this and other cannot be part of it)
-        Hyperedge complement(const Hyperedge& other, const std::string& name="Difference");
+        //Hyperedge complement(const Hyperedge& other);
 
     private:
+        // Private factory functions to create Hyperedges with a certain id
+        // Used by deserialization
+        static Hyperedge* create(const unsigned id, const std::string& label="");
+        static Hyperedge* create(const unsigned id, Hyperedges members, const std::string& label="");
+
+        // Private members
+        unsigned _id;
         std::string _label;
         Hyperedges _supers;  // This is the row of an incidence matrix
         Hyperedges _members; // This is the column of an incidence matrix
+
+        // Private static members for 
+        static unsigned _lastId;
+        static Hyperedges _created;
 };
 #endif
