@@ -4,49 +4,105 @@
 #include <map>
 #include <set>
 #include <queue>
+#include <stdexcept>
 
+
+// STATIC MEMBER INIT
+unsigned Hyperedge::_lastId = 1;
+Hyperedge::Hyperedges Hyperedge::_created;
+
+// CONSTRUCTORS
 Hyperedge::Hyperedge(const std::string& label)
 : _label(label)
 {
+    _id = _lastId++;
 }
 
 Hyperedge::Hyperedge(Hyperedges members, const std::string& label)
 {
     _label = label;
+    _id = _lastId++;
     for (auto member : members)
     {
-        contains(member);
+        contains(member.second);
     }
+}
+
+// PUBLIC FACTORY
+// TODO: We should throw if needed ...
+Hyperedge* Hyperedge::create(const std::string& label)
+{
+    Hyperedge* neu = new Hyperedge(label);
+    _created[neu->_id] = neu;
+    return neu;
+}
+
+Hyperedge* Hyperedge::create(Hyperedges members, const std::string& label)
+{
+    Hyperedge* neu = new Hyperedge(members,label);
+    _created[neu->_id] = neu;
+    return neu;
+}
+
+void Hyperedge::cleanup()
+{
+    // destroy all registered hyperedges
+    for (auto edgeIt : _created)
+    {
+        auto edge = edgeIt.second;
+        delete edge;
+    }
+    _created.clear();
+}
+
+// PRIVATE FACTORY
+Hyperedge* Hyperedge::create(const unsigned id, const std::string& label)
+{
+    Hyperedge* neu = NULL;
+    if (!_created.count(id))
+    {
+        // Can do it
+        neu = new Hyperedge(label);
+        neu->_id = id;
+        // Ensure monotonic increasing _lastId
+        _lastId = (id > _lastId) ? id : _lastId;
+    }
+    return neu;
+}
+
+Hyperedge* Hyperedge::create(const unsigned id, Hyperedges members, const std::string& label)
+{
+    Hyperedge* neu = NULL;
+    if (!_created.count(id))
+    {
+        // Can do it
+        neu = new Hyperedge(members, label);
+        neu->_id = id;
+        // Ensure monotonic increasing _lastId
+        _lastId = (id > _lastId) ? id : _lastId;
+    }
+    return neu;
 }
 
 bool Hyperedge::contains(Hyperedge *member)
 {
-    auto nomember = member;
-    for (auto mine : _members)
-    {
-        if (mine == nomember)
-            return true;
-    }
+    if (_members.count(member->_id))
+        return true;
         // Check if we are in the super sets of member
-        bool found = false;
-        for (auto super : nomember->_supers)
-        {
-            if (super == this)
-            {
-                found = true;
-                break;
-            }
-        }
-
         // Make sure we are in the super list
-        if (!found)
+        if (!member->_supers.count(_id))
         {
-            nomember->_supers.push_back(this);
+            member->_supers[_id] = this;
         }
         // ... and the member registered in our member list
-        _members.push_back(nomember);
+        _members[member->_id] = member;
     
     return true;
+}
+
+unsigned Hyperedge::id() const
+{
+    return _id;
 }
 
 std::string Hyperedge::label() const
@@ -57,11 +113,12 @@ std::string Hyperedge::label() const
 Hyperedge::Hyperedges Hyperedge::supers(const std::string& label)
 {
     Hyperedges result;
-    for (auto edge : _supers)
+    for (auto edgeIt : _supers)
     {
+        auto edge = edgeIt.second;
         // Filters by label if given. It suffices that the edge label contains the given one.
         if (label.empty() || (edge->label().find(label) != std::string::npos))
-            result.push_back(edge);
+            result[edge->_id] = edge;
     }
     return result;
 }
@@ -69,11 +126,12 @@ Hyperedge::Hyperedges Hyperedge::supers(const std::string& label)
 Hyperedge::Hyperedges Hyperedge::members(const std::string& label)
 {
     Hyperedges result;
-    for (auto edge : _members)
+    for (auto edgeIt : _members)
     {
+        auto edge = edgeIt.second;
         // Filters by label if given. It suffices that the edge label contains the given one.
         if (label.empty() || (edge->label().find(label) != std::string::npos))
-            result.push_back(edge);
+            result[edge->_id] = edge;
     }
     return result;
 }
@@ -130,12 +188,12 @@ template <typename Func> Hyperedge::Hyperedges Hyperedge::traversal(Func f, cons
         switch (dir)
         {
             case DOWN:
-                unknowns.insert(unknowns.end(), edge->_members.begin(), edge->_members.end());
+                unknowns.insert(edge->_members.begin(), edge->_members.end());
                 break;
             case BOTH:
-                unknowns.insert(unknowns.end(), edge->_members.begin(), edge->_members.end());
+                unknowns.insert(edge->_members.begin(), edge->_members.end());
             case UP:
-                unknowns.insert(unknowns.end(), edge->_supers.begin(), edge->_supers.end());
+                unknowns.insert(edge->_supers.begin(), edge->_supers.end());
                 break;
             default:
                 members.clear();
@@ -149,12 +207,13 @@ template <typename Func> Hyperedge::Hyperedges Hyperedge::traversal(Func f, cons
         visited.insert(edge);
         if (f(edge))
         {
-            members.push_back(edge);
+            members[edge->_id] = edge;
         }
 
         // Inserting members and supers into queue
-        for (auto unknown : unknowns)
+        for (auto unknownIt : unknowns)
         {
+            auto unknown = unknownIt.second;
             edges.push(unknown);
         }
     }
@@ -181,12 +240,13 @@ std::string Hyperedge::serialize(Hyperedge* root)
 
         // Visiting!!!
         visited.insert(edge);
-        result << edge->label();
+        result << edge->id() << ":" << edge->label();
 
         // Inserting members into queue
-        for (auto unknown : edge->members())
+        for (auto unknownIt : edge->members())
         {
-            result << "[" << unknown->label() << "]";
+            auto unknown = unknownIt.second;
+            result << "[" << unknown->id() << "]";
             edges.push(unknown);
         }
         result << "\n";
@@ -198,65 +258,71 @@ std::string Hyperedge::serialize(Hyperedge* root)
 Hyperedge* Hyperedge::deserialize(const std::string& from)
 {
     Hyperedge *root = NULL;
-    std::map< std::string, Hyperedge* > known;
-    std::set< std::string > roots;
+    Hyperedge::Hyperedges known;
+    std::set< unsigned > roots;
     
     auto spos = 0;
+    auto cpos = from.find(":");
     auto opos = from.find("[");
     auto npos = from.find("\n");
 
     // Run through string
     while (npos < from.size())
     {
+        // Extract id
+        auto id = std::stoul(from.substr(spos, cpos-spos));
         // Extract label
-        auto label = from.substr(spos, npos-spos);
+        auto label = from.substr(cpos+1, npos-cpos-1);
         if (opos < npos)
-            label = from.substr(spos, opos-spos);
+            label = from.substr(cpos+1, opos-cpos-1);
 
         // Go through all members, create them if necessary and update current hyperedge
         Hyperedge::Hyperedges members;
         while (opos < npos)
         {
-            auto member = from.substr(opos+1, from.find("]",opos+1)-opos-1);
+            auto memberId = std::stoul(from.substr(opos+1, from.find("]",opos+1)-opos-1));
             // Find label in map (and create it iff not found)
-            if (!known.count(member))
+            if (!known.count(memberId))
             {
-                known[member] = new Hyperedge(member);
+                known[memberId] = Hyperedge::create(memberId,"");
             }
-            members.push_back(known[member]);
+            members[memberId] = known[memberId];
             // Whenever something gets a member, it cannot be a root anymore
-            if (roots.count(member))
+            if (roots.count(memberId))
             {
-                roots.erase(member);
+                roots.erase(memberId);
             }
             opos = from.find("[", opos+1);
         }
 
-        // Find label in map, create or update it
-        if (!known.count(label))
+        // Find id in map, create or update it
+        if (!known.count(id))
         {
-            known[label] = new Hyperedge(members, label);
+            known[id] = Hyperedge::create(id, members, label);
             // Whenever a parent is created it might be a root
-            roots.insert(label);
+            roots.insert(id);
         } else {
             // Update already existing hyperedge
-            for (auto member : members)
+            known[id]->_label = label;
+            for (auto memberIt : members)
             {
-                known[label]->contains(member);
+                auto member = memberIt.second;
+                known[id]->contains(member);
             }
         }
 
         // Update positions
         spos = npos+1;
+        cpos = from.find(":",spos);
         opos = from.find("[", spos);
         npos = from.find("\n",spos);
     }
 
     // Now we have to find the root
     if (roots.size() > 1)
-        std::cout << "Multiple roots?!" << std::endl;
+        throw std::runtime_error("Multiple roots");
     if (roots.size() < 1)
-        std::cout << "No roots?!" << std::endl;
+        throw std::runtime_error("No root");
 
     root = known[*(roots.begin())];
 

@@ -10,8 +10,7 @@ A graph in this sense is now just a collection of hyperedges.
 ## State
 
 * Implemented Hyperedge class
+* Implement Hypergraph Import and Export (see serializer/deserializer)
 
 ## TODO
 
-* Implement Hypergraph
-* Implement Hypergraph Import and Export

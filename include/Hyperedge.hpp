@@ -1,7 +1,7 @@
 #ifndef _HYPEREDGE_HPP
 #define _HYPEREDGE_HPP
 
-#include <vector>
+#include <map>
 #include <string>
 
 /*
@@ -21,24 +21,36 @@
 class Hyperedge
 {
     public:
-        typedef std::vector<Hyperedge*> Hyperedges;
+        typedef std::map<unsigned, Hyperedge*> Hyperedges;
 
         /*Constructors*/
         Hyperedge(const std::string& label="");
         Hyperedge(Hyperedges members, const std::string& label="");
 
-        /*Read Access*/
+        /*Factory functions*/
+        static Hyperedge* create(const std::string& label="");
+        static Hyperedge* create(Hyperedges members, const std::string& label="");
+        static void cleanup();
+
+        /*Special factory functions for import/export*/
+        static std::string serialize(Hyperedge* root); // DFS
+        static Hyperedge* deserialize(const std::string& from);
+
+        /*
+            Read Access:
+            Note, the members() and supers() functions can filter by label (labelContains behavior)
+        */
+        unsigned id() const; 
         std::string label() const; 
         Hyperedges members(const std::string& label="");
         Hyperedges supers(const std::string& label="");
 
-        /*Write access*/
+        /*
+            Write access:
+            This is convenient to use (but the constructor above is the only thing necessary)
+        */
         bool contains(Hyperedge *member);
 
-        /*Graph serialization: Order preserving!!! TODO: Could use traversal member func*/
-        static std::string serialize(Hyperedge* root); // DFS
-        static Hyperedge* deserialize(const std::string& from);
-        
         /*TODO: To ensure uniqueness and other things we have to override == and other operators*/
         
         /*
