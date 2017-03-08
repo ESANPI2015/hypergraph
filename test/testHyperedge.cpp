@@ -44,8 +44,8 @@ int main(void)
 
     std::cout << "*** Id Test ***" << std::endl;
 
-    auto manufactured = Hyperedge::create("Dynamic");
-    for (auto edgeIt : things.labelContains())
+    auto manufactured = things.labelContains();
+    for (auto edgeIt : manufactured->members())
     {
         std::cout << "ID: " << edgeIt.first << " LABEL: " << edgeIt.second->label() << std::endl;
         assert(edgeIt.first < manufactured->id());
@@ -61,9 +61,9 @@ int main(void)
     std::cout << "*** Built-in independent de-/serializer test finished ***" << std::endl;
 
     std::cout << "*** Queries Test ***" << std::endl;
-    auto individuals = Hyperedge::create(things.cardinalityLessThanOrEqual(), "Individuals");
+    auto individuals = things.cardinalityLessThanOrEqual();
     std::cout << Hyperedge::serialize(individuals) << std::endl;
-    auto special = Hyperedge::create(things.cardinalityGreaterThan(), "Others");;
+    auto special = things.cardinalityGreaterThan();
     std::cout << Hyperedge::serialize(special) << std::endl;
 
     std::cout << "*** Queries Test finished ***" << std::endl;

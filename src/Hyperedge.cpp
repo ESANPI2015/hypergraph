@@ -137,39 +137,52 @@ Hyperedge::Hyperedges Hyperedge::members(const std::string& label)
 }
 
 
-Hyperedge::Hyperedges Hyperedge::labelContains(const std::string& str, const Hyperedge::TraversalDirection dir)
+Hyperedge* Hyperedge::labelContains(const std::string& str, const Hyperedge::TraversalDirection dir)
 {
-    return traversal(
+    return Hyperedge::create(_traversal(
         [&](Hyperedge *x){ return (str.empty() || (x->label().find(str) != std::string::npos)) ? true : false; },
-        dir
+        dir),
+        "labelContains(" + str + ")"
     );
 }
 
-Hyperedge::Hyperedges Hyperedge::labelPartOf(const std::string& str, const Hyperedge::TraversalDirection dir)
+Hyperedge* Hyperedge::labelPartOf(const std::string& str, const Hyperedge::TraversalDirection dir)
 {
-    return traversal(
+    return Hyperedge::create(_traversal(
         [&](Hyperedge *x){ return (str.empty() || (str.find(x->label()) != std::string::npos)) ? true : false; },
-        dir
+        dir),
+        "labelPartOf(" + str + ")"
     );
 }
 
-Hyperedge::Hyperedges Hyperedge::cardinalityLessThanOrEqual(const unsigned cardinality, const Hyperedge::TraversalDirection dir)
+Hyperedge* Hyperedge::cardinalityLessThanOrEqual(const unsigned cardinality, const Hyperedge::TraversalDirection dir)
 {
-    return traversal(
+    std::stringstream ss;
+    ss << "cardinalityLessThanOrEqual(" << cardinality << ")";
+    return Hyperedge::create(_traversal(
         [&](Hyperedge *x){ return (x->members().size() <= cardinality)? true : false; },
-        dir
+        dir),
+        ss.str()
     );
 }
 
-Hyperedge::Hyperedges Hyperedge::cardinalityGreaterThan(const unsigned cardinality, const Hyperedge::TraversalDirection dir)
+Hyperedge* Hyperedge::cardinalityGreaterThan(const unsigned cardinality, const Hyperedge::TraversalDirection dir)
 {
-    return traversal(
+    std::stringstream ss;
+    ss << "cardinalityGreaterThan(" << cardinality << ")";
+    return Hyperedge::create(_traversal(
         [&](Hyperedge *x){ return (x->members().size() > cardinality)? true : false; },
-        dir
+        dir),
+        ss.str()
     );
 }
 
-template <typename Func> Hyperedge::Hyperedges Hyperedge::traversal(Func f, const Hyperedge::TraversalDirection dir)
+template <typename Func> Hyperedge* Hyperedge::traversal(Func f, const std::string& label, const Hyperedge::TraversalDirection dir)
+{
+    return Hyperedge::create(_traversal(f,dir), label);
+}
+
+template <typename Func> Hyperedge::Hyperedges Hyperedge::_traversal(Func f, const Hyperedge::TraversalDirection dir)
 {
     Hyperedges members;
     std::set< Hyperedge* > visited;
@@ -219,6 +232,42 @@ template <typename Func> Hyperedge::Hyperedges Hyperedge::traversal(Func f, cons
     }
 
     return members;
+}
+
+Hyperedge* Hyperedge::unite(const Hyperedge* other)
+{
+    // We will create a Hyperedge which will contain
+    // x which are part of either this->members() or other->members() or both
+    auto members = _members;
+    members.insert(other->_members.begin(), other->_members.end());
+    return Hyperedge::create(members, this->label() + "||" + other->label());
+}
+
+Hyperedge* Hyperedge::intersect(const Hyperedge* other)
+{
+    // We will create a Hyperedge which will contain
+    // x which are part of both this->members() and other->members()
+    Hyperedge* result = Hyperedge::create(this->label() + "&&" + other->label());
+    for (auto mineIt : _members)
+    {
+        if (other->_members.count(mineIt.first))
+        {
+           result->contains(mineIt.second); 
+        }
+    }
+    return result;
+}
+
+Hyperedge* Hyperedge::subtract(const Hyperedge* other)
+{
+    // this - other
+    return NULL;
+}
+
+Hyperedge* Hyperedge::complement(Hyperedge* other)
+{
+    // other - this
+    return other->subtract(this);
 }
 
 std::string Hyperedge::serialize(Hyperedge* root)
