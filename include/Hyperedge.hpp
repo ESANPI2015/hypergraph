@@ -28,6 +28,9 @@ class Hyperedge
         /*Constructors*/
         Hyperedge(const std::string& label="");
         Hyperedge(Hyperedges members, const std::string& label="");
+        
+        /*Destructor*/
+        ~Hyperedge();
 
         /*Factory functions*/
         static Hyperedge* create(const std::string& label="");
@@ -52,6 +55,9 @@ class Hyperedge
             This is convenient to use (but the constructor above is the only thing necessary)
         */
         bool contains(Hyperedge *member);
+        void clear(); // Removes all members (and also deregisters)
+        void seperate(); // Removes from all super sets (and also deregisters)
+        void detach(); // Combination of clear and seperate
 
         /*TODO: To ensure uniqueness and other things we have to override == and other operators*/
         

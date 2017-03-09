@@ -28,6 +28,19 @@ Hyperedge::Hyperedge(Hyperedges members, const std::string& label)
     }
 }
 
+// DESTRUCTORS
+Hyperedge::~Hyperedge()
+{
+    // First we detach from all our members AND supers
+    detach();
+
+    // Check if we are in _created pool. If yes, delete
+    if (_created.count(_id))
+    {
+        _created.erase(_id);
+    }
+}
+
 // PUBLIC FACTORY
 // TODO: We should throw if needed ...
 Hyperedge* Hyperedge::create(const std::string& label)
@@ -44,10 +57,55 @@ Hyperedge* Hyperedge::create(Hyperedges members, const std::string& label)
     return neu;
 }
 
+void Hyperedge::detach()
+{
+    clear();
+    seperate();
+}
+
+void Hyperedge::seperate()
+{
+    // Deregister from supers (registered in its members)
+    for (auto superIt : _supers)
+    {
+        auto super = superIt.second;
+        if (super->_members.count(_id))
+        {
+            super->_members.erase(_id);
+        }
+    }
+    // Clear supers
+    _supers.clear();
+}
+
+void Hyperedge::clear()
+{
+    // Deregister from members (registered in its supers)
+    for (auto memberIt : _members)
+    {
+        auto member = memberIt.second;
+        if (member->_supers.count(_id))
+        {
+            member->_supers.erase(_id);
+        }
+    }
+    // Clear members
+    _members.clear();
+}
+
 void Hyperedge::cleanup()
 {
-    // destroy all registered hyperedges
-    for (auto edgeIt : _created)
+    auto localCopy = _created;
+
+    // detach all registered hyperedges
+    for (auto edgeIt : localCopy)
+    {
+        auto edge = edgeIt.second;
+        edge->detach();
+    }
+
+    // finally destroy
+    for (auto edgeIt : localCopy)
     {
         auto edge = edgeIt.second;
         delete edge;
