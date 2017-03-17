@@ -49,7 +49,7 @@ class Hyperedge
         unsigned id() const; 
         std::string label() const; 
         unsigned cardinality() const;
-        Hyperedges members(const std::string& label=""); // TODO: Move this to private
+        Hyperedges members(const std::string& label=""); // Do not move to private ... because otherwise we cannot seperate the query from the results!
         Hyperedges supers(const std::string& label=""); // TODO: Move this to private
 
         /*
