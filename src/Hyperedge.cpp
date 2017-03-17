@@ -249,6 +249,15 @@ Hyperedge* Hyperedge::membersOf()
     );
 }
 
+Hyperedge* Hyperedge::supersOf()
+{
+    return Hyperedge::create(_traversal(
+        [&](Hyperedge *x){ return true; },
+        UP),
+        "supersOf(" + _label + ")"
+    );
+}
+
 template <typename Func> Hyperedge* Hyperedge::traversal(Func f, const std::string& label, const Hyperedge::TraversalDirection dir)
 {
     return Hyperedge::create(_traversal(f,dir), label);
