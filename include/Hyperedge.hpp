@@ -72,10 +72,10 @@ class Hyperedge
             BOTH
         };
         template <typename Func> Hyperedge* traversal(Func f, const std::string& label="Traversal", const TraversalDirection dir = DOWN);
-        Hyperedge* labelContains(const std::string& str="", const TraversalDirection dir = DOWN);
-        Hyperedge* labelPartOf(const std::string& str="", const TraversalDirection dir = DOWN);
-        Hyperedge* cardinalityLessThanOrEqual(const unsigned cardinality=0, const TraversalDirection dir = DOWN);
-        Hyperedge* cardinalityGreaterThan(const unsigned cardinality=0, const TraversalDirection dir = DOWN);
+        Hyperedge* labelContains(const std::string& str="", const TraversalDirection dir = BOTH);
+        Hyperedge* labelPartOf(const std::string& str="", const TraversalDirection dir = BOTH);
+        Hyperedge* cardinalityLessThanOrEqual(const unsigned cardinality=0, const TraversalDirection dir = BOTH);
+        Hyperedge* cardinalityGreaterThan(const unsigned cardinality=0, const TraversalDirection dir = BOTH);
 
         /*
             Merge operations
