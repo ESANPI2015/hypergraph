@@ -342,7 +342,16 @@ Hyperedge* Hyperedge::intersect(const Hyperedge* other)
 Hyperedge* Hyperedge::subtract(const Hyperedge* other)
 {
     // this - other
-    return NULL;
+    // only those x which are part of this->members() but not part of other->members()
+    Hyperedge* result = Hyperedge::create(this->label() + "/" + other->label());
+    for (auto mineIt : _members)
+    {
+        if (!other->_members.count(mineIt.first))
+        {
+           result->contains(mineIt.second); 
+        }
+    }
+    return result;
 }
 
 Hyperedge* Hyperedge::complement(Hyperedge* other)
