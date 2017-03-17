@@ -243,7 +243,7 @@ Hyperedge* Hyperedge::cardinalityGreaterThan(const unsigned cardinality, const H
 Hyperedge* Hyperedge::membersOf()
 {
     return Hyperedge::create(_traversal(
-        [&](Hyperedge *x){ return true; },
+        [&](Hyperedge *x){ return x->id() != id() ? true : false; },
         DOWN),
         "membersOf(" + _label + ")"
     );
@@ -252,7 +252,7 @@ Hyperedge* Hyperedge::membersOf()
 Hyperedge* Hyperedge::supersOf()
 {
     return Hyperedge::create(_traversal(
-        [&](Hyperedge *x){ return true; },
+        [&](Hyperedge *x){ return x->id() != id() ? true : false; },
         UP),
         "supersOf(" + _label + ")"
     );
