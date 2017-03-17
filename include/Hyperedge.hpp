@@ -61,7 +61,7 @@ class Hyperedge
         void seperate(); // Removes from all super sets (and also deregisters)
         void detach(); // Combination of clear and seperate
 
-        /*TODO: To ensure uniqueness and other things we have to override == and other operators*/
+        /*TODO: we have to override == and other operators to operate on _id*/
         
         /*
             Graph traversals/Queries
