@@ -240,6 +240,15 @@ Hyperedge* Hyperedge::cardinalityGreaterThan(const unsigned cardinality, const H
     );
 }
 
+Hyperedge* Hyperedge::membersOf()
+{
+    return Hyperedge::create(_traversal(
+        [&](Hyperedge *x){ return true; },
+        DOWN),
+        "membersOf(" + _label + ")"
+    );
+}
+
 template <typename Func> Hyperedge* Hyperedge::traversal(Func f, const std::string& label, const Hyperedge::TraversalDirection dir)
 {
     return Hyperedge::create(_traversal(f,dir), label);

@@ -48,7 +48,7 @@ class Hyperedge
         unsigned id() const; 
         std::string label() const; 
         unsigned cardinality() const;
-        Hyperedges members(const std::string& label="");
+        Hyperedges members(const std::string& label=""); // TODO: Move this to private
         Hyperedges supers(const std::string& label="");
 
         /*
@@ -76,6 +76,7 @@ class Hyperedge
         Hyperedge* labelPartOf(const std::string& str="", const TraversalDirection dir = BOTH);
         Hyperedge* cardinalityLessThanOrEqual(const unsigned cardinality=0, const TraversalDirection dir = BOTH);
         Hyperedge* cardinalityGreaterThan(const unsigned cardinality=0, const TraversalDirection dir = BOTH);
+        Hyperedge* membersOf(); // Go down the hierarchy and register all members AND member of members
 
         /*
             Merge operations
