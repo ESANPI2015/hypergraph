@@ -168,6 +168,11 @@ std::string Hyperedge::label() const
     return _label;
 }
 
+unsigned Hyperedge::cardinality() const
+{
+    return _members.size();
+}
+
 Hyperedge::Hyperedges Hyperedge::supers(const std::string& label)
 {
     Hyperedges result;

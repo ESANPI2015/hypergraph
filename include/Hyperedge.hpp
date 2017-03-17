@@ -47,6 +47,7 @@ class Hyperedge
         */
         unsigned id() const; 
         std::string label() const; 
+        unsigned cardinality() const;
         Hyperedges members(const std::string& label="");
         Hyperedges supers(const std::string& label="");
 
