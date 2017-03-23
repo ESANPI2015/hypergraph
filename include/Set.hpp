@@ -4,6 +4,7 @@
 #include "Relation.hpp"
 
 // A set (system) is formed by Hyperedges and a memberOf relation
+// A subsumption hierarchy is formed by an isA relation
 class Set : public Hyperedge
 {
     public:
@@ -17,6 +18,7 @@ class Set : public Hyperedge
 
         // Write access
         bool contains(Set *other); // causes a memberOf relation to be created
+        bool isA(Set *other);      // causes a isA relation to be created 
 };
 
 #endif
