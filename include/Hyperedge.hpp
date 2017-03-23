@@ -11,14 +11,7 @@
 * You can however derive them from 0-Hyperedges.
 *
 * TODO:
-* Need some form of UUID: Current idea is to use label and date/time for hashing
-* -> UNIQUE LABELS!!! LABELS ARE NOT STORAGE! -> But it should be somehting like a name!?!
 * Should we make this a template class? So then we could store some data in it
-* Serialization is just a special case of graph traversal. Make this more generic
-* Actually we should make both, serializer & deserializer static or not. In the latter case we can make them virtual
-*  in the former case we decouple them from the Hyperedge core functionality. However deserialize should either be static OR
-*  a constructor but not a modifier. But we cannot have virtual constructors
-* -> Both static
 */
 class Hyperedge
 {
@@ -27,62 +20,58 @@ class Hyperedge
 
         /*Constructors*/
         Hyperedge(const std::string& label="");
-        Hyperedge(Hyperedges members, const std::string& label="");
+        Hyperedge(Hyperedges edges, const std::string& label="");
         
         /*Destructor*/
         ~Hyperedge();
 
         /*Factory functions*/
         static Hyperedge* create(const std::string& label="");
-        static Hyperedge* create(Hyperedges members, const std::string& label="");
+        static Hyperedge* create(Hyperedges edges, const std::string& label="");
         static void cleanup();
 
-        /*Special factory functions for import/export*/
-        static std::string serialize(Hyperedge* root); // DFS
-        static Hyperedge* deserialize(const std::string& from);
-
         /*
-            Read Access:
-            Note, the members() and supers() functions can filter by label (labelContains behavior)
-            ALSO: You should consider to use the queries memberOf() and superOf()
+            Read Access
         */
         unsigned id() const; 
         std::string label() const; 
         unsigned cardinality() const;
-        Hyperedges members(const std::string& label=""); // Do not move to private ... because otherwise we cannot seperate the query from the results!
-        Hyperedges supers(const std::string& label=""); // TODO: Move this to private
+        Hyperedges pointingTo(const std::string& label="");
+        Hyperedges pointedBy(const std::string& label="");
 
         /*
-            Write access:
-            This is convenient to use (but the constructor above is the only thing necessary)
+            Write access
         */
-        bool contains(Hyperedge *member);
-        void clear(); // Removes all members (and also deregisters)
-        void seperate(); // Removes from all super sets (and also deregisters)
+        bool pointTo(Hyperedge* edge); // Adds the edge to the set of edges we point to (and also registers in their from set)
+        void clear(); // Removes all hyperedges we point to (and also deregisters)
+        void seperate(); // Removes all hyperedges pointing to us (and also deregisters)
         void detach(); // Combination of clear and seperate
 
         /*TODO: we have to override == and other operators to operate on _id*/
         
         /*
-            Graph traversals/Queries
-            NOTE: These functions create new hyperedges
+            Graph traversals/Queries producing new hyperedges
         */
         enum TraversalDirection {
             DOWN,
             UP,
             BOTH
         };
-        template <typename Func> Hyperedge* traversal(Func f, const std::string& label="Traversal", const TraversalDirection dir = DOWN);
-        Hyperedge* labelContains(const std::string& str="", const TraversalDirection dir = BOTH);
-        Hyperedge* labelPartOf(const std::string& str="", const TraversalDirection dir = BOTH);
-        Hyperedge* cardinalityLessThanOrEqual(const unsigned cardinality=0, const TraversalDirection dir = BOTH);
-        Hyperedge* cardinalityGreaterThan(const unsigned cardinality=0, const TraversalDirection dir = BOTH);
-        Hyperedge* membersOf(); // Go down the hierarchy and register all members AND member of members
-        Hyperedge* supersOf(); // Go up the hierarchy and register all supersets AND supersets of supersets
+        template <typename ResultFilter, typename TraversalFilter> Hyperedge* traversal(
+            ResultFilter f, 
+            TraversalFilter g,
+            const std::string& label="Traversal",
+            const TraversalDirection dir = DOWN
+        );
+        Hyperedge* labelContains(const std::string& str="");
+        Hyperedge* labelPartOf(const std::string& str="");
+        Hyperedge* cardinalityLessThanOrEqual(const unsigned cardinality=0);
+        Hyperedge* cardinalityGreaterThan(const unsigned cardinality=0);
+        Hyperedge* successors(); // Go in direction of to set and register all edges AND edge of edges
+        Hyperedge* predecessors(); // Go in direction of from set and register all edges AND edges of edges
 
         /*
-            Merge operations
-            NOTE: The returned Hyperedges are NEW Hyperedges
+            Merge operations producing new hyperedges
         */
         // Unite *this and other (but *this and other are NOT part of unification)
         Hyperedge* unite(const Hyperedge* other);
@@ -90,25 +79,31 @@ class Hyperedge
         Hyperedge* intersect(const Hyperedge* other);
         // Difference between *this - other (and *this and other cannot be part of it)
         Hyperedge* subtract(const Hyperedge* other);
-        // Difference between other - *this (and *this and other cannot be part of it)
-        Hyperedge* complement(Hyperedge* other);
 
-    private:
+        /* Serialization */
+        friend std::ostream& operator<< (std::ostream& stream, const Hyperedge& edge);
+
+    protected:
         // Private traversal function which will NOT create any edges (to be used by functions called on creation like contains)
-        template <typename Func> Hyperedges _traversal(Func f, const TraversalDirection dir = DOWN);
+        template <typename ResultFilter, typename TraversalFilter> Hyperedges _traversal
+        ( 
+            ResultFilter f,
+            TraversalFilter g,
+            const TraversalDirection dir = DOWN
+        );
 
         // Private factory functions to create Hyperedges with a certain id
         // Used by deserialization
         static Hyperedge* create(const unsigned id, const std::string& label="");
-        static Hyperedge* create(const unsigned id, Hyperedges members, const std::string& label="");
+        static Hyperedge* create(const unsigned id, Hyperedges edges, const std::string& label="");
 
         // Private members
         unsigned _id;
         std::string _label;
-        Hyperedges _supers;  // This is the row of an incidence matrix
-        Hyperedges _members; // This is the column of an incidence matrix
+        Hyperedges _from;  // This is the row of an incidence matrix
+        Hyperedges _to;    // This is the column of an incidence matrix
 
-        // Private static members for 
+        // Private static members for factory
         static unsigned _lastId;
         static Hyperedges _created;
 };

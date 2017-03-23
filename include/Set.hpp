@@ -1,14 +1,20 @@
 #ifndef _SET_HPP
 #define _SET_HPP
 
-#include "Hyperedge.hpp"
+#include "Relation.hpp"
 
-// A set is just a hyperedge
+// A set (system) is formed by Hyperedges and a memberOf relation
 class Set : public Hyperedge
 {
     public:
+        typedef std::map<unsigned, Set*> Sets;
+
         Set(const std::string& label="");
-        Set(Hyperedge::Hyperedges members, const std::string& label);
+        Set(Sets members, const std::string& label);
+
+        // Write access
+        // NOTE: also causes a memberOf relation to be created
+        bool contains(Set *other);
 };
 
 #endif

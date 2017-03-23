@@ -11,10 +11,10 @@ int main(void)
 
     Hyperedge node("A 0-hyperedge (empty named set)");
     Hyperedge set("A 1-hyperedge (set with one member)");
-    set.contains(&node);
+    set.pointTo(&node);
 
     std::cout << "> Test 1-Hyperedge " << std::endl;
-    auto members = set.members();
+    auto members = set.pointingTo();
     assert(members.size() == 1);
     assert(members.begin()->second->label() == "A 0-hyperedge (empty named set)");
 
@@ -30,7 +30,8 @@ int main(void)
     Set inputs("Inputs");
     Set outputs("Outputs");
 
-    // Build taxonomy
+    // Build taxonomy using set system
+    // (so the memberOf relation is interpreted as a isA relation -> DIRTY! )
     things.contains(&components);
     ports.contains(&inputs);
     ports.contains(&outputs);
@@ -39,13 +40,13 @@ int main(void)
 
     // Create relations
     Relation has("have");
-    has.contains(&components);
-    has.contains(&ports);
+    has.from(&components);
+    has.to(&ports);
 
     std::cout << "*** Id Test ***" << std::endl;
 
     auto manufactured = things.labelContains();
-    for (auto edgeIt : manufactured->members())
+    for (auto edgeIt : manufactured->pointingTo())
     {
         std::cout << "ID: " << edgeIt.first << " LABEL: " << edgeIt.second->label() << std::endl;
         assert(edgeIt.first < manufactured->id());
@@ -53,18 +54,18 @@ int main(void)
 
     std::cout << "*** Id Test Finished ***" << std::endl;
 
-    std::cout << "*** Built-in independent de-/serializer test ***" << std::endl;
-    std::cout << "> Print things (using serializer)" << std::endl;
-    std::cout << Hyperedge::serialize(&things) << std::endl;
-    std::cout << "> Print things (using serializer-deserializer-serializer compositional chain)" << std::endl;
-    std::cout << Hyperedge::serialize(Hyperedge::deserialize(Hyperedge::serialize(&things))) << std::endl;
-    std::cout << "*** Built-in independent de-/serializer test finished ***" << std::endl;
+    //std::cout << "*** Built-in independent de-/serializer test ***" << std::endl;
+    //std::cout << "> Print things (using serializer)" << std::endl;
+    //std::cout << Hyperedge::serialize(&things) << std::endl;
+    //std::cout << "> Print things (using serializer-deserializer-serializer compositional chain)" << std::endl;
+    //std::cout << Hyperedge::serialize(Hyperedge::deserialize(Hyperedge::serialize(&things))) << std::endl;
+    //std::cout << "*** Built-in independent de-/serializer test finished ***" << std::endl;
 
     std::cout << "*** Queries Test ***" << std::endl;
     auto individuals = things.cardinalityLessThanOrEqual();
-    std::cout << Hyperedge::serialize(individuals) << std::endl;
+    std::cout << *individuals << std::endl;
     auto special = things.cardinalityGreaterThan();
-    std::cout << Hyperedge::serialize(special) << std::endl;
+    std::cout << *special << std::endl;
 
     std::cout << "*** Queries Test finished ***" << std::endl;
 
