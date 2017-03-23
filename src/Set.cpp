@@ -23,3 +23,10 @@ bool Set::contains(Set *other)
     bool b = memberOf->to(this);
     return (a && b);
 }
+
+Set* Set::create(const std::string& label)
+{
+    Set* neu = new Set(label);
+    _created[neu->_id] = neu; // down-cast
+    return neu;
+}
