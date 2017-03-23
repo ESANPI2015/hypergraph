@@ -33,6 +33,15 @@ bool Set::isA(Set *other)
     return (a && b);
 }
 
+bool Set::partOf(Set *other)
+{
+    // This will create a partOf Relation
+    Relation* partOf = Relation::create("partOf");
+    bool a = partOf->from(this);
+    bool b = partOf->to(other);
+    return (a && b);
+}
+
 Set* Set::create(const std::string& label)
 {
     Set* neu = new Set(label);
