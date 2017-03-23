@@ -173,7 +173,7 @@ unsigned Hyperedge::cardinality() const
     return _to.size();
 }
 
-Hyperedge::Hyperedges Hyperedge::pointedBy(const std::string& label)
+Hyperedge::Hyperedges Hyperedge::pointedBy(const std::string& label) const
 {
     Hyperedges result;
     for (auto edgeIt : _from)
@@ -186,7 +186,7 @@ Hyperedge::Hyperedges Hyperedge::pointedBy(const std::string& label)
     return result;
 }
 
-Hyperedge::Hyperedges Hyperedge::pointingTo(const std::string& label)
+Hyperedge::Hyperedges Hyperedge::pointingTo(const std::string& label) const
 {
     Hyperedges result;
     for (auto edgeIt : _to)

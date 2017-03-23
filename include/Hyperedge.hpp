@@ -36,8 +36,8 @@ class Hyperedge
         unsigned id() const; 
         std::string label() const; 
         unsigned cardinality() const;
-        Hyperedges pointingTo(const std::string& label="");
-        Hyperedges pointedBy(const std::string& label="");
+        Hyperedges pointingTo(const std::string& label="") const;
+        Hyperedges pointedBy(const std::string& label="") const;
 
         /*
             Write access
