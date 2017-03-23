@@ -16,8 +16,7 @@ class Set : public Hyperedge
         static Set* create(const std::string& label="");
 
         // Write access
-        // NOTE: also causes a memberOf relation to be created
-        bool contains(Set *other);
+        bool contains(Set *other); // causes a memberOf relation to be created
 };
 
 #endif
