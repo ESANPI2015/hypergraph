@@ -374,11 +374,12 @@ Hyperedge* Hyperedge::subtract(const Hyperedge* other)
     return result;
 }
 
-std::ostream& operator<< (std::ostream& stream, const Hyperedge& edge)
+std::ostream& operator<< (std::ostream& stream, const Hyperedge* edge)
 {
-    stream << edge.id() << ":";
-    stream << edge.label() << "[";
-    for (auto otherIt : edge._to)
+    stream << edge->id() << ":";
+    stream << edge->label() << "[";
+    auto others = edge->pointingTo();
+    for (auto otherIt : others)
     {
         auto other = otherIt.second;
         stream << " " << other->id() << " ";
@@ -387,39 +388,16 @@ std::ostream& operator<< (std::ostream& stream, const Hyperedge& edge)
     return stream;
 }
 
-//std::string Hyperedge::serialize(Hyperedge* root)
-//{
-//    std::stringstream result;
-//    std::set< Hyperedge* > visited;
-//    std::queue< Hyperedge* > edges;
-//
-//    edges.push(root);
-//
-//    // Run through queue of unknown edges
-//    while (!edges.empty())
-//    {
-//        auto edge = edges.front();
-//        edges.pop();
-//
-//        if (visited.count(edge))
-//            continue;
-//
-//        // Visiting!!!
-//        visited.insert(edge);
-//        result << edge->id() << ":" << edge->label();
-//
-//        // Inserting edges into queue
-//        for (auto unknownIt : edge->edges())
-//        {
-//            auto unknown = unknownIt.second;
-//            result << "[" << unknown->id() << "]";
-//            edges.push(unknown);
-//        }
-//        result << "\n";
-//    }
-//
-//    return result.str();
-//}
+std::string Hyperedge::serialize(Hyperedge* root)
+{
+    std::stringstream result;
+    auto trav = root->traversal(
+        [&](Hyperedge *x){result << x << "\n"; return false;},
+        [](Hyperedge *x){return true;},
+        "",BOTH);
+    delete trav;
+    return result.str();
+}
 //
 //Hyperedge* Hyperedge::deserialize(const std::string& from)
 //{

@@ -81,7 +81,8 @@ class Hyperedge
         Hyperedge* subtract(const Hyperedge* other);
 
         /* Serialization */
-        friend std::ostream& operator<< (std::ostream& stream, const Hyperedge& edge);
+        friend std::ostream& operator<< (std::ostream& stream, const Hyperedge* edge);
+        static std::string serialize(Hyperedge* root);
 
     protected:
         // Private traversal function which will NOT create any edges (to be used by functions called on creation like contains)
