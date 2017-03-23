@@ -22,6 +22,12 @@ class Set : public Hyperedge
         bool isA(Set *other);      // causes a isA relation to be created 
         bool partOf(Set *other);   // causes a partOf relation to be created
 
+        // Useful static member functions
+        // TODO: Think about making some of the Hyperedge member functions templated (so they work for derived classes as well)
+        static Set* promote(Hyperedge *edge);
+        static Sets promote(Hyperedge::Hyperedges edges);
+
+        // Queries
 };
 
 #endif

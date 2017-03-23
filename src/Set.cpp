@@ -15,6 +15,22 @@ Set::Set(Set::Sets members, const std::string& label)
     }
 }
 
+Set* Set::promote(Hyperedge *edge)
+{
+    return static_cast<Set*>(edge);
+}
+
+Set::Sets Set::promote(Hyperedge::Hyperedges edges)
+{
+    Set::Sets result;
+    for (auto edgeIt : edges)
+    {
+        auto edge = edgeIt.second;
+        result[edge->id()] = static_cast<Set*>(edge);
+    }
+    return result;
+}
+
 bool Set::contains(Set *other)
 {
     // This will create a memberOf Relation
