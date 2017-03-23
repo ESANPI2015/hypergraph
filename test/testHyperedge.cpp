@@ -20,7 +20,7 @@ int main(void)
 
     std::cout << "*** Hyperedge Test Finished ***" << std::endl;
 
-    std::cout << "> Creating software component modelling domain" << std::endl;
+    std::cout << "> Creating (software) component modelling domain" << std::endl;
 
     // Create concepts
     Set things("Things");
@@ -30,15 +30,20 @@ int main(void)
     Set inputs("Inputs");
     Set outputs("Outputs");
 
-    // Build taxonomy using set system
-    // (so the memberOf relation is interpreted as a isA relation -> DIRTY! )
-    things.contains(&components);
-    ports.contains(&inputs);
-    ports.contains(&outputs);
-    components.contains(&software);
-    things.contains(&ports);
+    // Build taxonomy using set system with isA relation (subsumption hierarchy)
+    components.isA(&things);
+    inputs.isA(&ports);
+    outputs.isA(&ports);
+    ports.isA(&things);
 
-    // Create relations
+    // Compose something from simpler things with partOf relation (compositional hierarchy)
+    // TODO: Ok, now ComponentX is a Component. What about Component1 and 2? Are they 'automatically' also components?
+    auto composite = Set::create("ComponentX");
+    Set::create("Component1")->partOf(composite);
+    Set::create("Component2")->partOf(composite);
+    composite->isA(&components);
+
+    // Create own relation
     Relation has("have");
     has.from(&components);
     has.to(&ports);
@@ -48,24 +53,25 @@ int main(void)
     auto manufactured = things.labelContains();
     for (auto edgeIt : manufactured->pointingTo())
     {
-        std::cout << "ID: " << edgeIt.first << " LABEL: " << edgeIt.second->label() << std::endl;
+        std::cout << edgeIt.second << std::endl;
         assert(edgeIt.first < manufactured->id());
     }
+    delete manufactured;
 
     std::cout << "*** Id Test Finished ***" << std::endl;
 
-    //std::cout << "*** Built-in independent de-/serializer test ***" << std::endl;
-    //std::cout << "> Print things (using serializer)" << std::endl;
-    //std::cout << Hyperedge::serialize(&things) << std::endl;
+    std::cout << "*** Built-in independent de-/serializer test ***" << std::endl;
+    std::cout << "> Print things (using serializer)" << std::endl;
+    std::cout << Hyperedge::serialize(&things) << std::endl;
     //std::cout << "> Print things (using serializer-deserializer-serializer compositional chain)" << std::endl;
     //std::cout << Hyperedge::serialize(Hyperedge::deserialize(Hyperedge::serialize(&things))) << std::endl;
-    //std::cout << "*** Built-in independent de-/serializer test finished ***" << std::endl;
+    std::cout << "*** Built-in independent de-/serializer test finished ***" << std::endl;
 
     std::cout << "*** Queries Test ***" << std::endl;
     auto individuals = things.cardinalityLessThanOrEqual();
-    std::cout << *individuals << std::endl;
+    std::cout << individuals << std::endl;
     auto special = things.cardinalityGreaterThan();
-    std::cout << *special << std::endl;
+    std::cout << special << std::endl;
 
     std::cout << "*** Queries Test finished ***" << std::endl;
 
