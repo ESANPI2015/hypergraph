@@ -53,16 +53,17 @@ class Hyperedge
             Graph traversals/Queries producing new hyperedges
         */
         enum TraversalDirection {
-            DOWN,
-            UP,
-            BOTH
+            DOWN,   // in direction of the _to set
+            UP,     // in direction of the _from set
+            BOTH    // in direction of both
         };
         template <typename ResultFilter, typename TraversalFilter> Hyperedge* traversal(
-            ResultFilter f, 
-            TraversalFilter g,
-            const std::string& label="Traversal",
-            const TraversalDirection dir = DOWN
+            ResultFilter f,                         // Unary function bool f(Hyperedge *)
+            TraversalFilter g,                      // Binary function bool g(Hyperedge *next, Hyperedge *current)
+            const std::string& label="Traversal",   // Label for the result hyperedge
+            const TraversalDirection dir = DOWN     // Direction of traversal
         );
+
         Hyperedge* labelContains(const std::string& str="");
         Hyperedge* labelPartOf(const std::string& str="");
         Hyperedge* cardinalityLessThanOrEqual(const unsigned cardinality=0);
@@ -108,4 +109,9 @@ class Hyperedge
         static unsigned _lastId;
         static Hyperedges _created;
 };
+
+// Include template member functions
+// See http://stackoverflow.com/questions/495021/why-can-templates-only-be-implemented-in-the-header-file
+#include "Hyperedge.tpp"
+
 #endif

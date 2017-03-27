@@ -204,7 +204,7 @@ Hyperedge* Hyperedge::labelContains(const std::string& str)
 {
     return Hyperedge::create(_traversal(
         [&](Hyperedge *x){ return (str.empty() || (x->label().find(str) != std::string::npos)) ? true : false; },
-        [](Hyperedge *x){return true;},
+        [](Hyperedge *x, Hyperedge *y){return true;},
         BOTH),
         "labelContains(" + str + ")"
     );
@@ -214,7 +214,7 @@ Hyperedge* Hyperedge::labelPartOf(const std::string& str)
 {
     return Hyperedge::create(_traversal(
         [&](Hyperedge *x){ return (str.empty() || (str.find(x->label()) != std::string::npos)) ? true : false; },
-        [](Hyperedge *x){return true;},
+        [](Hyperedge *x, Hyperedge *y){return true;},
         BOTH),
         "labelPartOf(" + str + ")"
     );
@@ -226,7 +226,7 @@ Hyperedge* Hyperedge::cardinalityLessThanOrEqual(const unsigned cardinality)
     ss << "cardinalityLessThanOrEqual(" << cardinality << ")";
     return Hyperedge::create(_traversal(
         [&](Hyperedge *x){ return (x->pointingTo().size() <= cardinality)? true : false; },
-        [](Hyperedge *x){return true;},
+        [](Hyperedge *x, Hyperedge *y){return true;},
         BOTH),
         ss.str()
     );
@@ -238,7 +238,7 @@ Hyperedge* Hyperedge::cardinalityGreaterThan(const unsigned cardinality)
     ss << "cardinalityGreaterThan(" << cardinality << ")";
     return Hyperedge::create(_traversal(
         [&](Hyperedge *x){ return (x->pointingTo().size() > cardinality)? true : false; },
-        [](Hyperedge *x){return true;},
+        [](Hyperedge *x, Hyperedge *y){return true;},
         BOTH),
         ss.str()
     );
@@ -248,7 +248,7 @@ Hyperedge* Hyperedge::successors()
 {
     return Hyperedge::create(_traversal(
         [&](Hyperedge *x){ return x->id() != id() ? true : false; },
-        [](Hyperedge *x){return true;},
+        [](Hyperedge *x, Hyperedge *y){return true;},
         DOWN),
         "successors(" + _label + ")"
     );
@@ -258,81 +258,10 @@ Hyperedge* Hyperedge::predecessors()
 {
     return Hyperedge::create(_traversal(
         [&](Hyperedge *x){ return x->id() != id() ? true : false; },
-        [](Hyperedge *x){return true;},
+        [](Hyperedge *x, Hyperedge *y){return true;},
         UP),
         "predecessors(" + _label + ")"
     );
-}
-
-template <typename ResultFilter, typename TraversalFilter> Hyperedge* Hyperedge::traversal(
-    ResultFilter f,
-    TraversalFilter g,
-    const std::string& label,
-    const Hyperedge::TraversalDirection dir
-)
-{
-    return Hyperedge::create(_traversal(f,g,dir), label);
-}
-
-template <typename ResultFilter, typename TraversalFilter> Hyperedge::Hyperedges Hyperedge::_traversal(
-    ResultFilter f,
-    TraversalFilter g,
-    const Hyperedge::TraversalDirection dir
-)
-{
-    Hyperedges result;
-    std::set< Hyperedge* > visited;
-    std::queue< Hyperedge* > edges;
-
-    edges.push(this);
-
-    // Run through queue of unknown edges
-    while (!edges.empty())
-    {
-        auto edge = edges.front();
-        edges.pop();
-
-        // Handle search direction
-        Hyperedges unknowns;
-        switch (dir)
-        {
-            case DOWN:
-                unknowns.insert(edge->_to.begin(), edge->_to.end());
-                break;
-            case BOTH:
-                unknowns.insert(edge->_to.begin(), edge->_to.end());
-            case UP:
-                unknowns.insert(edge->_from.begin(), edge->_from.end());
-                break;
-            default:
-                result.clear();
-                return result;
-        }
-
-        if (visited.count(edge))
-            continue;
-
-        // Visiting!!!
-        visited.insert(edge);
-        if (f(edge))
-        {
-            // edge matches filter func
-            result[edge->_id] = edge;
-        }
-
-        // Inserting edges and supers into queue
-        for (auto unknownIt : unknowns)
-        {
-            auto unknown = unknownIt.second;
-            if (g(edge))
-            {
-                // edge matches filter func
-                edges.push(unknown);
-            }
-        }
-    }
-
-    return result;
 }
 
 Hyperedge* Hyperedge::unite(const Hyperedge* other)
@@ -393,7 +322,7 @@ std::string Hyperedge::serialize(Hyperedge* root)
     std::stringstream result;
     auto trav = root->traversal(
         [&](Hyperedge *x){result << x << "\n"; return false;},
-        [](Hyperedge *x){return true;},
+        [](Hyperedge *x, Hyperedge *y){return true;},
         "",BOTH);
     delete trav;
     return result.str();
