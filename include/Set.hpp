@@ -18,7 +18,7 @@ class Set : public Hyperedge
         static Set* create(const std::string& label="");
 
         // Write access
-        bool contains(Set *other); // causes a memberOf relation to be created
+        bool memberOf(Set *other); // causes a memberOf relation to be created
         bool isA(Set *other);      // causes a isA relation to be created 
         bool partOf(Set *other);   // causes a partOf relation to be created
 
@@ -27,7 +27,11 @@ class Set : public Hyperedge
         static Set* promote(Hyperedge *edge);
         static Sets promote(Hyperedge::Hyperedges edges);
 
-        // Queries
+        // Queries:
+        // Transitive closures of ...
+        Set* memberOf();
+        Set* kindOf(); //isA
+        Set* partOf();
 };
 
 #endif

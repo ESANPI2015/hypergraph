@@ -15,12 +15,12 @@ A graph in this sense is now just a collection of linked hyperedges.
 * Derive from sets the concept of subsumption (is-a relation)
 * Derive from sets the concept of composition (partOf relation). This is orthogonal to subsumption!
 * Traversals use lambda functions for both result set filtering and traversal filtering
+* Lambda function for decision on path is binary (needed for proper decision)
+* Transitive closure of the already defined relations shall be defined somewhere
 
 ## TODO
 
-* Make the traversal/queries and some other functions operating on edges templated. The template mechanism shall enable the usage of these functions in derived classes (e.g. Set/Relation etc.)
 * Make set and/or relation specific queries (e.g. on sets define transitive closure of memberOf relation - called members()?)
-* Transitive closure of the already defined relations shall be defined somewhere
 * Add more relations:
     - hasA to encode Aggregation
     - instanceOf to encode classes & objects (needed? typing is already there)

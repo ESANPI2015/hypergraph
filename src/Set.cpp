@@ -11,7 +11,7 @@ Set::Set(Set::Sets members, const std::string& label)
     for (auto setIt : members)
     {
         auto set = setIt.second;
-        contains(set);
+        set->memberOf(this);
     }
 }
 
@@ -31,12 +31,12 @@ Set::Sets Set::promote(Hyperedge::Hyperedges edges)
     return result;
 }
 
-bool Set::contains(Set *other)
+bool Set::memberOf(Set *other)
 {
     // This will create a memberOf Relation
     Relation* memberOf = Relation::create("memberOf");
-    bool a = memberOf->from(other);
-    bool b = memberOf->to(this);
+    bool a = memberOf->from(this);
+    bool b = memberOf->to(other);
     return (a && b);
 }
 
@@ -63,4 +63,52 @@ Set* Set::create(const std::string& label)
     Set* neu = new Set(label);
     _created[neu->_id] = neu; // down-cast
     return neu;
+}
+
+Set* Set::memberOf()
+{
+    Hyperedge *query;
+    // This query gives all members of this
+    query = traversal(
+        [&](Hyperedge *x){return ((x->id() != this->id()) && (x->label() != "memberOf")) ? true : false;},
+        [](Hyperedge *x, Hyperedge *y){return ((x->label() == "memberOf") || (y->label() == "memberOf")) ? true : false;},
+        "memberOf",
+        DOWN
+    );
+    // So i will point to this query (which is a new SUPER relation)
+    // TODO: We can do this but should get rid of all other 'memberOf' relations we had before (otherwise everything explodes?)
+    //pointTo(query);
+    return promote(query);
+}
+
+Set* Set::kindOf()
+{
+    Hyperedge *query;
+    // This query gives all supertypes of this
+    query = traversal(
+        [&](Hyperedge *x){return ((x->id() != this->id()) && (x->label() != "isA")) ? true : false;},
+        [](Hyperedge *x, Hyperedge *y){return ((x->label() == "isA") || (y->label() == "isA")) ? true : false;},
+        "isA",
+        DOWN
+    );
+    // So i will point to this query (which is a new SUPER relation)
+    // TODO: We can do this but should get rid of all other 'isA' relations we had before (otherwise everything explodes?)
+    //pointTo(query);
+    return promote(query);
+}
+
+Set* Set::partOf()
+{
+    Hyperedge *query;
+    // This query gives all wholes we are part-of
+    query = traversal(
+        [&](Hyperedge *x){return ((x->id() != this->id()) && (x->label() != "partOf")) ? true : false;},
+        [](Hyperedge *x, Hyperedge *y){return ((x->label() == "partOf") || (y->label() == "partOf")) ? true : false;},
+        "partOf",
+        DOWN
+    );
+    // So i will point to this query (which is a new SUPER relation)
+    // TODO: We can do this but should get rid of all other 'partOf' relations we had before (otherwise everything explodes?)
+    //pointTo(query);
+    return promote(query);
 }
