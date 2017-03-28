@@ -33,29 +33,59 @@ Set::Sets Set::promote(Hyperedge::Hyperedges edges)
 
 bool Set::memberOf(Set *other)
 {
-    // This will create a memberOf Relation
-    Relation* memberOf = Relation::create("memberOf");
-    bool a = memberOf->from(this);
-    bool b = memberOf->to(other);
-    return (a && b);
+    bool result = true;
+    auto edges = pointingTo("memberOf");
+    Relation *memberOf = NULL;
+    if (edges.size())
+    {
+        // There already exists a memberOf relation
+        memberOf = static_cast< Relation* >(edges.begin()->second);
+        result &= memberOf->to(other);
+    } else {
+        // This will create a memberOf Relation
+        memberOf = Relation::create("memberOf");
+        result &= memberOf->from(this);
+        result &= memberOf->to(other);
+    }
+    return result;
 }
 
 bool Set::isA(Set *other)
 {
-    // This will create an is-a Relation
-    Relation* isA = Relation::create("isA");
-    bool a = isA->from(this);
-    bool b = isA->to(other);
-    return (a && b);
+    bool result = true;
+    auto edges = pointingTo("isA");
+    Relation *isA = NULL;
+    if (edges.size())
+    {
+        // There already exists a isA relation
+        isA = static_cast< Relation* >(edges.begin()->second);
+        result &= isA->to(other);
+    } else {
+        // This will create a isA Relation
+        isA = Relation::create("isA");
+        result &= isA->from(this);
+        result &= isA->to(other);
+    }
+    return result;
 }
 
 bool Set::partOf(Set *other)
 {
-    // This will create a partOf Relation
-    Relation* partOf = Relation::create("partOf");
-    bool a = partOf->from(this);
-    bool b = partOf->to(other);
-    return (a && b);
+    bool result = true;
+    auto edges = pointingTo("partOf");
+    Relation *partOf = NULL;
+    if (edges.size())
+    {
+        // There already exists a partOf relation
+        partOf = static_cast< Relation* >(edges.begin()->second);
+        result &= partOf->to(other);
+    } else {
+        // This will create a partOf Relation
+        partOf = Relation::create("partOf");
+        result &= partOf->from(this);
+        result &= partOf->to(other);
+    }
+    return result;
 }
 
 Set* Set::create(const std::string& label)
