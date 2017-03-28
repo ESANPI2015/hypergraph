@@ -81,6 +81,19 @@ Set* Set::memberOf()
     return query;
 }
 
+Set* Set::members()
+{
+    Set *query;
+    // This query gives all members of this
+    query = traversal<Set>(
+        [&](Hyperedge *x){return ((x->id() != this->id()) && (x->label() != "memberOf")) ? true : false;},
+        [](Hyperedge *x, Hyperedge *y){return ((x->label() == "memberOf") || (y->label() == "memberOf")) ? true : false;},
+        "members",
+        UP
+    );
+    return query;
+}
+
 Set* Set::kindOf()
 {
     Set *query;
@@ -97,6 +110,19 @@ Set* Set::kindOf()
     return query;
 }
 
+Set* Set::subclasses()
+{
+    Set *query;
+    // This query gives all supertypes of this
+    query = traversal<Set>(
+        [&](Hyperedge *x){return ((x->id() != this->id()) && (x->label() != "isA")) ? true : false;},
+        [](Hyperedge *x, Hyperedge *y){return ((x->label() == "isA") || (y->label() == "isA")) ? true : false;},
+        "subclasses",
+        UP
+    );
+    return query;
+}
+
 Set* Set::partOf()
 {
     Set *query;
@@ -110,5 +136,18 @@ Set* Set::partOf()
     // So i will point to this query (which is a new SUPER relation)
     // TODO: We can do this but should get rid of all other 'partOf' relations we had before (otherwise everything explodes?)
     //pointTo(query);
+    return query;
+}
+
+Set* Set::parts()
+{
+    Set *query;
+    // This query gives all parts of a whole
+    query = traversal<Set>(
+        [&](Hyperedge *x){return ((x->id() != this->id()) && (x->label() != "partOf")) ? true : false;},
+        [](Hyperedge *x, Hyperedge *y){return ((x->label() == "partOf") || (y->label() == "partOf")) ? true : false;},
+        "parts",
+        UP
+    );
     return query;
 }

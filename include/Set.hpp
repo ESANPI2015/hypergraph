@@ -29,8 +29,11 @@ class Set : public Hyperedge
         // Queries:
         // Transitive closures of ...
         Set* memberOf();
+        Set* members(); // inverse of memberOf
         Set* kindOf(); //isA
+        Set* subclasses(); // inverse of kindOf
         Set* partOf();
+        Set* parts(); // inverse of partOf
 };
 
 #endif
