@@ -17,10 +17,10 @@ A graph in this sense is now just a collection of linked hyperedges.
 * Traversals use lambda functions for both result set filtering and traversal filtering
 * Lambda function for decision on path is binary (needed for proper decision)
 * Transitive closure of the already defined relations shall be defined somewhere
+* Make set and/or relation specific queries (e.g. on sets define transitive closure of memberOf relation - called members()?)
 
 ## TODO
 
-* Make set and/or relation specific queries (e.g. on sets define transitive closure of memberOf relation - called members()?)
 * Add more relations:
     - hasA to encode Aggregation
     - instanceOf to encode classes & objects (needed? typing is already there)
