@@ -200,109 +200,6 @@ Hyperedge::Hyperedges Hyperedge::pointingTo(const std::string& label) const
 }
 
 
-Hyperedge* Hyperedge::labelContains(const std::string& str)
-{
-    return Hyperedge::create(_traversal(
-        [&](Hyperedge *x){ return (str.empty() || (x->label().find(str) != std::string::npos)) ? true : false; },
-        [](Hyperedge *x, Hyperedge *y){return true;},
-        BOTH),
-        "labelContains(" + str + ")"
-    );
-}
-
-Hyperedge* Hyperedge::labelPartOf(const std::string& str)
-{
-    return Hyperedge::create(_traversal(
-        [&](Hyperedge *x){ return (str.empty() || (str.find(x->label()) != std::string::npos)) ? true : false; },
-        [](Hyperedge *x, Hyperedge *y){return true;},
-        BOTH),
-        "labelPartOf(" + str + ")"
-    );
-}
-
-Hyperedge* Hyperedge::cardinalityLessThanOrEqual(const unsigned cardinality)
-{
-    std::stringstream ss;
-    ss << "cardinalityLessThanOrEqual(" << cardinality << ")";
-    return Hyperedge::create(_traversal(
-        [&](Hyperedge *x){ return (x->pointingTo().size() <= cardinality)? true : false; },
-        [](Hyperedge *x, Hyperedge *y){return true;},
-        BOTH),
-        ss.str()
-    );
-}
-
-Hyperedge* Hyperedge::cardinalityGreaterThan(const unsigned cardinality)
-{
-    std::stringstream ss;
-    ss << "cardinalityGreaterThan(" << cardinality << ")";
-    return Hyperedge::create(_traversal(
-        [&](Hyperedge *x){ return (x->pointingTo().size() > cardinality)? true : false; },
-        [](Hyperedge *x, Hyperedge *y){return true;},
-        BOTH),
-        ss.str()
-    );
-}
-
-Hyperedge* Hyperedge::successors()
-{
-    return Hyperedge::create(_traversal(
-        [&](Hyperedge *x){ return x->id() != id() ? true : false; },
-        [](Hyperedge *x, Hyperedge *y){return true;},
-        DOWN),
-        "successors(" + _label + ")"
-    );
-}
-
-Hyperedge* Hyperedge::predecessors()
-{
-    return Hyperedge::create(_traversal(
-        [&](Hyperedge *x){ return x->id() != id() ? true : false; },
-        [](Hyperedge *x, Hyperedge *y){return true;},
-        UP),
-        "predecessors(" + _label + ")"
-    );
-}
-
-Hyperedge* Hyperedge::unite(const Hyperedge* other)
-{
-    // We will create a Hyperedge which will contain
-    // x which are part of either this->edges() or other->edges() or both
-    auto edges = _to;
-    edges.insert(other->_to.begin(), other->_to.end());
-    return Hyperedge::create(edges, this->label() + "||" + other->label());
-}
-
-Hyperedge* Hyperedge::intersect(const Hyperedge* other)
-{
-    // We will create a Hyperedge which will contain
-    // x which are part of both this->edges() and other->edges()
-    Hyperedge* result = Hyperedge::create(this->label() + "&&" + other->label());
-    for (auto mineIt : _to)
-    {
-        if (other->_to.count(mineIt.first))
-        {
-           result->pointTo(mineIt.second); 
-        }
-    }
-    return result;
-}
-
-Hyperedge* Hyperedge::subtract(const Hyperedge* other)
-{
-    // this - other
-    // only those x which are part of this->edges() but not part of other->edges()
-    Hyperedge* result = Hyperedge::create(this->label() + "/" + other->label());
-    for (auto mineIt : _to)
-    {
-        if (!other->_to.count(mineIt.first))
-        {
-           result->pointTo(mineIt.second); 
-        }
-    }
-    return result;
-}
-
 std::ostream& operator<< (std::ostream& stream, const Hyperedge* edge)
 {
     stream << edge->id() << ":";
@@ -320,7 +217,7 @@ std::ostream& operator<< (std::ostream& stream, const Hyperedge* edge)
 std::string Hyperedge::serialize(Hyperedge* root)
 {
     std::stringstream result;
-    auto trav = root->traversal(
+    auto trav = root->traversal<Hyperedge>(
         [&](Hyperedge *x){result << x << "\n"; return false;},
         [](Hyperedge *x, Hyperedge *y){return true;},
         "",BOTH);

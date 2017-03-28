@@ -57,29 +57,30 @@ class Hyperedge
             UP,     // in direction of the _from set
             BOTH    // in direction of both
         };
-        template <typename ResultFilter, typename TraversalFilter> Hyperedge* traversal(
+        template <typename T, typename ResultFilter, typename TraversalFilter> T* traversal(
             ResultFilter f,                         // Unary function bool f(Hyperedge *)
             TraversalFilter g,                      // Binary function bool g(Hyperedge *next, Hyperedge *current)
             const std::string& label="Traversal",   // Label for the result hyperedge
             const TraversalDirection dir = DOWN     // Direction of traversal
         );
 
-        Hyperedge* labelContains(const std::string& str="");
-        Hyperedge* labelPartOf(const std::string& str="");
-        Hyperedge* cardinalityLessThanOrEqual(const unsigned cardinality=0);
-        Hyperedge* cardinalityGreaterThan(const unsigned cardinality=0);
-        Hyperedge* successors(); // Go in direction of to set and register all edges AND edge of edges
-        Hyperedge* predecessors(); // Go in direction of from set and register all edges AND edges of edges
+        template <typename T> T* labelContains(const std::string& str="");
+        template <typename T> T* labelPartOf(const std::string& str="");
+        template <typename T> T* cardinalityLessThanOrEqual(const unsigned cardinality=0);
+        template <typename T> T* cardinalityGreaterThan(const unsigned cardinality=0);
+        template <typename T> T* successors(); // Go in direction of to set and register all edges AND edge of edges
+        template <typename T> T* predecessors(); // Go in direction of from set and register all edges AND edges of edges
 
         /*
             Merge operations producing new hyperedges
+            Templated to allow it to work for derived classes as well
         */
         // Unite *this and other (but *this and other are NOT part of unification)
-        Hyperedge* unite(const Hyperedge* other);
+        template <typename T> T* unite(const T* other);
         // Intersect *this and other (and *this and other cannot be part of it)
-        Hyperedge* intersect(const Hyperedge* other);
+        template <typename T> T* intersect(const T* other);
         // Difference between *this - other (and *this and other cannot be part of it)
-        Hyperedge* subtract(const Hyperedge* other);
+        template <typename T> T* subtract(const T* other);
 
         /* Serialization */
         friend std::ostream& operator<< (std::ostream& stream, const Hyperedge* edge);

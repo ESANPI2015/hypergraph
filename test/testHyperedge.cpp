@@ -50,7 +50,7 @@ int main(void)
 
     std::cout << "*** Id Test ***" << std::endl;
 
-    auto manufactured = things.labelContains();
+    Set* manufactured = things.labelContains<Set>();
     for (auto edgeIt : manufactured->pointingTo())
     {
         std::cout << edgeIt.second << std::endl;
@@ -68,9 +68,9 @@ int main(void)
     std::cout << "*** Built-in independent de-/serializer test finished ***" << std::endl;
 
     std::cout << "*** Queries Test ***" << std::endl;
-    auto individuals = things.cardinalityLessThanOrEqual();
+    auto individuals = things.cardinalityLessThanOrEqual<Set>();
     std::cout << individuals << std::endl;
-    auto special = things.cardinalityGreaterThan();
+    auto special = things.cardinalityGreaterThan<Set>();
     std::cout << special << std::endl;
 
     std::cout << "*** Queries Test finished ***" << std::endl;

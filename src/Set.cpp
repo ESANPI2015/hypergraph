@@ -67,9 +67,9 @@ Set* Set::create(const std::string& label)
 
 Set* Set::memberOf()
 {
-    Hyperedge *query;
+    Set *query;
     // This query gives all members of this
-    query = traversal(
+    query = traversal<Set>(
         [&](Hyperedge *x){return ((x->id() != this->id()) && (x->label() != "memberOf")) ? true : false;},
         [](Hyperedge *x, Hyperedge *y){return ((x->label() == "memberOf") || (y->label() == "memberOf")) ? true : false;},
         "memberOf",
@@ -78,14 +78,14 @@ Set* Set::memberOf()
     // So i will point to this query (which is a new SUPER relation)
     // TODO: We can do this but should get rid of all other 'memberOf' relations we had before (otherwise everything explodes?)
     //pointTo(query);
-    return promote(query);
+    return query;
 }
 
 Set* Set::kindOf()
 {
-    Hyperedge *query;
+    Set *query;
     // This query gives all supertypes of this
-    query = traversal(
+    query = traversal<Set>(
         [&](Hyperedge *x){return ((x->id() != this->id()) && (x->label() != "isA")) ? true : false;},
         [](Hyperedge *x, Hyperedge *y){return ((x->label() == "isA") || (y->label() == "isA")) ? true : false;},
         "isA",
@@ -94,14 +94,14 @@ Set* Set::kindOf()
     // So i will point to this query (which is a new SUPER relation)
     // TODO: We can do this but should get rid of all other 'isA' relations we had before (otherwise everything explodes?)
     //pointTo(query);
-    return promote(query);
+    return query;
 }
 
 Set* Set::partOf()
 {
-    Hyperedge *query;
+    Set *query;
     // This query gives all wholes we are part-of
-    query = traversal(
+    query = traversal<Set>(
         [&](Hyperedge *x){return ((x->id() != this->id()) && (x->label() != "partOf")) ? true : false;},
         [](Hyperedge *x, Hyperedge *y){return ((x->label() == "partOf") || (y->label() == "partOf")) ? true : false;},
         "partOf",
@@ -110,5 +110,5 @@ Set* Set::partOf()
     // So i will point to this query (which is a new SUPER relation)
     // TODO: We can do this but should get rid of all other 'partOf' relations we had before (otherwise everything explodes?)
     //pointTo(query);
-    return promote(query);
+    return query;
 }
