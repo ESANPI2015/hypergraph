@@ -64,23 +64,23 @@ class Hyperedge
             const TraversalDirection dir = DOWN     // Direction of traversal
         );
 
-        template <typename T> T* labelContains(const std::string& str="");
-        template <typename T> T* labelPartOf(const std::string& str="");
-        template <typename T> T* cardinalityLessThanOrEqual(const unsigned cardinality=0);
-        template <typename T> T* cardinalityGreaterThan(const unsigned cardinality=0);
-        template <typename T> T* successors(); // Go in direction of to set and register all edges AND edge of edges
-        template <typename T> T* predecessors(); // Go in direction of from set and register all edges AND edges of edges
+        Hyperedge* labelContains(const std::string& str="");
+        Hyperedge* labelPartOf(const std::string& str="");
+        Hyperedge* cardinalityLessThanOrEqual(const unsigned cardinality=0);
+        Hyperedge* cardinalityGreaterThan(const unsigned cardinality=0);
+        Hyperedge* successors(); // Go in direction of to set and register all edges AND edge of edges
+        Hyperedge* predecessors(); // Go in direction of from set and register all edges AND edges of edges
 
         /*
             Merge operations producing new hyperedges
             Templated to allow it to work for derived classes as well
         */
         // Unite *this and other (but *this and other are NOT part of unification)
-        template <typename T> T* unite(const T* other);
+        Hyperedge* unite(const Hyperedge* other);
         // Intersect *this and other (and *this and other cannot be part of it)
-        template <typename T> T* intersect(const T* other);
+        Hyperedge* intersect(const Hyperedge* other);
         // Difference between *this - other (and *this and other cannot be part of it)
-        template <typename T> T* subtract(const T* other);
+        Hyperedge* subtract(const Hyperedge* other);
 
         /* Serialization */
         friend std::ostream& operator<< (std::ostream& stream, const Hyperedge* edge);
