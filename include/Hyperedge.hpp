@@ -38,6 +38,8 @@ class Hyperedge
         unsigned cardinality() const;
         Hyperedges pointingTo(const std::string& label="") const;
         Hyperedges pointedBy(const std::string& label="") const;
+        Hyperedge *pointingTo(const unsigned id);
+        Hyperedge *pointedBy(const unsigned id);
 
         /*
             Write access
@@ -73,7 +75,6 @@ class Hyperedge
 
         /*
             Merge operations producing new hyperedges
-            Templated to allow it to work for derived classes as well
         */
         // Unite *this and other (but *this and other are NOT part of unification)
         Hyperedge* unite(const Hyperedge* other);

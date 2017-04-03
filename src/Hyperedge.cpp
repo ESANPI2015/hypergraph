@@ -173,6 +173,16 @@ unsigned Hyperedge::cardinality() const
     return _to.size();
 }
 
+Hyperedge* Hyperedge::pointingTo(const unsigned id)
+{
+    return _to.count(id) ? _to[id] : NULL;
+}
+
+Hyperedge* Hyperedge::pointedBy(const unsigned id)
+{
+    return _from.count(id) ? _from[id] : NULL;
+}
+
 Hyperedge::Hyperedges Hyperedge::pointedBy(const std::string& label) const
 {
     Hyperedges result;

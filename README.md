@@ -18,7 +18,6 @@ A graph in this sense is now just a collection of linked hyperedges.
 * Lambda function for decision on path is binary (needed for proper decision)
 * Transitive closure of the already defined relations shall be defined somewhere
 * Make set and/or relation specific queries (e.g. on sets define transitive closure of memberOf relation - called members()?)
-* Queries are templated to allow them to be used by derived classes as well
 
 ## TODO
 
