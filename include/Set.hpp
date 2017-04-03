@@ -19,6 +19,8 @@ class Set : public Hyperedge
         static Set* create(Sets members, const std::string& label="");
 
         // Write access
+        //bool relatedTo(Set *other, const std::string& relation="memberOf"); // generic relation
+        // Predefined relations
         bool memberOf(Set *other); // causes a memberOf relation to be created
         bool isA(Set *other);      // causes a isA relation to be created 
         bool partOf(Set *other);   // causes a partOf relation to be created
@@ -28,18 +30,23 @@ class Set : public Hyperedge
         static Sets promote(Hyperedge::Hyperedges edges);
 
         // Read access
-        Sets directMembers(const std::string& label="") const; // Only the DIRECT members of the set (for transitive sets see members() below)
+        // Only the DIRECT members of the set (for transitive sets see members() below)
+        Sets members(const std::string& label="") const;
 
         // Queries:
         // Transitive closures of ...
+        //Relation* relatedTo(const std::string& relation="memberOf"); // generic transitive closure
+        // Predefined relations
         Relation* memberOf();
         Relation* kindOf(); //isA
         Relation* partOf();
 
         // Inverse transitive closures (temporary relations only)
-        Set* members(); // All members AND their members AND ...
-        Set* subclasses();
-        Set* parts();
+        //Relation* relatedToInverse(const std::string& relation="memberOf"); // generic inverse transitive closure
+        // Predefined inverse relations
+        Relation* setOf(); // All members AND their members AND ...
+        Relation* superclassOf();
+        Relation* wholeOf();
 
         // Merge operations:
         // NOTE: These operations are USING the memberOf relation ONLY!!!

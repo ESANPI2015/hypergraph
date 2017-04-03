@@ -147,55 +147,52 @@ Relation* Set::partOf()
     return query;
 }
 
-Set* Set::members()
+Relation* Set::setOf()
 {
     Relation *query;
     // This query gives all members of this (transitive as well)
     query = traversal<Relation>(
         [&](Hyperedge *x){return ((x->id() != this->id()) && (x->label() != "memberOf")) ? true : false;},
         [](Hyperedge *x, Hyperedge *y){return ((x->label() == "memberOf") || (y->label() == "memberOf")) ? true : false;},
-        "members",
+        "setOf",
         UP
     );
-    // Now we construct a Set whose members are in the Relation
-    Set *result = Set::create(Set::promote(query->pointingTo()), "members(" + label() + ")");
-    delete query;
-    return result;
+    // So i will point to this query (which is a new SUPER relation)
+    pointTo(query);
+    return query;
 }
 
-Set* Set::subclasses()
+Relation* Set::superclassOf()
 {
     Relation *query;
     // This query gives all supertypes of this
     query = traversal<Relation>(
         [&](Hyperedge *x){return ((x->id() != this->id()) && (x->label() != "isA")) ? true : false;},
         [](Hyperedge *x, Hyperedge *y){return ((x->label() == "isA") || (y->label() == "isA")) ? true : false;},
-        "subclasses",
+        "superclassOf",
         UP
     );
-    // Now we construct a Set whose members are in the Relation
-    Set *result = Set::create(Set::promote(query->pointingTo()), "subclasses(" + label() + ")");
-    delete query;
-    return result;
+    // So i will point to this query (which is a new SUPER relation)
+    pointTo(query);
+    return query;
 }
 
-Set* Set::parts()
+Relation* Set::wholeOf()
 {
     Relation *query;
     // This query gives all parts of a whole
     query = traversal<Relation>(
         [&](Hyperedge *x){return ((x->id() != this->id()) && (x->label() != "partOf")) ? true : false;},
         [](Hyperedge *x, Hyperedge *y){return ((x->label() == "partOf") || (y->label() == "partOf")) ? true : false;},
-        "parts",
+        "wholeOf",
         UP
     );
-    // Now we construct a Set whose members are in the Relation
-    Set *result = Set::create(Set::promote(query->pointingTo()), "parts(" + label() + ")");
-    delete query;
-    return result;
+    // So i will point to this query (which is a new SUPER relation)
+    pointTo(query);
+    return query;
 }
 
-Set::Sets Set::directMembers(const std::string& label) const
+Set::Sets Set::members(const std::string& label) const
 {
     Set::Sets result;
     Hyperedge::Hyperedges rels = this->pointedBy("memberOf"); // Gives all memberOf relations pointing to us
@@ -214,8 +211,8 @@ Set::Sets Set::directMembers(const std::string& label) const
 
 Set* Set::unite(const Set* other)
 {
-    auto mine = this->directMembers();
-    auto others = other->directMembers();
+    auto mine = this->members();
+    auto others = other->members();
     mine.insert(others.begin(), others.end());
     return Set::create(mine, this->label() + " U " + other->label());
 }
@@ -223,8 +220,8 @@ Set* Set::unite(const Set* other)
 Set* Set::intersect(const Set* other)
 {
     Set::Sets result;
-    auto mine = this->directMembers();
-    auto others = other->directMembers();
+    auto mine = this->members();
+    auto others = other->members();
     for (auto mineIt : mine)
     {
         if (others.count(mineIt.first))
@@ -238,8 +235,8 @@ Set* Set::intersect(const Set* other)
 Set* Set::subtract(const Set* other)
 {
     Set::Sets result;
-    auto mine = this->directMembers();
-    auto others = other->directMembers();
+    auto mine = this->members();
+    auto others = other->members();
     for (auto mineIt : mine)
     {
         if (!others.count(mineIt.first))
