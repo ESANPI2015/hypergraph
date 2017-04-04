@@ -16,6 +16,10 @@ find_package(PkgConfig)
 #add_definitions(-DYAML_SUPPORT ${YAML_CFLAGS_OTHER})
 #set(EXTRA_LIBRARIES ${EXTRA_LIBRARIES} yaml)
 
+pkg_check_modules(hypergraph_PKGCONFIG REQUIRED
+    yaml-cpp
+    )
+
 include_directories(${hypergraph_PKGCONFIG_INCLUDE_DIRS})
 #message(${hypergraph_PKGCONFIG_INCLUDE_DIRS})
 link_directories(${hypergraph_PKGCONFIG_LIBRARY_DIRS})
@@ -28,6 +32,7 @@ set(SOURCES
     )
 set(HEADERS
     include/Hyperedge.hpp
+    include/HyperedgeYAML.hpp
     include/Set.hpp
     include/Relation.hpp
     )

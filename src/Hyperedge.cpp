@@ -114,6 +114,17 @@ void Hyperedge::cleanup()
 }
 
 // PRIVATE FACTORY
+
+Hyperedge* Hyperedge::find(const unsigned id)
+{
+    if (_created.count(id))
+    {
+        return _created[id];
+    } else {
+        return NULL;
+    }
+}
+
 Hyperedge* Hyperedge::create(const unsigned id, const std::string& label)
 {
     Hyperedge* neu = NULL;

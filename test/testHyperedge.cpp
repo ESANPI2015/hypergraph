@@ -1,6 +1,7 @@
 #include "Hyperedge.hpp"
 #include "Set.hpp"
 #include "Relation.hpp"
+#include "HyperedgeYAML.hpp"
 
 #include <iostream>
 #include <cassert>
@@ -74,6 +75,19 @@ int main(void)
     std::cout << special << std::endl;
 
     std::cout << "*** Queries Test finished ***" << std::endl;
+
+    std::cout << "*** YAML Test ***" << std::endl;
+
+    std::cout << "> From Hyperedge(s) to YAML\n";
+    YAML::Node test;
+    test.push_back(static_cast<Hyperedge*>(composite));
+    std::cout << test << std::endl;
+    
+    std::cout << "> From YAML to Hyperedge(s)\n";
+    Hyperedge *wurst = test.as<Hyperedge*>();
+    std::cout << Hyperedge::serialize(wurst) << std::endl;
+
+    std::cout << "*** YAML Test finished ***" << std::endl;
 
     std::cout << "> Cleanup" << std::endl;
     Hyperedge::cleanup();

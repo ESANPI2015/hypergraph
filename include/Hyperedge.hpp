@@ -28,6 +28,7 @@ class Hyperedge
         /*Factory functions*/
         static Hyperedge* create(const std::string& label="");
         static Hyperedge* create(Hyperedges edges, const std::string& label="");
+        static Hyperedge* find(const unsigned id);
         static void cleanup();
 
         /*
