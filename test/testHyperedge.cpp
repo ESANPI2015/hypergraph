@@ -80,7 +80,7 @@ int main(void)
 
     std::cout << "> From Hyperedge(s) to YAML\n";
     YAML::Node test;
-    test.push_back(static_cast<Hyperedge*>(composite));
+    test = static_cast<Hyperedge*>(composite);
     std::cout << test << std::endl;
     
     std::cout << "> From YAML to Hyperedge(s)\n";

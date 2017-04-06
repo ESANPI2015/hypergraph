@@ -28,6 +28,8 @@ class Hyperedge
         /*Factory functions*/
         static Hyperedge* create(const std::string& label="");
         static Hyperedge* create(Hyperedges edges, const std::string& label="");
+        static Hyperedge* create(const unsigned id, const std::string& label=""); // Use id as a hint ... if already taken, return current edge with that id (does not create a new one!)
+        static Hyperedge* create(const unsigned id, Hyperedges edges, const std::string& label="");
         static Hyperedge* find(const unsigned id);
         static void cleanup();
 
@@ -96,11 +98,6 @@ class Hyperedge
             TraversalFilter g,
             const TraversalDirection dir = DOWN
         );
-
-        // Private factory functions to create Hyperedges with a certain id
-        // Used by deserialization
-        static Hyperedge* create(const unsigned id, const std::string& label="");
-        static Hyperedge* create(const unsigned id, Hyperedges edges, const std::string& label="");
 
         // Private members
         unsigned _id;

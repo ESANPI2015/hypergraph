@@ -31,13 +31,13 @@ namespace YAML {
             }
 
             static bool decode(const Node& node, Hyperedge*& rhs) {
-                unsigned id = node[0]["id"].as<unsigned>();
-                std::string label = node[0]["label"].as<std::string>();
+                unsigned id = node["id"].as<unsigned>();
+                std::string label = node["label"].as<std::string>();
                 // Check if such an edge already exists
-                if (!(rhs = Hyperedge::find(id)))
+                // if not, create it with the correct id!!! If not possible, return false!
+                if (!(rhs = Hyperedge::find(id)) && !(rhs = Hyperedge::create(id, label)))
                 {
-                    // FIXME: Create it with the correct id!!! If not possible, return false!
-                    rhs = Hyperedge::create(label);
+                    return false;
                 }
                 // Check id
                 if (rhs->id() != id)
@@ -45,7 +45,7 @@ namespace YAML {
                     return false;
                 }
                 // Find the edges we are pointing to
-                std::vector<unsigned> ids = node[0]["pointingTo"].as< std::vector<unsigned> >();
+                std::vector<unsigned> ids = node["pointingTo"].as< std::vector<unsigned> >();
                 for (auto id : ids)
                 {
                     auto other = Hyperedge::find(id);
@@ -55,94 +55,9 @@ namespace YAML {
                 }
                 return true;
             }
-
-            // FIXME: Use proper traversal to do this!!!
-            //static Node _encode(Node& node, const Hyperedge* rhs) {
-            //  node[rhs->id()]["label"] = rhs->label();
-            //  for (auto edgeIt : rhs->pointingTo())
-            //  {
-            //      node[rhs->id()]["pointingTo"].push_back(edgeIt.second->id());
-            //      convert<Hyperedge*>::_encode(node, edgeIt.second);
-            //  }
-            //  return node;
-            //}
-            //static Node encode(const Hyperedge* rhs) {
-            //  Node node;
-            //  
-            //  convert<Hyperedge*>::_encode(node, rhs);
-            //  
-            //  return node;
-            //}
-
-            //static bool decode(const Node& node, Hyperedge*& rhs) {
-                // SEQ -> MAP -> id
-                //         |---> MAP -> "label"
-                //                |---> "pointingTo"
-                //switch (second.Type()) {
-                //    case NodeType::Null: // ...
-                //        std::cout << "NULL\n";
-                //        break;
-                //    case NodeType::Scalar: // ...
-                //        std::cout << "SCALAR\n";
-                //        break;
-                //    case NodeType::Sequence: // ...
-                //        std::cout << "SEQ\n";
-                //        break;
-                //    case NodeType::Map: // ...
-                //        std::cout << "MAP\n";
-                //        break;
-                //    case NodeType::Undefined: // ...
-                //        std::cout << "?\n";
-                //        break;
-                //}
-
-
-                // We need two passes here:
-                //Hyperedge *result = NULL;
-                //// I: Register (id,PTR) && (id,id')
-                //std::map<unsigned, Hyperedge*> edges;
-
-                //{
-                //    auto seqIt = node.begin();
-                //    for (;seqIt != node.end(); seqIt++)
-                //    {
-                //        auto mapIt = seqIt->begin();
-                //        for (;mapIt != seqIt->end(); mapIt++)
-                //        {
-                //            unsigned id = mapIt->first.as<unsigned>();
-                //            std::string label = mapIt->second["label"].as<std::string>();
-                //            edges[id] = Set::create(label);
-                //            if (!result)
-                //                result = edges[id];
-                //        }
-                //    }
-                //}
-
-                //rhs = result;
-
-                //// II: Register (id -> id,id, ...,id) and use (id,id') to create correct pointing
-                //{
-                //    auto seqIt = node.begin();
-                //    for (;seqIt != node.end(); seqIt++)
-                //    {
-                //        auto mapIt = seqIt->begin();
-                //        for (;mapIt != seqIt->end(); mapIt++)
-                //        {
-                //            unsigned oldId = mapIt->first.as<unsigned>();
-                //            if (!mapIt->second["pointingTo"])
-                //                continue;
-                //            std::vector<unsigned> othersOldIds = mapIt->second["pointingTo"].as< std::vector<unsigned> >();
-                //            for (auto otherOldId : othersOldIds)
-                //            {
-                //                edges[oldId]->pointTo(edges[otherOldId]);
-                //            }
-                //        }
-                //    }
-                //}
-
-                //return true;
-            //}
         };
+
+
 }
 
 #endif
