@@ -3,6 +3,7 @@
 #include "Relation.hpp"
 #include "HyperedgeYAML.hpp"
 
+#include <fstream>
 #include <iostream>
 #include <cassert>
 
@@ -12,12 +13,11 @@ int main(void)
 
     Hyperedge node("A 0-hyperedge (empty named set)");
     Hyperedge set("A 1-hyperedge (set with one member)");
-    set.pointTo(&node);
+    set.pointTo(node.id());
 
     std::cout << "> Test 1-Hyperedge " << std::endl;
     auto members = set.pointingTo();
     assert(members.size() == 1);
-    assert(members.begin()->second->label() == "A 0-hyperedge (empty named set)");
 
     std::cout << "*** Hyperedge Test Finished ***" << std::endl;
 
@@ -52,10 +52,10 @@ int main(void)
     std::cout << "*** Id Test ***" << std::endl;
 
     auto manufactured = things.labelContains();
-    for (auto edgeIt : manufactured->pointingTo())
+    for (auto edgeId : manufactured->pointingTo())
     {
-        std::cout << edgeIt.second << std::endl;
-        assert(edgeIt.first < manufactured->id());
+        std::cout << Hyperedge::find(edgeId) << std::endl;
+        assert(edgeId < manufactured->id());
     }
     delete manufactured;
 
@@ -85,6 +85,25 @@ int main(void)
     
     std::cout << "> From YAML to Hyperedge(s)\n";
     Hyperedge *wurst = test.as<Hyperedge*>();
+    std::cout << Hyperedge::serialize(wurst) << std::endl;
+    delete wurst;
+
+    std::cout << "> Store everything to YAML file\n";
+    std::ofstream fout;
+    fout.open("test.yml");
+    std::cout << "Writing" <<std::endl;
+    if(fout.good()) {
+        fout << YAML::store(&things);
+    } else {
+        std::cout << "FAILED\n";
+    }
+    fout.close();
+    
+    test.reset();
+    std::cout << "> Load from YAML file\n";
+    test = YAML::LoadFile("test.yml");
+    std::cout << test << std::endl;
+    wurst = YAML::load(test);
     std::cout << Hyperedge::serialize(wurst) << std::endl;
 
     std::cout << "*** YAML Test finished ***" << std::endl;

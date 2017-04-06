@@ -8,9 +8,9 @@ Set::Set(const std::string& label)
 Set::Set(Set::Sets members, const std::string& label)
 : Hyperedge(label)
 {
-    for (auto setIt : members)
+    for (auto setId : members)
     {
-        auto set = setIt.second;
+        auto set = Set::promote(Hyperedge::find(setId));
         set->memberOf(this);
     }
 }
@@ -22,13 +22,14 @@ Set* Set::promote(Hyperedge *edge)
 
 Set::Sets Set::promote(Hyperedge::Hyperedges edges)
 {
-    Set::Sets result;
-    for (auto edgeIt : edges)
-    {
-        auto edge = edgeIt.second;
-        result[edge->id()] = static_cast<Set*>(edge);
-    }
-    return result;
+    //Set::Sets result;
+    //for (auto edgeIt : edges)
+    //{
+    //    auto edge = edgeIt.second;
+    //    result[edge->id()] = static_cast<Set*>(edge);
+    //}
+    //return result;
+    return edges;
 }
 
 bool Set::memberOf(Set *other)
@@ -38,8 +39,8 @@ bool Set::memberOf(Set *other)
     Relation *memberOf = NULL;
     if (edges.size())
     {
-        // There already exists a memberOf relation
-        memberOf = static_cast< Relation* >(edges.begin()->second);
+        // There already exists at least one memberOf relation
+        memberOf = static_cast< Relation* >(Hyperedge::find(*edges.begin()));
         result &= memberOf->to(other);
     } else {
         // This will create a memberOf Relation
@@ -58,7 +59,7 @@ bool Set::isA(Set *other)
     if (edges.size())
     {
         // There already exists a isA relation
-        isA = static_cast< Relation* >(edges.begin()->second);
+        isA = static_cast< Relation* >(Hyperedge::find(*edges.begin()));
         result &= isA->to(other);
     } else {
         // This will create a isA Relation
@@ -77,7 +78,7 @@ bool Set::partOf(Set *other)
     if (edges.size())
     {
         // There already exists a partOf relation
-        partOf = static_cast< Relation* >(edges.begin()->second);
+        partOf = static_cast< Relation* >(Hyperedge::find(*edges.begin()));
         result &= partOf->to(other);
     } else {
         // This will create a partOf Relation
@@ -90,15 +91,13 @@ bool Set::partOf(Set *other)
 
 Set* Set::create(const std::string& label)
 {
-    Set* neu = new Set(label);
-    _created[neu->_id] = neu; // down-cast
+    Set* neu = Set::promote(Hyperedge::create(label));
     return neu;
 }
 
 Set* Set::create(Set::Sets members, const std::string& label)
 {
-    Set* neu = new Set(members, label);
-    _created[neu->_id] = neu; // down-cast
+    Set* neu = Set::promote(Hyperedge::create(members, label));
     return neu;
 }
 
@@ -113,7 +112,7 @@ Relation* Set::memberOf()
         DOWN
     );
     // So i will point to this query (which is a new SUPER relation)
-    pointTo(query);
+    pointTo(query->id());
     return query;
 }
 
@@ -128,7 +127,7 @@ Relation* Set::kindOf()
         DOWN
     );
     // So i will point to this query (which is a new SUPER relation)
-    pointTo(query);
+    pointTo(query->id());
     return query;
 }
 
@@ -143,7 +142,7 @@ Relation* Set::partOf()
         DOWN
     );
     // So i will point to this query (which is a new SUPER relation)
-    pointTo(query);
+    pointTo(query->id());
     return query;
 }
 
@@ -158,7 +157,7 @@ Relation* Set::setOf()
         UP
     );
     // So i will point to this query (which is a new SUPER relation)
-    pointTo(query);
+    pointTo(query->id());
     return query;
 }
 
@@ -173,7 +172,7 @@ Relation* Set::superclassOf()
         UP
     );
     // So i will point to this query (which is a new SUPER relation)
-    pointTo(query);
+    pointTo(query->id());
     return query;
 }
 
@@ -188,7 +187,7 @@ Relation* Set::wholeOf()
         UP
     );
     // So i will point to this query (which is a new SUPER relation)
-    pointTo(query);
+    pointTo(query->id());
     return query;
 }
 
@@ -197,9 +196,9 @@ Set::Sets Set::members(const std::string& label) const
     Set::Sets result;
     Hyperedge::Hyperedges rels = this->pointedBy("memberOf"); // Gives all memberOf relations pointing to us
 
-    for (auto relIt : rels)
+    for (auto relId : rels)
     {
-        Relation *rel = static_cast<Relation*>(relIt.second);
+        Relation *rel = static_cast<Relation*>(Hyperedge::find(relId));
         // Get all sets containing this relation AND having a certain label
         Set::Sets others = Set::promote(rel->pointedBy(label));
         // Merge them with the current result map
@@ -222,11 +221,11 @@ Set* Set::intersect(const Set* other)
     Set::Sets result;
     auto mine = this->members();
     auto others = other->members();
-    for (auto mineIt : mine)
+    for (auto mineId : mine)
     {
-        if (others.count(mineIt.first))
+        if (others.count(mineId))
         {
-            result[mineIt.first] = mineIt.second;
+            result.insert(mineId);
         }
     }
     return Set::create(result, this->label() + " ^ " + other->label());
@@ -237,11 +236,11 @@ Set* Set::subtract(const Set* other)
     Set::Sets result;
     auto mine = this->members();
     auto others = other->members();
-    for (auto mineIt : mine)
+    for (auto mineId : mine)
     {
-        if (!others.count(mineIt.first))
+        if (!others.count(mineId))
         {
-            result[mineIt.first] = mineIt.second;
+            result.insert(mineId);
         }
     }
     return Set::create(result, this->label() + " \\ " + other->label());

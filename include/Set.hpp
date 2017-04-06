@@ -9,7 +9,7 @@
 class Set : public Hyperedge
 {
     public:
-        typedef std::map<unsigned, Set*> Sets;
+        typedef std::set<unsigned> Sets;
 
         Set(const std::string& label="");
         Set(Sets members, const std::string& label);
@@ -27,7 +27,7 @@ class Set : public Hyperedge
 
         // Useful static member functions
         static Set* promote(Hyperedge *edge);
-        static Sets promote(Hyperedge::Hyperedges edges);
+        static Sets promote(Hyperedge::Hyperedges edges); // TODO: Needed?
 
         // Read access
         // Only the DIRECT members of the set (for transitive sets see members() below)

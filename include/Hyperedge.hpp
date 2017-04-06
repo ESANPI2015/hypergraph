@@ -2,6 +2,7 @@
 #define _HYPEREDGE_HPP
 
 #include <map>
+#include <set>
 #include <string>
 
 /*
@@ -9,14 +10,13 @@
 * This hyperedge can point to other hyperedges.
 * Note, that nodes are not needed anymore since they are special, 0-hyperedges.
 * You can however derive them from 0-Hyperedges.
-*
-* TODO:
-* Should we make this a template class? So then we could store some data in it
+* NOTE: Only ids are stored ... pointers are avoided as much as possible
 */
+
 class Hyperedge
 {
     public:
-        typedef std::map<unsigned, Hyperedge*> Hyperedges;
+        typedef std::set<unsigned> Hyperedges;
 
         /*Constructors*/
         Hyperedge(const std::string& label="");
@@ -28,8 +28,8 @@ class Hyperedge
         /*Factory functions*/
         static Hyperedge* create(const std::string& label="");
         static Hyperedge* create(Hyperedges edges, const std::string& label="");
-        static Hyperedge* create(const unsigned id, const std::string& label=""); // Use id as a hint ... if already taken, return current edge with that id (does not create a new one!)
-        static Hyperedge* create(const unsigned id, Hyperedges edges, const std::string& label="");
+        static Hyperedge* create(const unsigned id, const std::string& label=""); // Use id as a hint ... if already taken, return current edge with that id (does not create a new one!) and updates labels etc.
+        static Hyperedge* create(const unsigned id, Hyperedges edges, const std::string& label=""); // also updates the _to set
         static Hyperedge* find(const unsigned id);
         static void cleanup();
 
@@ -47,7 +47,7 @@ class Hyperedge
         /*
             Write access
         */
-        bool pointTo(Hyperedge* edge); // Adds the edge to the set of edges we point to (and also registers in their from set)
+        bool pointTo(const unsigned id); // Adds the edge to the set of edges we point to (and also registers in their from set)
         void clear(); // Removes all hyperedges we point to (and also deregisters)
         void seperate(); // Removes all hyperedges pointing to us (and also deregisters)
         void detach(); // Combination of clear and seperate
@@ -106,8 +106,9 @@ class Hyperedge
         Hyperedges _to;    // This is the column of an incidence matrix
 
         // Private static members for factory
-        static unsigned _lastId;
-        static Hyperedges _created;
+        static unsigned _lastId; // use this if no id has been provided and update it
+        static std::map<unsigned, Hyperedge*> _edges; // stores all Hyperedges (also statically allocated ones)
+        static std::map<unsigned, Hyperedge*> _created; // stores all dynamically created Hyperedges
 };
 
 // Include template member functions

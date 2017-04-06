@@ -14,6 +14,8 @@
 * PART X and PART Y are in the from set of it.
 */
 
+class Set;
+
 class Relation : public Hyperedge
 {
     public:
@@ -24,8 +26,10 @@ class Relation : public Hyperedge
         static Relation* create(const std::string& label="");
 
         // Write access
-        bool from(Hyperedge *source); // Adds an edge to the from set
-        bool to(Hyperedge *target);   // Adds an edge to the to set
+        bool from(const unsigned id); // Adds an edge to the from set
+        bool from(Set *other); // Adds an edge to the from set
+        bool to(const unsigned id);   // Adds an edge to the to set
+        bool to(Set *other);   // Adds an edge to the to set
 };
 
 #endif

@@ -23,9 +23,9 @@ namespace YAML {
                 Node node;
                 node["id"] = rhs->id();
                 node["label"] = rhs->label();
-                for (auto edgeIt : rhs->pointingTo())
+                for (auto edgeId : rhs->pointingTo())
                 {
-                    node["pointingTo"].push_back(edgeIt.second->id());
+                    node["pointingTo"].push_back(edgeId);
                 }
                 return node;
             }
@@ -35,23 +35,30 @@ namespace YAML {
                 std::string label = node["label"].as<std::string>();
                 // Check if such an edge already exists
                 // if not, create it with the correct id!!! If not possible, return false!
-                if (!(rhs = Hyperedge::find(id)) && !(rhs = Hyperedge::create(id, label)))
+                //std::cout << "CREATE " << label << std::endl;
+                if (!(rhs = Hyperedge::create(id, label))) // Create or get
                 {
                     return false;
                 }
+                //std::cout << "CHECK ID\n";
                 // Check id
                 if (rhs->id() != id)
                 {
                     return false;
                 }
+                //std::cout << "CHECK TO SET\n";
                 // Find the edges we are pointing to
-                std::vector<unsigned> ids = node["pointingTo"].as< std::vector<unsigned> >();
-                for (auto id : ids)
+                if (!node["pointingTo"])
                 {
-                    auto other = Hyperedge::find(id);
-                    if (!other)
-                        return false;
-                    rhs->pointTo(other);
+                    // We do not point to anything so, we skip
+                    return true;
+                }
+                //std::cout << "INSERT TO SET\n";
+                std::vector<unsigned> otherIds = node["pointingTo"].as< std::vector<unsigned> >();
+                for (auto otherId : otherIds)
+                {
+                    //std::cout << "INSERT " << otherId << std::endl;
+                    rhs->pointTo(otherId);
                 }
                 return true;
             }

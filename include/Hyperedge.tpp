@@ -21,15 +21,15 @@ template <typename ResultFilter, typename TraversalFilter> Hyperedge::Hyperedges
 )
 {
     Hyperedges result;
-    std::set< Hyperedge* > visited;
-    std::queue< Hyperedge* > edges;
+    Hyperedges visited;
+    std::queue< unsigned > edges;
 
-    edges.push(this);
+    edges.push(this->id());
 
     // Run through queue of unknown edges
     while (!edges.empty())
     {
-        auto edge = edges.front();
+        auto edge = Hyperedge::find(edges.front());
         edges.pop();
 
         // Handle search direction
@@ -49,25 +49,25 @@ template <typename ResultFilter, typename TraversalFilter> Hyperedge::Hyperedges
                 return result;
         }
 
-        if (visited.count(edge))
+        if (visited.count(edge->id()))
             continue;
 
         // Visiting!!!
-        visited.insert(edge);
+        visited.insert(edge->id());
         if (f(edge))
         {
             // edge matches filter func
-            result[edge->_id] = edge;
+            result.insert(edge->id());
         }
 
-        // Inserting edges and supers into queue
-        for (auto unknownIt : unknowns)
+        // Inserting unknowns into queue for further searching
+        for (auto unknownId : unknowns)
         {
-            auto unknown = unknownIt.second;
+            auto unknown = Hyperedge::find(unknownId);
             if (g(unknown, edge)) // We need the pair of hyperedge -> hyperedge
             {
                 // edge matches filter func
-                edges.push(unknown);
+                edges.push(unknown->id());
             }
         }
     }

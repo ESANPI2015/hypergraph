@@ -1,4 +1,5 @@
 #include "Relation.hpp"
+#include "Set.hpp"
 
 Relation::Relation(const std::string& label)
 : Hyperedge(label)
@@ -8,26 +9,35 @@ Relation::Relation(const std::string& label)
 Relation::Relation(Hyperedge::Hyperedges from, Hyperedge::Hyperedges to, const std::string& label)
 : Hyperedge(to, label)
 {
-    for (auto fromIt : from)
+    for (auto fromId : from)
     {
-        auto other = fromIt.second;
-        other->pointTo(this);
+        auto other = Hyperedge::find(fromId);
+        other->pointTo(_id);
     }
 }
 
-bool Relation::from(Hyperedge *source)
+bool Relation::from(const unsigned id)
 {
-    return source->pointTo(this);
+    return Hyperedge::find(id)->pointTo(_id);
 }
 
-bool Relation::to(Hyperedge *target)
+bool Relation::to(const unsigned id)
 {
-    return pointTo(target);
+    return pointTo(id);
+}
+
+bool Relation::from(Set *other)
+{
+    return other->pointTo(_id);
+}
+
+bool Relation::to(Set *other)
+{
+    return pointTo(other->id());
 }
 
 Relation* Relation::create(const std::string& label)
 {
-    Relation* neu = new Relation(label);
-    _created[neu->_id] = neu; // down-cast
+    Relation* neu = static_cast<Relation*>(Hyperedge::create(label));
     return neu;
 }

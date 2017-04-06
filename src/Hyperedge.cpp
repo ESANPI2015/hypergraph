@@ -9,22 +9,33 @@
 
 // STATIC MEMBER INIT
 unsigned Hyperedge::_lastId = 1;
-Hyperedge::Hyperedges Hyperedge::_created;
+std::map<unsigned, Hyperedge*> Hyperedge::_created;
+std::map<unsigned, Hyperedge*> Hyperedge::_edges;
 
 // CONSTRUCTORS
 Hyperedge::Hyperedge(const std::string& label)
 : _label(label)
 {
-    _id = _lastId++;
+    while (Hyperedge::find(_lastId))
+    {
+        _lastId++;
+    }
+    _id = _lastId;
+    _edges[_id] = this;
 }
 
 Hyperedge::Hyperedge(Hyperedges edges, const std::string& label)
 {
     _label = label;
-    _id = _lastId++;
-    for (auto edge : edges)
+    while (Hyperedge::find(_lastId))
     {
-        pointTo(edge.second);
+        _lastId++;
+    }
+    _id = _lastId;
+    _edges[_id] = this;
+    for (auto edgeId : edges)
+    {
+        pointTo(edgeId);
     }
 }
 
@@ -39,10 +50,15 @@ Hyperedge::~Hyperedge()
     {
         _created.erase(_id);
     }
+
+    // Check if we are in the _edges pool. If yes, delete
+    if (_edges.count(_id))
+    {
+        _edges.erase(_id);
+    }
 }
 
 // PUBLIC FACTORY
-// TODO: We should throw if needed ...
 Hyperedge* Hyperedge::create(const std::string& label)
 {
     Hyperedge* neu = new Hyperedge(label);
@@ -57,6 +73,47 @@ Hyperedge* Hyperedge::create(Hyperedges edges, const std::string& label)
     return neu;
 }
 
+Hyperedge* Hyperedge::find(const unsigned id)
+{
+    if (_edges.count(id))
+    {
+        return _edges[id];
+    } else {
+        return NULL;
+    }
+}
+
+Hyperedge* Hyperedge::create(const unsigned id, const std::string& label)
+{
+    Hyperedge* neu = Hyperedge::find(id);
+    if (!neu)
+    {
+        // Create a new hyperedge
+        neu = new Hyperedge(label);
+        neu->_id = id;
+        // Ensure monotonic increasing _lastId TODO: Needed?
+        //_lastId = (id > _lastId) ? id : _lastId;
+    } else {
+        // Update hyperedge
+        neu->_label = label;
+    }
+    return neu;
+}
+
+Hyperedge* Hyperedge::create(const unsigned id, Hyperedges edges, const std::string& label)
+{
+    Hyperedge* neu = Hyperedge::create(id, label);
+    if (neu)
+    {
+        // Add (possibly new) members
+        for (auto edgeId : edges)
+        {
+            neu->pointTo(edgeId);
+        }
+    }
+    return neu;
+}
+
 void Hyperedge::detach()
 {
     clear();
@@ -66,10 +123,10 @@ void Hyperedge::detach()
 void Hyperedge::seperate()
 {
     // Deregister from edges pointing to us (registered in its to set)
-    for (auto edgeIt : _from)
+    for (auto edgeId : _from)
     {
-        auto edge = edgeIt.second;
-        if (edge->_to.count(_id))
+        auto edge = Hyperedge::find(edgeId);
+        if (edge && edge->_to.count(_id))
         {
             edge->_to.erase(_id);
         }
@@ -81,9 +138,9 @@ void Hyperedge::seperate()
 void Hyperedge::clear()
 {
     // Deregister from edges (registered in its from set)
-    for (auto edgeIt : _to)
+    for (auto edgeId : _to)
     {
-        auto edge = edgeIt.second;
+        auto edge = Hyperedge::find(edgeId);
         if (edge->_from.count(_id))
         {
             edge->_from.erase(_id);
@@ -95,6 +152,7 @@ void Hyperedge::clear()
 
 void Hyperedge::cleanup()
 {
+    // Destroy only those edges which have been created by factory
     auto localCopy = _created;
 
     // detach all registered hyperedges
@@ -110,61 +168,26 @@ void Hyperedge::cleanup()
         auto edge = edgeIt.second;
         delete edge;
     }
-    _created.clear();
 }
 
-// PRIVATE FACTORY
 
-Hyperedge* Hyperedge::find(const unsigned id)
+bool Hyperedge::pointTo(const unsigned id)
 {
-    if (_created.count(id))
-    {
-        return _created[id];
-    } else {
-        return NULL;
-    }
-}
-
-Hyperedge* Hyperedge::create(const unsigned id, const std::string& label)
-{
-    Hyperedge* neu = NULL;
-    if (!_created.count(id))
-    {
-        // Can do it
-        neu = new Hyperedge(label);
-        neu->_id = id;
-        // Ensure monotonic increasing _lastId
-        _lastId = (id > _lastId) ? id : _lastId;
-    }
-    return neu;
-}
-
-Hyperedge* Hyperedge::create(const unsigned id, Hyperedges edges, const std::string& label)
-{
-    Hyperedge* neu = NULL;
-    if (!_created.count(id))
-    {
-        // Can do it
-        neu = new Hyperedge(edges, label);
-        neu->_id = id;
-        // Ensure monotonic increasing _lastId
-        _lastId = (id > _lastId) ? id : _lastId;
-    }
-    return neu;
-}
-
-bool Hyperedge::pointTo(Hyperedge *edge)
-{
-    if (_to.count(edge->_id))
+    if (_to.count(id))
         return true;
-        // Check if we are in the from set of edge
-        // Make sure we are in the from list
-        if (!edge->_from.count(_id))
-        {
-            edge->_from[_id] = this;
-        }
-        // ... and the edge registered in our edge list
-        _to[edge->_id] = edge;
+
+    // Create or find the other edge
+    Hyperedge *edge = Hyperedge::find(id);
+    if (!edge)
+    {
+        edge = Hyperedge::create(id); // Create anonymous hyperedge
+    }
+
+    // Check if we are in the from set of edge
+    // Make sure we are in the from list
+    edge->_from.insert(_id);
+    // ... and the edge registered in our edge list
+    _to.insert(edge->id());
     
     return true;
 }
@@ -186,23 +209,23 @@ unsigned Hyperedge::cardinality() const
 
 Hyperedge* Hyperedge::pointingTo(const unsigned id)
 {
-    return _to.count(id) ? _to[id] : NULL;
+    return _to.count(id) ? Hyperedge::find(id) : NULL;
 }
 
 Hyperedge* Hyperedge::pointedBy(const unsigned id)
 {
-    return _from.count(id) ? _from[id] : NULL;
+    return _from.count(id) ? Hyperedge::find(id) : NULL;
 }
 
 Hyperedge::Hyperedges Hyperedge::pointedBy(const std::string& label) const
 {
     Hyperedges result;
-    for (auto edgeIt : _from)
+    for (auto edgeId : _from)
     {
-        auto edge = edgeIt.second;
+        auto edge = Hyperedge::find(edgeId);
         // Filters by label if given. It suffices that the edge label contains the given one.
         if (label.empty() || (edge->label().find(label) != std::string::npos))
-            result[edge->_id] = edge;
+            result.insert(edge->_id);
     }
     return result;
 }
@@ -210,12 +233,12 @@ Hyperedge::Hyperedges Hyperedge::pointedBy(const std::string& label) const
 Hyperedge::Hyperedges Hyperedge::pointingTo(const std::string& label) const
 {
     Hyperedges result;
-    for (auto edgeIt : _to)
+    for (auto edgeId : _to)
     {
-        auto edge = edgeIt.second;
+        auto edge = Hyperedge::find(edgeId);
         // Filters by label if given. It suffices that the edge label contains the given one.
         if (label.empty() || (edge->label().find(label) != std::string::npos))
-            result[edge->_id] = edge;
+            result.insert(edge->_id);
     }
     return result;
 }
@@ -225,10 +248,10 @@ std::ostream& operator<< (std::ostream& stream, const Hyperedge* edge)
 {
     stream << edge->id() << ":";
     stream << edge->label() << "[";
-    auto others = edge->pointingTo();
-    for (auto otherIt : others)
+    auto otherIds = edge->pointingTo();
+    for (auto otherId : otherIds)
     {
-        auto other = otherIt.second;
+        auto other = Hyperedge::find(otherId);
         stream << " " << other->id() << " ";
     }
     stream << "]";
@@ -345,7 +368,7 @@ Hyperedge* Hyperedge::cardinalityLessThanOrEqual(const unsigned cardinality)
     std::stringstream ss;
     ss << "cardinalityLessThanOrEqual(" << cardinality << ")";
     return Hyperedge::create(_traversal(
-        [&](Hyperedge *x){ return (x->pointingTo().size() <= cardinality)? true : false; },
+        [&](Hyperedge *x){ return (x->cardinality() <= cardinality)? true : false; },
         [](Hyperedge *x, Hyperedge *y){return true;},
         BOTH),
         ss.str()
@@ -357,7 +380,7 @@ Hyperedge* Hyperedge::cardinalityGreaterThan(const unsigned cardinality)
     std::stringstream ss;
     ss << "cardinalityGreaterThan(" << cardinality << ")";
     return Hyperedge::create(_traversal(
-        [&](Hyperedge *x){ return (x->pointingTo().size() > cardinality)? true : false; },
+        [&](Hyperedge *x){ return (x->cardinality() > cardinality)? true : false; },
         [](Hyperedge *x, Hyperedge *y){return true;},
         BOTH),
         ss.str()
@@ -398,11 +421,11 @@ Hyperedge* Hyperedge::intersect(const Hyperedge* other)
     // We will create a Hyperedge which will contain
     // x which are part of both this->edges() and other->edges()
     Hyperedge* result = Hyperedge::create(this->label() + "&&" + other->label());
-    for (auto mineIt : _to)
+    for (auto mineId : _to)
     {
-        if (other->_to.count(mineIt.first))
+        if (other->_to.count(mineId))
         {
-           result->pointTo(mineIt.second); 
+           result->pointTo(mineId); 
         }
     }
     return result;
@@ -413,11 +436,11 @@ Hyperedge* Hyperedge::subtract(const Hyperedge* other)
     // this - other
     // only those x which are part of this->edges() but not part of other->edges()
     Hyperedge* result = Hyperedge::create(this->label() + "/" + other->label());
-    for (auto mineIt : _to)
+    for (auto mineId : _to)
     {
-        if (!other->_to.count(mineIt.first))
+        if (!other->_to.count(mineId))
         {
-           result->pointTo(mineIt.second); 
+           result->pointTo(mineId); 
         }
     }
     return result;
