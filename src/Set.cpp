@@ -97,7 +97,12 @@ Set* Set::create(const std::string& label)
 
 Set* Set::create(Set::Sets members, const std::string& label)
 {
-    Set* neu = Set::promote(Hyperedge::create(members, label));
+    Set* neu = Set::create(label);
+    for (auto setId : members)
+    {
+        auto set = Set::promote(Hyperedge::find(setId));
+        set->memberOf(neu);
+    }
     return neu;
 }
 
