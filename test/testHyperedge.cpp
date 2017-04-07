@@ -86,12 +86,11 @@ int main(void)
     std::cout << "> From YAML to Hyperedge(s)\n";
     Hyperedge *wurst = test.as<Hyperedge*>();
     std::cout << Hyperedge::serialize(wurst) << std::endl;
-    delete wurst;
+    // NOTE: Do not delete wurst ... Otherwise you delete ComponentX!
 
     std::cout << "> Store everything to YAML file\n";
     std::ofstream fout;
     fout.open("test.yml");
-    std::cout << "Writing" <<std::endl;
     if(fout.good()) {
         fout << YAML::store(&things);
     } else {
@@ -99,11 +98,14 @@ int main(void)
     }
     fout.close();
     
+    std::cout << "> Cleanup" << std::endl;
+    Hyperedge::cleanup();
+
     test.reset();
     std::cout << "> Load from YAML file\n";
     test = YAML::LoadFile("test.yml");
-    std::cout << test << std::endl;
     wurst = YAML::load(test);
+    assert(wurst == &things);
     std::cout << Hyperedge::serialize(wurst) << std::endl;
 
     std::cout << "*** YAML Test finished ***" << std::endl;

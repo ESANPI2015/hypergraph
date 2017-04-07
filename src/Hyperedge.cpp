@@ -16,6 +16,7 @@ std::map<unsigned, Hyperedge*> Hyperedge::_edges;
 Hyperedge::Hyperedge(const std::string& label)
 : _label(label)
 {
+    // TODO: Find a better mechanism (maybe assigning random numbers until we found a free id)
     while (Hyperedge::find(_lastId))
     {
         _lastId++;
@@ -90,9 +91,12 @@ Hyperedge* Hyperedge::create(const unsigned id, const std::string& label)
     {
         // Create a new hyperedge
         neu = new Hyperedge(label);
+        // We have to override the normal mechanism
+        // TODO: Find a better mechanism (maybe assigning random numbers until we found a free id)
+        _edges[neu->_id] = NULL;  // Remove from old place
         neu->_id = id;
-        // Ensure monotonic increasing _lastId TODO: Needed?
-        //_lastId = (id > _lastId) ? id : _lastId;
+        _edges[neu->_id] = neu;   // Reinsert at place with desired id
+        _created[neu->_id] = neu; // Do not forget to register as dynamically created
     } else {
         // Update hyperedge
         neu->_label = label;
@@ -141,7 +145,7 @@ void Hyperedge::clear()
     for (auto edgeId : _to)
     {
         auto edge = Hyperedge::find(edgeId);
-        if (edge->_from.count(_id))
+        if (edge && edge->_from.count(_id))
         {
             edge->_from.erase(_id);
         }
@@ -173,9 +177,6 @@ void Hyperedge::cleanup()
 
 bool Hyperedge::pointTo(const unsigned id)
 {
-    if (_to.count(id))
-        return true;
-
     // Create or find the other edge
     Hyperedge *edge = Hyperedge::find(id);
     if (!edge)
@@ -183,10 +184,9 @@ bool Hyperedge::pointTo(const unsigned id)
         edge = Hyperedge::create(id); // Create anonymous hyperedge
     }
 
-    // Check if we are in the from set of edge
     // Make sure we are in the from list
     edge->_from.insert(_id);
-    // ... and the edge registered in our edge list
+    // ... and the edge registered in our to list
     _to.insert(edge->id());
     
     return true;
