@@ -1,13 +1,26 @@
 #include "Set.hpp"
 
+Set* Set::superclass = NULL;
+
+Set* Set::Superclass()
+{
+    if (!Set::superclass)
+    {
+        Set::superclass = static_cast<Set*>(Hyperedge::create("Set"));
+    }
+    return Set::superclass;
+}
+
 Set::Set(const std::string& label)
 : Hyperedge(label)
 {
+    this->isA(Set::Superclass());
 }
 
 Set::Set(Set::Sets members, const std::string& label)
 : Hyperedge(label)
 {
+    this->isA(Set::Superclass());
     for (auto setId : members)
     {
         auto set = Set::promote(Hyperedge::find(setId));
@@ -17,18 +30,19 @@ Set::Set(Set::Sets members, const std::string& label)
 
 Set* Set::promote(Hyperedge *edge)
 {
-    return static_cast<Set*>(edge);
+    // When we promote something to be a set it will gain the type of a Set
+    Set* casted = static_cast<Set*>(edge);
+    casted->isA(Set::Superclass());
+    return casted;
 }
 
 Set::Sets Set::promote(Hyperedge::Hyperedges edges)
 {
-    //Set::Sets result;
-    //for (auto edgeIt : edges)
-    //{
-    //    auto edge = edgeIt.second;
-    //    result[edge->id()] = static_cast<Set*>(edge);
-    //}
-    //return result;
+    // Every hyperedge has to be promoted to a Set
+    for (auto edgeId : edges)
+    {
+        Set::promote(Hyperedge::find(edgeId));
+    }
     return edges;
 }
 
@@ -91,6 +105,7 @@ bool Set::partOf(Set *other)
 
 Set* Set::create(const std::string& label)
 {
+    // NOTE: Since we don't have access to _created of Hyperedges, we have to use the base class factory
     Set* neu = Set::promote(Hyperedge::create(label));
     return neu;
 }

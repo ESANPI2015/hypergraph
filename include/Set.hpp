@@ -14,6 +14,9 @@ class Set : public Hyperedge
         Set(const std::string& label="");
         Set(Sets members, const std::string& label);
 
+        // Supertype of all sets
+        static Set* Superclass();
+
         // Factory function
         static Set* create(const std::string& label="");
         static Set* create(Sets members, const std::string& label="");
@@ -57,6 +60,8 @@ class Set : public Hyperedge
         Set* intersect(const Set* other);
         // Difference between *this - other (and *this and other cannot be part of it)
         Set* subtract(const Set* other);
+    private:
+        static Set* superclass;
 };
 
 #endif
