@@ -75,6 +75,15 @@ namespace YAML {
         return node;
     }
 
+    // This will only store connected systems (no forests)
+    static Node store(Hyperedge* root)
+    {
+        auto query = root->labelContains();
+        auto node = store(query->pointingTo());
+        delete query;
+        return node;
+    }
+
     // Creates a complete system of Hyperedges from a YAML node
     static Hyperedge::Hyperedges load(const Node& node)
     {

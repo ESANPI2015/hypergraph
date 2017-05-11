@@ -92,7 +92,7 @@ int main(void)
     std::ofstream fout;
     fout.open("test.yml");
     if(fout.good()) {
-        fout << YAML::store(things.labelContains()->pointingTo());
+        fout << YAML::store(&things);
     } else {
         std::cout << "FAILED\n";
     }
