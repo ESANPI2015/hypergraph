@@ -88,7 +88,7 @@ class Hyperedge
 
         /* Serialization */
         friend std::ostream& operator<< (std::ostream& stream, const Hyperedge* edge);
-        static std::string serialize(Hyperedge* root);
+        static std::string serialize(Hyperedge* root); // NOTE: Only serializes connected systems!!!
 
     protected:
         // Private traversal function which will NOT create any edges (to be used by functions called on creation like contains)

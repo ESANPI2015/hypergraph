@@ -92,7 +92,7 @@ int main(void)
     std::ofstream fout;
     fout.open("test.yml");
     if(fout.good()) {
-        fout << YAML::store(&things);
+        fout << YAML::store(things.labelContains()->pointingTo());
     } else {
         std::cout << "FAILED\n";
     }
@@ -104,8 +104,10 @@ int main(void)
     test.reset();
     std::cout << "> Load from YAML file\n";
     test = YAML::LoadFile("test.yml");
-    wurst = YAML::load(test);
-    assert(wurst == &things);
+    YAML::load(test);
+    // Find "ComponentX"
+    wurst = Hyperedge::find(*things.labelPartOf("ComponentX")->pointingTo().begin());
+    assert(wurst != NULL);
     std::cout << Hyperedge::serialize(wurst) << std::endl;
 
     std::cout << "*** YAML Test finished ***" << std::endl;

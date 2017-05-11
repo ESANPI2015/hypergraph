@@ -64,34 +64,28 @@ namespace YAML {
             }
         };
 
-    // Stores the complete system of Hyperedges rhs is part of
-    static Node store(Hyperedge* rhs)
+    // Stores a system of hyperedges to a YAML node
+    static Node store(const Hyperedge::Hyperedges& edges)
     {
         Node node;
-        // Make a traversal over all hyperedges
-        // This will only store ONE CONNECTED HYPERGRAPH (not forests!)
-        auto query = rhs->traversal<Hyperedge>(
-               [&](Hyperedge *x){node.push_back(x); return false;},
-               [](Hyperedge *x, Hyperedge *y){return true;},
-               "toYAML",
-               Hyperedge::TraversalDirection::BOTH
-           );
-        delete query;
+        for (auto edgeId : edges)
+        {
+            node.push_back(Hyperedge::find(edgeId));
+        }   
         return node;
     }
 
-    // Creates a complete system of Hyperedges from node
-    // Only one connected system is loaded ... forests are not supported!
-    static Hyperedge *load(const Node& node)
+    // Creates a complete system of Hyperedges from a YAML node
+    static Hyperedge::Hyperedges load(const Node& node)
     {
-        Hyperedge* first = NULL;
+        Hyperedge::Hyperedges result;
         // Node must be a sequence!
         for (auto it = node.begin(); it != node.end(); it++)
         {
             Hyperedge *neu = it->as<Hyperedge*>();
-            if (!first) first = neu;
+            result.insert(neu->id());
         }
-        return first;
+        return result;
     }
 }
 
