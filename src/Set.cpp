@@ -54,7 +54,7 @@ bool Set::memberOf(Set *other)
     if (edges.size())
     {
         // There already exists at least one memberOf relation
-        memberOf = static_cast< Relation* >(Hyperedge::find(*edges.begin()));
+        memberOf = Relation::promote(Hyperedge::find(*edges.begin()));
         result &= memberOf->to(other);
     } else {
         // This will create a memberOf Relation
@@ -73,7 +73,7 @@ bool Set::isA(Set *other)
     if (edges.size())
     {
         // There already exists a isA relation
-        isA = static_cast< Relation* >(Hyperedge::find(*edges.begin()));
+        isA = Relation::promote(Hyperedge::find(*edges.begin()));
         result &= isA->to(other);
     } else {
         // This will create a isA Relation
@@ -92,7 +92,7 @@ bool Set::partOf(Set *other)
     if (edges.size())
     {
         // There already exists a partOf relation
-        partOf = static_cast< Relation* >(Hyperedge::find(*edges.begin()));
+        partOf = Relation::promote(Hyperedge::find(*edges.begin()));
         result &= partOf->to(other);
     } else {
         // This will create a partOf Relation
@@ -218,7 +218,7 @@ Set::Sets Set::members(const std::string& label) const
 
     for (auto relId : rels)
     {
-        Relation *rel = static_cast<Relation*>(Hyperedge::find(relId));
+        Relation *rel = Relation::promote(Hyperedge::find(relId));
         // Get all sets containing this relation AND having a certain label
         Set::Sets others = Set::promote(rel->pointedBy(label));
         // Merge them with the current result map

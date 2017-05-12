@@ -22,6 +22,9 @@ class Relation : public Hyperedge
         Relation(const std::string& label="");
         Relation(Hyperedge::Hyperedges from, Hyperedge::Hyperedges to, const std::string& label=""); // N-M relation constructor
 
+        // Promotion to Relation
+        static Relation* promote(Hyperedge *edge);
+
         // Factory function
         static Relation* create(const std::string& label="");
 

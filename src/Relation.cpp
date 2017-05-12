@@ -1,6 +1,12 @@
 #include "Relation.hpp"
 #include "Set.hpp"
 
+Relation* Relation::promote(Hyperedge *edge)
+{
+    Relation* neu = static_cast<Relation*>(edge);
+    return neu;
+}
+
 Relation::Relation(const std::string& label)
 : Hyperedge(label)
 {
@@ -38,6 +44,6 @@ bool Relation::to(Set *other)
 
 Relation* Relation::create(const std::string& label)
 {
-    Relation* neu = static_cast<Relation*>(Hyperedge::create(label));
+    Relation* neu = Relation::promote(Hyperedge::create(label));
     return neu;
 }

@@ -11,7 +11,7 @@ template <typename T, typename ResultFilter, typename TraversalFilter> T* Hypere
     const Hyperedge::TraversalDirection dir
 )
 {
-    return static_cast< T* >(Hyperedge::create(_traversal(f,g,dir), label));
+    return T::promote(Hyperedge::create(_traversal(f,g,dir), label));
 }
 
 template <typename ResultFilter, typename TraversalFilter> Hyperedge::Hyperedges Hyperedge::_traversal(

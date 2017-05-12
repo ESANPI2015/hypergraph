@@ -31,6 +31,10 @@ class Hyperedge
         static Hyperedge* create(const unsigned id, const std::string& label=""); // Use id as a hint ... if already taken, return current edge with that id (does not create a new one!) and updates labels etc.
         static Hyperedge* create(const unsigned id, Hyperedges edges, const std::string& label=""); // also updates the _to set
         static Hyperedge* find(const unsigned id);
+        static Hyperedge* promote(Hyperedge *edge)
+        {
+            return edge;
+        }
         static void cleanup();
 
         /*
