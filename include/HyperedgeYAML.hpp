@@ -21,6 +21,8 @@ namespace YAML {
 
             static Node encode(const Hyperedge* rhs) {
                 Node node;
+                if (!rhs)
+                    return node;
                 node["id"] = rhs->id();
                 node["label"] = rhs->label();
                 for (auto edgeId : rhs->pointingTo())
@@ -70,7 +72,9 @@ namespace YAML {
         Node node;
         for (auto edgeId : edges)
         {
-            node.push_back(Hyperedge::find(edgeId));
+            auto edge = Hyperedge::find(edgeId);
+            if (edge)
+                node.push_back(edge);
         }   
         return node;
     }
