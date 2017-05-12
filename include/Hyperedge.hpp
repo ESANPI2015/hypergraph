@@ -48,6 +48,7 @@ class Hyperedge
             Write access
         */
         bool pointTo(const unsigned id); // Adds the edge to the set of edges we point to (and also registers in their from set)
+        bool pointTo(Hyperedge *other);
         void clear(); // Removes all hyperedges we point to (and also deregisters)
         void seperate(); // Removes all hyperedges pointing to us (and also deregisters)
         void detach(); // Combination of clear and seperate

@@ -175,6 +175,14 @@ void Hyperedge::cleanup()
 }
 
 
+bool Hyperedge::pointTo(Hyperedge* other)
+{
+    if (other)
+        return this->pointTo(other->id());
+    else
+        return false;
+}
+
 bool Hyperedge::pointTo(const unsigned id)
 {
     // Create or find the other edge
