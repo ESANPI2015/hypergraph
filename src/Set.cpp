@@ -28,6 +28,24 @@ Set::Set(Set::Sets members, const std::string& label)
     }
 }
 
+Set::~Set()
+{
+    // Kill all relations pointing from/to me as well
+    // TODO: Can we just interpret everything we point to or be pointed at as a relation?
+    for (auto edgeId : pointingTo())
+    {
+        auto edge = Hyperedge::find(edgeId);
+        if (edge)
+            delete edge;
+    }
+    for (auto edgeId : pointedBy())
+    {
+        auto edge = Hyperedge::find(edgeId);
+        if (edge)
+            delete edge;
+    }
+}
+
 Set* Set::promote(Hyperedge *edge)
 {
     // When we promote something to be a set it will gain the type of a Set

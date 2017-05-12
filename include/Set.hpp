@@ -13,6 +13,7 @@ class Set : public Hyperedge
 
         Set(const std::string& label="");
         Set(Sets members, const std::string& label);
+        ~Set();
 
         // Supertype of all sets
         static Set* Superclass();
