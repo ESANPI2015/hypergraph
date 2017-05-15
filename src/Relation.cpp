@@ -4,27 +4,13 @@
 Relation* Relation::promote(Hyperedge *edge)
 {
     Relation* neu = static_cast<Relation*>(edge);
+    // TODO: isA* relation
     return neu;
-}
-
-Relation::Relation(const std::string& label)
-: Hyperedge(label)
-{
-}
-
-Relation::Relation(Hyperedge::Hyperedges from, Hyperedge::Hyperedges to, const std::string& label)
-: Hyperedge(to, label)
-{
-    for (auto fromId : from)
-    {
-        auto other = Hyperedge::find(fromId);
-        other->pointTo(_id);
-    }
 }
 
 bool Relation::from(const unsigned id)
 {
-    return Hyperedge::find(id)->pointTo(_id);
+    return Hyperedge::find(id)->pointTo(this->id());
 }
 
 bool Relation::to(const unsigned id)
@@ -34,7 +20,7 @@ bool Relation::to(const unsigned id)
 
 bool Relation::from(Set *other)
 {
-    return other->pointTo(_id);
+    return other->pointTo(this->id());
 }
 
 bool Relation::to(Set *other)
@@ -45,5 +31,15 @@ bool Relation::to(Set *other)
 Relation* Relation::create(const std::string& label)
 {
     Relation* neu = Relation::promote(Hyperedge::create(label));
+    return neu;
+}
+
+Relation* create(Hyperedge::Hyperedges from, Hyperedge::Hyperedges to, const std::string& label)
+{
+    Relation* neu = Relation::promote(Hyperedge::create(to, label));
+    for (auto fromId : from)
+    {
+        neu->from(fromId);
+    }
     return neu;
 }

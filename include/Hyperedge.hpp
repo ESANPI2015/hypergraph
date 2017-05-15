@@ -18,18 +18,15 @@ class Hyperedge
     public:
         typedef std::set<unsigned> Hyperedges;
 
-        /*Constructors*/
-        Hyperedge(const std::string& label="");
-        Hyperedge(Hyperedges edges, const std::string& label="");
-        
         /*Destructor*/
         ~Hyperedge();
 
         /*Factory functions*/
         static Hyperedge* create(const std::string& label="");
         static Hyperedge* create(Hyperedges edges, const std::string& label="");
-        static Hyperedge* create(const unsigned id, const std::string& label=""); // Use id as a hint ... if already taken, return current edge with that id (does not create a new one!) and updates labels etc.
-        static Hyperedge* create(const unsigned id, Hyperedges edges, const std::string& label=""); // also updates the _to set
+        // Create or update hyperedges with a certain id
+        static Hyperedge* create(const unsigned id, const std::string& label="");
+        static Hyperedge* create(const unsigned id, Hyperedges edges, const std::string& label="");
         static Hyperedge* find(const unsigned id);
         static Hyperedge* promote(Hyperedge *edge)
         {
@@ -95,7 +92,12 @@ class Hyperedge
         friend std::ostream& operator<< (std::ostream& stream, const Hyperedge* edge);
         static std::string serialize(Hyperedge* root); // NOTE: Only serializes connected systems!!!
 
-    protected:
+    private:
+        /*Constructors: Private to allow only heap objects*/
+        Hyperedge(const std::string& label="");
+        Hyperedge(const Hyperedge&);
+        Hyperedge& operator=(const Hyperedge&);
+        
         // Private traversal function which will NOT create any edges (to be used by functions called on creation like contains)
         template <typename ResultFilter, typename TraversalFilter> Hyperedges _traversal
         ( 
@@ -112,8 +114,7 @@ class Hyperedge
 
         // Private static members for factory
         static unsigned _lastId; // use this if no id has been provided and update it
-        static std::map<unsigned, Hyperedge*> _edges; // stores all Hyperedges (also statically allocated ones)
-        static std::map<unsigned, Hyperedge*> _created; // stores all dynamically created Hyperedges
+        static std::map<unsigned, Hyperedge*> _edges; // stores all dynamically created hyperedges
 };
 
 // Include template member functions

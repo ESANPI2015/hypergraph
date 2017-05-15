@@ -11,16 +11,14 @@ class Set : public Hyperedge
     public:
         typedef std::set<unsigned> Sets;
 
-        Set(const std::string& label="");
-        Set(Sets members, const std::string& label);
         ~Set();
 
         // Supertype of all sets
         static Set* Superclass();
 
         // Factory function
-        static Set* create(const std::string& label="");
-        static Set* create(Sets members, const std::string& label="");
+        static Set* create(const std::string& label="Set");
+        static Set* create(Sets members, const std::string& label="Set");
 
         // Write access
         //bool relatedTo(Set *other, const std::string& relation="memberOf"); // generic relation
@@ -62,6 +60,11 @@ class Set : public Hyperedge
         // Difference between *this - other (and *this and other cannot be part of it)
         Set* subtract(const Set* other);
     private:
+        /*Private constructors allow only heap based objects*/
+        Set(const std::string& label="Set");
+        Set(const Set&);
+        Set& operator=(const Set&);
+
         static Set* superclass;
 };
 

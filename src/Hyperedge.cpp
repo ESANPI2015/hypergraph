@@ -9,35 +9,12 @@
 
 // STATIC MEMBER INIT
 unsigned Hyperedge::_lastId = 1;
-std::map<unsigned, Hyperedge*> Hyperedge::_created;
 std::map<unsigned, Hyperedge*> Hyperedge::_edges;
 
-// CONSTRUCTORS
+// PRIVATE CONSTRUCTORS
 Hyperedge::Hyperedge(const std::string& label)
 : _label(label)
 {
-    // TODO: Find a better mechanism (maybe assigning random numbers until we found a free id)
-    while (Hyperedge::find(_lastId))
-    {
-        _lastId++;
-    }
-    _id = _lastId;
-    _edges[_id] = this;
-}
-
-Hyperedge::Hyperedge(Hyperedges edges, const std::string& label)
-{
-    _label = label;
-    while (Hyperedge::find(_lastId))
-    {
-        _lastId++;
-    }
-    _id = _lastId;
-    _edges[_id] = this;
-    for (auto edgeId : edges)
-    {
-        pointTo(edgeId);
-    }
 }
 
 // DESTRUCTORS
@@ -45,12 +22,6 @@ Hyperedge::~Hyperedge()
 {
     // First we detach from all our edges AND supers
     detach();
-
-    // Check if we are in _created pool. If yes, delete
-    if (_created.count(_id))
-    {
-        _created.erase(_id);
-    }
 
     // Check if we are in the _edges pool. If yes, delete
     if (_edges.count(_id))
@@ -63,14 +34,20 @@ Hyperedge::~Hyperedge()
 Hyperedge* Hyperedge::create(const std::string& label)
 {
     Hyperedge* neu = new Hyperedge(label);
-    _created[neu->_id] = neu;
+    // TODO: Find a better mechanism (maybe assigning random numbers until we found a free id)
+    while (Hyperedge::find(_lastId)) _lastId++;
+    neu->_id = _lastId;
+    _edges[_lastId++] = neu;
     return neu;
 }
 
 Hyperedge* Hyperedge::create(Hyperedges edges, const std::string& label)
 {
-    Hyperedge* neu = new Hyperedge(edges,label);
-    _created[neu->_id] = neu;
+    Hyperedge* neu = Hyperedge::create(label);
+    for (auto edgeId : edges)
+    {
+        neu->pointTo(edgeId);
+    }
     return neu;
 }
 
@@ -92,11 +69,8 @@ Hyperedge* Hyperedge::create(const unsigned id, const std::string& label)
         // Create a new hyperedge
         neu = new Hyperedge(label);
         // We have to override the normal mechanism
-        // TODO: Find a better mechanism (maybe assigning random numbers until we found a free id)
-        _edges[neu->_id] = NULL;  // Remove from old place
         neu->_id = id;
-        _edges[neu->_id] = neu;   // Reinsert at place with desired id
-        _created[neu->_id] = neu; // Do not forget to register as dynamically created
+        _edges[id] = neu;   // Insert at place with desired id
     } else {
         // Update hyperedge
         neu->_label = label;
@@ -156,8 +130,8 @@ void Hyperedge::clear()
 
 void Hyperedge::cleanup()
 {
-    // Destroy only those edges which have been created by factory
-    auto localCopy = _created;
+    // Destroy only those edges which have been created by factory (all!)
+    auto localCopy = _edges;
 
     // detach all registered hyperedges
     for (auto edgeIt : localCopy)
@@ -172,6 +146,8 @@ void Hyperedge::cleanup()
         auto edge = edgeIt.second;
         delete edge;
     }
+
+    _edges.clear();
 }
 
 

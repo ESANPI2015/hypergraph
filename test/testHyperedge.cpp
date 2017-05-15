@@ -11,12 +11,12 @@ int main(void)
 {
     std::cout << "*** Hyperedge Test ***" << std::endl;
 
-    Hyperedge node("A 0-hyperedge (empty named set)");
-    Hyperedge set("A 1-hyperedge (set with one member)");
-    set.pointTo(node.id());
+    Hyperedge* node = Hyperedge::create("A 0-hyperedge (empty named set)");
+    Hyperedge* set = Hyperedge::create("A 1-hyperedge (set with one member)");
+    set->pointTo(node);
 
     std::cout << "> Test 1-Hyperedge " << std::endl;
-    auto members = set.pointingTo();
+    auto members = set->pointingTo();
     assert(members.size() == 1);
 
     std::cout << "*** Hyperedge Test Finished ***" << std::endl;
@@ -24,54 +24,56 @@ int main(void)
     std::cout << "> Creating (software) component modelling domain" << std::endl;
 
     // Create concepts
-    Set things("Things");
-    Set software("Software");
-    Set components("Components");
-    Set ports("Ports");
-    Set inputs("Inputs");
-    Set outputs("Outputs");
+    Set* things = Set::create("Things");
+    Set* software = Set::create("Software");
+    Set* components = Set::create("Components");
+    Set* ports = Set::create("Ports");
+    Set* inputs = Set::create("Inputs");
+    Set* outputs = Set::create("Outputs");
 
     // Build taxonomy using set system with isA relation (subsumption hierarchy)
-    components.isA(&things);
-    inputs.isA(&ports);
-    outputs.isA(&ports);
-    ports.isA(&things);
+    components->isA(things);
+    inputs->isA(ports);
+    outputs->isA(ports);
+    ports->isA(things);
+
+    components->memberOf(software);
 
     // Compose something from simpler things with partOf relation (compositional hierarchy)
     // TODO: Ok, now ComponentX is a Component. What about Component1 and 2? Are they 'automatically' also components?
     auto composite = Set::create("ComponentX");
     Set::create("Component1")->partOf(composite);
     Set::create("Component2")->partOf(composite);
-    composite->isA(&components);
+    composite->isA(components);
 
     // Create own relation
-    Relation has("have");
-    has.from(&components);
-    has.to(&ports);
+    Relation* has = Relation::create("have");
+    has->from(components);
+    has->to(ports);
 
     std::cout << "*** Id Test ***" << std::endl;
 
-    auto manufactured = things.labelContains();
+    auto manufactured = things->labelContains();
     for (auto edgeId : manufactured->pointingTo())
     {
         std::cout << Hyperedge::find(edgeId) << std::endl;
         assert(edgeId < manufactured->id());
     }
-    delete manufactured;
+    //delete manufactured;
 
     std::cout << "*** Id Test Finished ***" << std::endl;
 
     std::cout << "*** Built-in independent de-/serializer test ***" << std::endl;
     std::cout << "> Print things (using serializer)" << std::endl;
-    std::cout << Hyperedge::serialize(&things) << std::endl;
+    std::cout << Hyperedge::serialize(things) << std::endl;
     //std::cout << "> Print things (using serializer-deserializer-serializer compositional chain)" << std::endl;
     //std::cout << Hyperedge::serialize(Hyperedge::deserialize(Hyperedge::serialize(&things))) << std::endl;
     std::cout << "*** Built-in independent de-/serializer test finished ***" << std::endl;
 
     std::cout << "*** Queries Test ***" << std::endl;
-    auto individuals = things.cardinalityLessThanOrEqual();
+    auto individuals = things->cardinalityLessThanOrEqual();
     std::cout << individuals << std::endl;
-    auto special = things.cardinalityGreaterThan();
+    auto special = things->cardinalityGreaterThan();
     std::cout << special << std::endl;
 
     std::cout << "*** Queries Test finished ***" << std::endl;
@@ -86,13 +88,12 @@ int main(void)
     std::cout << "> From YAML to Hyperedge(s)\n";
     Hyperedge *wurst = test.as<Hyperedge*>();
     std::cout << Hyperedge::serialize(wurst) << std::endl;
-    // NOTE: Do not delete wurst ... Otherwise you delete ComponentX!
 
     std::cout << "> Store everything to YAML file\n";
     std::ofstream fout;
     fout.open("test.yml");
     if(fout.good()) {
-        fout << YAML::store(&things);
+        fout << YAML::store(things);
     } else {
         std::cout << "FAILED\n";
     }
@@ -100,13 +101,13 @@ int main(void)
     
     std::cout << "> Cleanup" << std::endl;
     Hyperedge::cleanup();
+    // NOTE: After here nothing exists anymore!
 
     test.reset();
     std::cout << "> Load from YAML file\n";
     test = YAML::LoadFile("test.yml");
-    YAML::load(test);
-    // Find "ComponentX"
-    wurst = Hyperedge::find(*things.labelPartOf("ComponentX")->pointingTo().begin());
+    auto edges = YAML::load(test);
+    wurst = Hyperedge::find(*(Hyperedge::find(*edges.begin())->labelPartOf("ComponentX")->pointingTo()).begin());
     assert(wurst != NULL);
     std::cout << Hyperedge::serialize(wurst) << std::endl;
 

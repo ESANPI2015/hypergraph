@@ -31,6 +31,7 @@ template <typename ResultFilter, typename TraversalFilter> Hyperedge::Hyperedges
     {
         auto edge = Hyperedge::find(edges.front());
         edges.pop();
+        // NOTE: We do not check the pointer here! We want it to fail if there is inconsistency!!!
 
         // Handle search direction
         Hyperedges unknowns;

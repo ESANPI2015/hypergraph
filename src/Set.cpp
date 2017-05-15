@@ -11,21 +11,22 @@ Set* Set::Superclass()
     return Set::superclass;
 }
 
-Set::Set(const std::string& label)
-: Hyperedge(label)
+Set* Set::create(const std::string& label)
 {
-    this->isA(Set::Superclass());
+    // NOTE: We have to use the base class factory
+    Set* neu = Set::promote(Hyperedge::create(label));
+    return neu;
 }
 
-Set::Set(Set::Sets members, const std::string& label)
-: Hyperedge(label)
+Set* Set::create(Set::Sets members, const std::string& label)
 {
-    this->isA(Set::Superclass());
+    Set* neu = Set::create(label);
     for (auto setId : members)
     {
         auto set = Set::promote(Hyperedge::find(setId));
-        set->memberOf(this);
+        set->memberOf(neu);
     }
+    return neu;
 }
 
 Set::~Set()
@@ -119,24 +120,6 @@ bool Set::partOf(Set *other)
         result &= partOf->to(other);
     }
     return result;
-}
-
-Set* Set::create(const std::string& label)
-{
-    // NOTE: Since we don't have access to _created of Hyperedges, we have to use the base class factory
-    Set* neu = Set::promote(Hyperedge::create(label));
-    return neu;
-}
-
-Set* Set::create(Set::Sets members, const std::string& label)
-{
-    Set* neu = Set::create(label);
-    for (auto setId : members)
-    {
-        auto set = Set::promote(Hyperedge::find(setId));
-        set->memberOf(neu);
-    }
-    return neu;
 }
 
 Relation* Set::memberOf()

@@ -21,8 +21,6 @@ namespace YAML {
 
             static Node encode(const Hyperedge* rhs) {
                 Node node;
-                if (!rhs)
-                    return node;
                 node["id"] = rhs->id();
                 node["label"] = rhs->label();
                 for (auto edgeId : rhs->pointingTo())
