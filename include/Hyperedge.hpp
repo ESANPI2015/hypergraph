@@ -26,6 +26,8 @@ class Hyperedge
         static Hyperedge* create(Hyperedges edges, const std::string& label="");
         // Finds a hyperedge by id
         static Hyperedge* find(const unsigned id);
+        // Finds all hyperedges with a certain label
+        static Hyperedges find(const std::string& label="");
         // Destroys all hyperedges
         static void cleanup();
         // Tries to create a hyperedge with a given id ... if already taken, returns NULL

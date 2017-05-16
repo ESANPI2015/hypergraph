@@ -35,6 +35,7 @@ Hyperedge* Hyperedge::create(const std::string& label)
 {
     Hyperedge* neu = new Hyperedge(label);
     // TODO: Find a better mechanism (maybe assigning random numbers until we found a free id)
+    // FIXME: We have to preserve IDs even if we restart programs ...
     while (Hyperedge::find(_lastId)) _lastId++;
     neu->_id = _lastId;
     _edges[_lastId++] = neu;
@@ -59,6 +60,20 @@ Hyperedge* Hyperedge::find(const unsigned id)
     } else {
         return NULL;
     }
+}
+
+Hyperedge::Hyperedges Hyperedge::find(const std::string& label)
+{
+    Hyperedges result;
+    for (auto pair : _edges)
+    {
+        auto id = pair.first;
+        auto edge = pair.second;
+        // Filters by label if given. It suffices that the edge label contains the given one.
+        if (label.empty() || (edge->label() == label))
+            result.insert(id);
+    }
+    return result;
 }
 
 Hyperedge* Hyperedge::create(const unsigned id, const std::string& label)
@@ -416,4 +431,3 @@ Hyperedge* Hyperedge::subtract(const Hyperedge* other)
     }
     return result;
 }
-

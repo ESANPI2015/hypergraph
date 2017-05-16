@@ -105,11 +105,10 @@ namespace YAML {
     }
 
     // Creates a complete system of Hyperedges from a YAML node
-    // ATTENTION: This will reindex all nodes!!!
+    // ATTENTION: This will NOT reindex nodes!!!
     static Hyperedge::Hyperedges load(const Node& node)
     {
         Hyperedge::Hyperedges result;
-        std::map<unsigned, unsigned> old2new;
 
         // First pass: Create nodes
         for (auto it = node.begin(); it != node.end(); it++)
@@ -126,12 +125,9 @@ namespace YAML {
                 // Does not exist, so create it :)
                 edge = Hyperedge::create(id, label);
             } else {
-                // Does exist, what will we do? Create a new one!
-                // NOTE: We cannot check for label match only. We would have to check the pointingTo sets as well to check for equality...
-                edge = Hyperedge::create(label);
+                // In case a node with the same id exists, we cannot do anything and also not create a new one!!!
+                // This is because the underlying assumption is that of UNIQUE IDs (even between load & stores!)
             }
-            old2new[id] = edge->id();
-
             result.insert(edge->id());
         }
 
@@ -151,11 +147,11 @@ namespace YAML {
             }
 
             // Add the edges to our _to set
-            auto us = Hyperedge::find(old2new[id]);
+            auto us = Hyperedge::find(id);
             std::vector<unsigned> otherIds = current["pointingTo"].as< std::vector<unsigned> >();
             for (auto otherId : otherIds)
             {
-                us->pointTo(old2new[otherId]);
+                us->pointTo(otherId);
             }
         }
         return result;
