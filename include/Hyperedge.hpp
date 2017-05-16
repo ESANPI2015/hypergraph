@@ -24,14 +24,15 @@ class Hyperedge
         /*Factory functions*/
         static Hyperedge* create(const std::string& label="");
         static Hyperedge* create(Hyperedges edges, const std::string& label="");
-        // Create or update hyperedges with a certain id
-        static Hyperedge* create(const unsigned id, const std::string& label="");
         static Hyperedge* find(const unsigned id);
         static Hyperedge* promote(Hyperedge *edge)
         {
             return edge;
         }
         static void cleanup();
+
+        // Tries to create a hyperedge with a given id ... if already taken, returns NULL
+        static Hyperedge* create(const unsigned id, const std::string& label="");
 
         /*
             Read Access

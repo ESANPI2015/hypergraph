@@ -3,16 +3,13 @@
 
 #include "Set.hpp"
 #include "yaml-cpp/yaml.h"
-//#include <iostream>
+#include <iostream>
 
 
 /*
    This is an experimental encoder/decoder for hyperedge <-> YAML stuff
    However there are open questions:
-   * Currently we not only store the hyperedge we want, but also the edges it points to and so forth.
-     Can we just store a hyperedge on its own?
-   * We have not yet found a good way to ensure persistent ids ... when we import an hyperedge and the things it points to do not exist, what do we do?
-   * When we store a system of hyperedges, how can we make sure, that it is correctly reconstructed?
+   * When we load two systems of hyperedges ... how can we know if two nodes with the same id are the same or not?
 */
 
 namespace YAML {
@@ -33,34 +30,55 @@ namespace YAML {
             static bool decode(const Node& node, Hyperedge*& rhs) {
                 unsigned id = node["id"].as<unsigned>();
                 std::string label = node["label"].as<std::string>();
-                // Check if such an edge already exists
-                // if not, create it with the correct id!!! If not possible, return false!
-                //std::cout << "CREATE " << label << std::endl;
-                if (!(rhs = Hyperedge::create(id, label))) // Create or get
+                
+                // Check if an edge with that index already exists
+                rhs = Hyperedge::find(id);
+                if (rhs)
                 {
-                    return false;
-                }
-                //std::cout << "CHECK ID\n";
-                // Check id
-                if (rhs->id() != id)
-                {
-                    return false;
-                }
-                //std::cout << "CHECK TO SET\n";
-                // Find the edges we are pointing to
-                if (!node["pointingTo"])
-                {
-                    // We do not point to anything so, we skip
+                    // Existing node: Check if label and _to set are the same
+                    if (label != rhs->label())
+                    {
+                        std::cout << "DEC: Label mismatch\n";
+                        return false;
+                    }
+                    // Find the edges we are pointing to
+                    if (!node["pointingTo"])
+                    {
+                        // We do not point to anything so, we skip
+                        return true;
+                    }
+                    // Check if we are pointing to the right edges
+                    std::vector<unsigned> otherIds = node["pointingTo"].as< std::vector<unsigned> >();
+                    for (auto otherId : otherIds)
+                    {
+                        if (!rhs->pointingTo(otherId))
+                        {
+                            std::cout << "DEC: Edge does not point to the same nodes\n";
+                            return false;
+                        }
+                    }
+                    return true;
+                } else {
+                    // Non-existing node: Create and connect it
+                    rhs = Hyperedge::create(id,label);
+                    // Find the edges we are pointing to
+                    if (!node["pointingTo"])
+                    {
+                        // We do not point to anything so, we skip
+                        return true;
+                    }
+                    // Add the edges to our _to set
+                    std::vector<unsigned> otherIds = node["pointingTo"].as< std::vector<unsigned> >();
+                    for (auto otherId : otherIds)
+                    {
+                        if (!rhs->pointTo(otherId))
+                        {
+                            std::cout << "DEC: Could not find other edge\n";
+                            return false;
+                        }
+                    }
                     return true;
                 }
-                //std::cout << "INSERT TO SET\n";
-                std::vector<unsigned> otherIds = node["pointingTo"].as< std::vector<unsigned> >();
-                for (auto otherId : otherIds)
-                {
-                    //std::cout << "INSERT " << otherId << std::endl;
-                    rhs->pointTo(otherId);
-                }
-                return true;
             }
         };
 
@@ -87,14 +105,58 @@ namespace YAML {
     }
 
     // Creates a complete system of Hyperedges from a YAML node
+    // ATTENTION: This will reindex all nodes!!!
     static Hyperedge::Hyperedges load(const Node& node)
     {
         Hyperedge::Hyperedges result;
-        // Node must be a sequence!
+        std::map<unsigned, unsigned> old2new;
+
+        // First pass: Create nodes
         for (auto it = node.begin(); it != node.end(); it++)
         {
-            Hyperedge *neu = it->as<Hyperedge*>();
-            result.insert(neu->id());
+            Node current = *it;
+            // Get id and label from file
+            unsigned id = current["id"].as<unsigned>();
+            std::string label = current["label"].as<std::string>();
+
+            // Try to find that edge
+            auto edge = Hyperedge::find(id);
+            if (!edge)
+            {
+                // Does not exist, so create it :)
+                edge = Hyperedge::create(id, label);
+            } else {
+                // Does exist, what will we do? Create a new one!
+                // NOTE: We cannot check for label match only. We would have to check the pointingTo sets as well to check for equality...
+                edge = Hyperedge::create(label);
+            }
+            old2new[id] = edge->id();
+
+            result.insert(edge->id());
+        }
+
+        // Second pass: Wire nodes
+        for (auto it = node.begin(); it != node.end(); it++)
+        {
+            Node current = *it;
+            // Get id and label from file
+            unsigned id = current["id"].as<unsigned>();
+            std::string label = current["label"].as<std::string>();
+
+            // Find the edges we are pointing to
+            if (!current["pointingTo"])
+            {
+                // We do not point to anything so, we skip
+                continue;
+            }
+
+            // Add the edges to our _to set
+            auto us = Hyperedge::find(old2new[id]);
+            std::vector<unsigned> otherIds = current["pointingTo"].as< std::vector<unsigned> >();
+            for (auto otherId : otherIds)
+            {
+                us->pointTo(old2new[otherId]);
+            }
         }
         return result;
     }

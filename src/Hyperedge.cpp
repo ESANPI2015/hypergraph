@@ -68,14 +68,12 @@ Hyperedge* Hyperedge::create(const unsigned id, const std::string& label)
     {
         // Create a new hyperedge
         neu = new Hyperedge(label);
-        // We have to override the normal mechanism
+        // Give it the desired id
         neu->_id = id;
-        _edges[id] = neu;   // Insert at place with desired id
-    } else {
-        // Update hyperedge
-        neu->_label = label;
+        _edges[id] = neu;
+        return neu;
     }
-    return neu;
+    return NULL;
 }
 
 void Hyperedge::updateLabel(const std::string& label)
@@ -144,10 +142,7 @@ void Hyperedge::cleanup()
 
 bool Hyperedge::pointTo(Hyperedge* other)
 {
-    if (other)
-        return this->pointTo(other->id());
-    else
-        return false;
+    return this->pointTo(other->id());
 }
 
 bool Hyperedge::pointTo(const unsigned id)
@@ -156,7 +151,8 @@ bool Hyperedge::pointTo(const unsigned id)
     Hyperedge *edge = Hyperedge::find(id);
     if (!edge)
     {
-        edge = Hyperedge::create(id); // Create anonymous hyperedge
+        // Such a hyperedge does not exist, so we have to fail!!!
+        return false;
     }
 
     // Make sure we are in the from list
