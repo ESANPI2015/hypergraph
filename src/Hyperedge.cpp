@@ -78,18 +78,9 @@ Hyperedge* Hyperedge::create(const unsigned id, const std::string& label)
     return neu;
 }
 
-Hyperedge* Hyperedge::create(const unsigned id, Hyperedges edges, const std::string& label)
+void Hyperedge::updateLabel(const std::string& label)
 {
-    Hyperedge* neu = Hyperedge::create(id, label);
-    if (neu)
-    {
-        // Add (possibly new) members
-        for (auto edgeId : edges)
-        {
-            neu->pointTo(edgeId);
-        }
-    }
-    return neu;
+    _label = label;
 }
 
 void Hyperedge::detach()

@@ -26,7 +26,6 @@ class Hyperedge
         static Hyperedge* create(Hyperedges edges, const std::string& label="");
         // Create or update hyperedges with a certain id
         static Hyperedge* create(const unsigned id, const std::string& label="");
-        static Hyperedge* create(const unsigned id, Hyperedges edges, const std::string& label="");
         static Hyperedge* find(const unsigned id);
         static Hyperedge* promote(Hyperedge *edge)
         {
@@ -48,6 +47,7 @@ class Hyperedge
         /*
             Write access
         */
+        void updateLabel(const std::string& label);
         bool pointTo(const unsigned id); // Adds the edge to the set of edges we point to (and also registers in their from set)
         bool pointTo(Hyperedge *other);
         void clear(); // Removes all hyperedges we point to (and also deregisters)
