@@ -4,14 +4,14 @@
 #include <queue>
 #include <sstream>
 
-template <typename T, typename ResultFilter, typename TraversalFilter> T* Hyperedge::traversal(
+template <typename ResultFilter, typename TraversalFilter> Hyperedge* Hyperedge::traversal(
     ResultFilter f,
     TraversalFilter g,
     const std::string& label,
     const Hyperedge::TraversalDirection dir
 )
 {
-    return T::promote(Hyperedge::create(_traversal(f,g,dir), label));
+    return Hyperedge::create(_traversal(f,g,dir), label);
 }
 
 template <typename ResultFilter, typename TraversalFilter> Hyperedge::Hyperedges Hyperedge::_traversal(

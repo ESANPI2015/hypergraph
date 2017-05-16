@@ -24,7 +24,7 @@ class Relation : public Hyperedge
 
         // Factory function
         static Relation* create(const std::string& label="relates");
-        static Relation* create(Hyperedge::Hyperedges from, Hyperedge::Hyperedges to, const std::string& label="relates");
+        //static Relation* create(Hyperedge::Hyperedges from, Hyperedge::Hyperedges to, const std::string& label="relates");
 
         // Write access
         bool from(const unsigned id); // Adds an edge to the from set

@@ -232,7 +232,7 @@ std::ostream& operator<< (std::ostream& stream, const Hyperedge* edge)
 std::string Hyperedge::serialize(Hyperedge* root)
 {
     std::stringstream result;
-    auto trav = root->traversal<Hyperedge>(
+    auto trav = root->traversal(
         [&](Hyperedge *x){result << x << "\n"; return false;},
         [](Hyperedge *x, Hyperedge *y){return true;},
         "",BOTH);

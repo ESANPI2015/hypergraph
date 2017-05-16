@@ -24,13 +24,10 @@ class Hyperedge
         /*Factory functions*/
         static Hyperedge* create(const std::string& label="");
         static Hyperedge* create(Hyperedges edges, const std::string& label="");
+        // Finds a hyperedge by id
         static Hyperedge* find(const unsigned id);
-        static Hyperedge* promote(Hyperedge *edge)
-        {
-            return edge;
-        }
+        // Destroys all hyperedges
         static void cleanup();
-
         // Tries to create a hyperedge with a given id ... if already taken, returns NULL
         static Hyperedge* create(const unsigned id, const std::string& label="");
 
@@ -51,12 +48,14 @@ class Hyperedge
         void updateLabel(const std::string& label);
         bool pointTo(const unsigned id); // Adds the edge to the set of edges we point to (and also registers in their from set)
         bool pointTo(Hyperedge *other);
+
+        /*
+            Removal
+        */
         void clear(); // Removes all hyperedges we point to (and also deregisters)
         void seperate(); // Removes all hyperedges pointing to us (and also deregisters)
         void detach(); // Combination of clear and seperate
 
-        /*TODO: we have to override == and other operators to operate on _id*/
-        
         /*
             Graph traversals/Queries producing new hyperedges
         */
@@ -65,7 +64,7 @@ class Hyperedge
             UP,     // in direction of the _from set
             BOTH    // in direction of both
         };
-        template <typename T, typename ResultFilter, typename TraversalFilter> T* traversal(
+        template <typename ResultFilter, typename TraversalFilter> Hyperedge* traversal(
             ResultFilter f,                         // Unary function bool f(Hyperedge *)
             TraversalFilter g,                      // Binary function bool g(Hyperedge *next, Hyperedge *current)
             const std::string& label="Traversal",   // Label for the result hyperedge
@@ -110,11 +109,11 @@ class Hyperedge
         // Private members
         unsigned _id;
         std::string _label;
-        Hyperedges _from;  // This is the row of an incidence matrix
-        Hyperedges _to;    // This is the column of an incidence matrix
+        Hyperedges  _from;  // This is the row of an incidence matrix
+        Hyperedges  _to;    // This is the column of an incidence matrix
 
         // Private static members for factory
-        static unsigned _lastId; // use this if no id has been provided and update it
+        static unsigned _lastId;                      // use this if no id has been provided and update it
         static std::map<unsigned, Hyperedge*> _edges; // stores all dynamically created hyperedges
 };
 

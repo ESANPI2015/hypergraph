@@ -1,14 +1,26 @@
 #include "Set.hpp"
 
-Set* Set::superclass = NULL;
+const std::string Set::classLabel = "Set";
+unsigned Set::lastSuperclassId = 0;
 
 Set* Set::Superclass()
 {
-    if (!Set::superclass)
+    Hyperedge *edge;
+    if (!Set::lastSuperclassId || !(edge = Hyperedge::find(lastSuperclassId)))
     {
-        Set::superclass = static_cast<Set*>(Hyperedge::create("Set"));
+        // First call or previous superclass has been destroyed
+        edge = Hyperedge::create(Set::classLabel);
+        lastSuperclassId = edge->id();
     }
-    return Set::superclass;
+    return static_cast<Set*>(edge);
+}
+
+Set* Set::promote(Hyperedge *edge)
+{
+    // When we promote something to be a set it will gain the type of a Set
+    Set* casted = static_cast<Set*>(edge);
+    casted->isA(Set::Superclass());
+    return casted;
 }
 
 Set* Set::create(const std::string& label)
@@ -45,14 +57,6 @@ Set::~Set()
         if (edge)
             delete edge;
     }
-}
-
-Set* Set::promote(Hyperedge *edge)
-{
-    // When we promote something to be a set it will gain the type of a Set
-    Set* casted = static_cast<Set*>(edge);
-    casted->isA(Set::Superclass());
-    return casted;
 }
 
 Set::Sets Set::promote(Hyperedge::Hyperedges edges)
@@ -126,27 +130,27 @@ Relation* Set::memberOf()
 {
     Relation *query;
     // This query gives all members of this
-    query = traversal<Relation>(
+    query = Relation::promote(traversal(
         [&](Hyperedge *x){return ((x->id() != this->id()) && (x->label() != "memberOf")) ? true : false;},
         [](Hyperedge *x, Hyperedge *y){return ((x->label() == "memberOf") || (y->label() == "memberOf")) ? true : false;},
         "memberOf",
         DOWN
-    );
+    ));
     // So i will point to this query (which is a new SUPER relation)
     pointTo(query->id());
     return query;
 }
 
-Relation* Set::kindOf()
+Relation* Set::isA()
 {
     Relation *query;
     // This query gives all supertypes of this
-    query = traversal<Relation>(
+    query = Relation::promote(traversal(
         [&](Hyperedge *x){return ((x->id() != this->id()) && (x->label() != "isA")) ? true : false;},
         [](Hyperedge *x, Hyperedge *y){return ((x->label() == "isA") || (y->label() == "isA")) ? true : false;},
         "isA",
         DOWN
-    );
+    ));
     // So i will point to this query (which is a new SUPER relation)
     pointTo(query->id());
     return query;
@@ -156,12 +160,12 @@ Relation* Set::partOf()
 {
     Relation *query;
     // This query gives all wholes we are part-of
-    query = traversal<Relation>(
+    query = Relation::promote(traversal(
         [&](Hyperedge *x){return ((x->id() != this->id()) && (x->label() != "partOf")) ? true : false;},
         [](Hyperedge *x, Hyperedge *y){return ((x->label() == "partOf") || (y->label() == "partOf")) ? true : false;},
         "partOf",
         DOWN
-    );
+    ));
     // So i will point to this query (which is a new SUPER relation)
     pointTo(query->id());
     return query;
@@ -171,12 +175,12 @@ Relation* Set::setOf()
 {
     Relation *query;
     // This query gives all members of this (transitive as well)
-    query = traversal<Relation>(
+    query = Relation::promote(traversal(
         [&](Hyperedge *x){return ((x->id() != this->id()) && (x->label() != "memberOf")) ? true : false;},
         [](Hyperedge *x, Hyperedge *y){return ((x->label() == "memberOf") || (y->label() == "memberOf")) ? true : false;},
         "setOf",
         UP
-    );
+    ));
     // So i will point to this query (which is a new SUPER relation)
     pointTo(query->id());
     return query;
@@ -186,12 +190,12 @@ Relation* Set::superclassOf()
 {
     Relation *query;
     // This query gives all supertypes of this
-    query = traversal<Relation>(
+    query = Relation::promote(traversal(
         [&](Hyperedge *x){return ((x->id() != this->id()) && (x->label() != "isA")) ? true : false;},
         [](Hyperedge *x, Hyperedge *y){return ((x->label() == "isA") || (y->label() == "isA")) ? true : false;},
         "superclassOf",
         UP
-    );
+    ));
     // So i will point to this query (which is a new SUPER relation)
     pointTo(query->id());
     return query;
@@ -201,12 +205,12 @@ Relation* Set::wholeOf()
 {
     Relation *query;
     // This query gives all parts of a whole
-    query = traversal<Relation>(
+    query = Relation::promote(traversal(
         [&](Hyperedge *x){return ((x->id() != this->id()) && (x->label() != "partOf")) ? true : false;},
         [](Hyperedge *x, Hyperedge *y){return ((x->label() == "partOf") || (y->label() == "partOf")) ? true : false;},
         "wholeOf",
         UP
-    );
+    ));
     // So i will point to this query (which is a new SUPER relation)
     pointTo(query->id());
     return query;

@@ -13,9 +13,6 @@ class Set : public Hyperedge
 
         ~Set();
 
-        // Supertype of all sets
-        static Set* Superclass();
-
         // Factory function
         static Set* create(const std::string& label="Set");
         static Set* create(Sets members, const std::string& label="Set");
@@ -28,8 +25,15 @@ class Set : public Hyperedge
         bool partOf(Set *other);   // causes a partOf relation to be created
 
         // Useful static member functions
+        // This function will try to find a Hyperedge with the classLabel or create one!
+        static Set* Superclass();
         static Set* promote(Hyperedge *edge);
-        static Sets promote(Hyperedge::Hyperedges edges); // TODO: Needed?
+        static Sets promote(Hyperedge::Hyperedges edges);
+
+        // For derived classes!
+        template <typename T> static T* create(const std::string& label=""); // WILL CALL Set::promote<T>
+        template <typename T> T* promote();
+        template <typename T> bool kindOf();
 
         // Read access
         // Only the DIRECT members of the set (for transitive sets see members() below)
@@ -40,7 +44,7 @@ class Set : public Hyperedge
         //Relation* relatedTo(const std::string& relation="memberOf"); // generic transitive closure
         // Predefined relations
         Relation* memberOf();
-        Relation* kindOf(); //isA
+        Relation* isA(); //isA
         Relation* partOf();
 
         // Inverse transitive closures (temporary relations only)
@@ -65,7 +69,13 @@ class Set : public Hyperedge
         Set(const Set&);
         Set& operator=(const Set&);
 
-        static Set* superclass;
+        // The classLabel is a string representing the class of sets
+        static const std::string classLabel;
+        static unsigned lastSuperclassId;
 };
+
+// Include template member functions
+// See http://stackoverflow.com/questions/495021/why-can-templates-only-be-implemented-in-the-header-file
+#include "Set.tpp"
 
 #endif

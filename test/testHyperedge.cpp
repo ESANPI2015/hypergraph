@@ -113,6 +113,11 @@ int main(void)
 
     std::cout << "*** YAML Test finished ***" << std::endl;
 
+    std::cout << "*** Testing Set type identification ***" << std::endl;
+    assert(static_cast<Set*>(wurst)->kindOf<Set>() == true);
+    std::cout << "*** Testing Set type finished ***" << std::endl;
+
+    std::cout << Hyperedge::serialize(wurst) << std::endl;
     std::cout << "> Cleanup" << std::endl;
     Hyperedge::cleanup();
     std::cout << "*** DONE ***" << std::endl;
