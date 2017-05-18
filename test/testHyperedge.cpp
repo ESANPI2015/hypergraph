@@ -47,6 +47,10 @@ int main(void)
     assert(id == 3);
     // TODO: Missing: unite, intersect, subtract
 
+    std::cout << "> Deleting traversal edge" << std::endl;
+    testGraph.destroy(id);
+    assert(testGraph.get(id) == NULL);
+
     std::cout << "> Store hypergraph using YAML" << std::endl;
 
     YAML::Node test;
