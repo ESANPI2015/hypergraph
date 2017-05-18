@@ -47,10 +47,10 @@ target_link_libraries(hypergraph
     ${hypergraph_PKGCONFIG_STATIC_LIBRARIES}
     )
 
-#add_executable(testHyperedge test/testHyperedge.cpp)
-#target_link_libraries(testHyperedge hypergraph)
-#install(TARGETS testHyperedge
-#RUNTIME DESTINATION bin)
+add_executable(testHyperedge test/testHyperedge.cpp)
+target_link_libraries(testHyperedge hypergraph)
+install(TARGETS testHyperedge
+RUNTIME DESTINATION bin)
 
 # pkg-config, to be installed:
 configure_file(${PROJECT_NAME}.pc.in ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.pc @ONLY)

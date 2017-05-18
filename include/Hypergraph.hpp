@@ -40,7 +40,7 @@ class Hypergraph {
         /*Get access to edges*/
         Hyperedge* get(const unsigned id);              // Finds a hyperedge by id
         // TODO: If we had a put method, we could get rid of pointers?
-        Hyperedges find(const std::string& label="");   // Finds all hyperedges with a certain label
+        Hyperedges find(const std::string& label="") const;   // Finds all hyperedges with a certain label
 
         /*Connect edges*/
         bool fromTo(const unsigned srcId, const unsigned destId);
@@ -66,6 +66,7 @@ class Hypergraph {
         // Create an edge C which contains all edges A points to but B does not point to
         unsigned subtract(const unsigned idA, const unsigned idB);
 
+        /* TODO: We also need a possibility to check hypergraph equality*/
         /* TODO: We also need merge operations for complete hypergraphs!!!*/
         // Who gets the ownership of the edge pointers?
         /*template<typename EquivalenceRelation> Hypergraph* mergeWith(Hypergraph* other, EquivalenceRelation eqr);*/

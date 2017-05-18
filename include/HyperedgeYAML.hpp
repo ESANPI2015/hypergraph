@@ -38,7 +38,7 @@ namespace YAML {
     template<>
         struct convert<Hypergraph*> {
 
-            static Node encode(const Hypergraph* rhs) {
+            static Node encode(Hypergraph* rhs) {
                 Node node;
                 for (auto edgeId : rhs->find())
                 {

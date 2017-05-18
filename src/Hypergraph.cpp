@@ -66,7 +66,7 @@ Hyperedge* Hypergraph::get(const unsigned id)
     }
 }
 
-Hyperedge::Hyperedges Hypergraph::find(const std::string& label)
+Hyperedge::Hyperedges Hypergraph::find(const std::string& label) const
 {
     Hyperedges result;
     for (auto pair : _edges)
@@ -78,6 +78,15 @@ Hyperedge::Hyperedges Hypergraph::find(const std::string& label)
             result.insert(id);
     }
     return result;
+}
+
+
+bool Hypergraph::fromTo(const unsigned srcId, const unsigned destId)
+{
+    auto srcEdge = get(srcId);
+    if (!srcEdge)
+        return false;
+    return srcEdge->pointTo(this, destId);
 }
 
 //Hyperedge* Hyperedge::labelContains(const std::string& str)
