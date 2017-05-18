@@ -17,56 +17,12 @@ Hyperedge::Hyperedge(const std::string& label)
 // DESTRUCTORS
 Hyperedge::~Hyperedge()
 {
-    // First we detach from all our edges AND supers
-    //detach();
-
-    // Check if we are in the _edges pool. If yes, delete
-    //if (_edges.count(_id))
-    //{
-    //    _edges.erase(_id);
-    //}
 }
 
 void Hyperedge::updateLabel(const std::string& label)
 {
     _label = label;
 }
-
-//void Hyperedge::detach()
-//{
-//    clear();
-//    seperate();
-//}
-//
-//void Hyperedge::seperate()
-//{
-//    // Deregister from edges pointing to us (registered in its to set)
-//    for (auto edgeId : _from)
-//    {
-//        auto edge = Hyperedge::find(edgeId);
-//        if (edge && edge->_to.count(_id))
-//        {
-//            edge->_to.erase(_id);
-//        }
-//    }
-//    // Clear from edges poiting to us
-//    _from.clear();
-//}
-//
-//void Hyperedge::clear()
-//{
-//    // Deregister from edges (registered in its from set)
-//    for (auto edgeId : _to)
-//    {
-//        auto edge = Hyperedge::find(edgeId);
-//        if (edge && edge->_from.count(_id))
-//        {
-//            edge->_from.erase(_id);
-//        }
-//    }
-//    // Clear edges
-//    _to.clear();
-//}
 
 bool Hyperedge::pointTo(Hypergraph *graph, const unsigned id)
 {

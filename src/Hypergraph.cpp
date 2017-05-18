@@ -55,6 +55,50 @@ bool Hypergraph::create(const unsigned id, const std::string& label)
     return false;
 }
 
+void Hypergraph::destroy(const unsigned id)
+{
+    auto edge = get(id);
+    if (!edge)
+        return;
+
+    // disconnect from all other edges
+    disconnect(id);
+
+    // delete from repository
+    if (_edges.count(id))
+    {
+        _edges.erase(id);
+    }
+
+    // delete permanently
+    delete edge;
+}
+
+void Hypergraph::disconnect(const unsigned id)
+{
+    auto edge = get(id);
+    if (!edge)
+        return;
+
+    // others -> edge
+    for (auto edgeId : edge->pointedBy())
+    {
+        auto other = get(edgeId);
+        if (other && other->isPointingTo(id))
+        {
+            other->_to.erase(id);
+        }
+    }
+    // edge -> others
+    for (auto edgeId : edge->pointingTo())
+    {
+        auto other = get(edgeId);
+        if (other && other->isPointedBy(id))
+        {
+            other->_from.erase(id);
+        }
+    }
+}
 
 Hyperedge* Hypergraph::get(const unsigned id)
 {

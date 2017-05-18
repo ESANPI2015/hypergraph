@@ -35,7 +35,7 @@ class Hypergraph {
         unsigned create(Hyperedges edges, const std::string& label="");
         bool     create(const unsigned id, 
                         const std::string& label="");   // Tries to create a hyperedge with a given id ... if already taken, returns false
-        // TODO: bool destroy(unsigned id); // Will remove a hyperedge from this hypergraph (and also disconnect it from anybody)
+        void destroy(const unsigned id); // Will remove a hyperedge from this hypergraph (and also disconnect it from anybody)
 
         /*Get access to edges*/
         Hyperedge* get(const unsigned id);              // Finds a hyperedge by id
@@ -44,6 +44,7 @@ class Hypergraph {
 
         /*Connect edges*/
         bool fromTo(const unsigned srcId, const unsigned destId);
+        void disconnect(const unsigned id); // Disconnects edge from all other edges
 
         /*Traverse connected subgraphs*/
         enum TraversalDirection {
