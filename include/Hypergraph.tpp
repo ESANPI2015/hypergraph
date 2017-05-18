@@ -1,35 +1,38 @@
 // This file holds all templated member functions
+#include "Hyperedge.hpp"
 #include <map>
 #include <set>
 #include <queue>
 #include <sstream>
 
-template <typename ResultFilter, typename TraversalFilter> Hyperedge* Hyperedge::traversal(
+template <typename ResultFilter, typename TraversalFilter> unsigned Hypergraph::traversal(
+    const unsigned rootId,
     ResultFilter f,
     TraversalFilter g,
     const std::string& label,
-    const Hyperedge::TraversalDirection dir
+    const Hypergraph::TraversalDirection dir
 )
 {
-    return Hyperedge::create(_traversal(f,g,dir), label);
+    return create(_traversal(rootId,f,g,dir), label);
 }
 
-template <typename ResultFilter, typename TraversalFilter> Hyperedge::Hyperedges Hyperedge::_traversal(
+template <typename ResultFilter, typename TraversalFilter> Hypergraph::Hyperedges Hypergraph::_traversal(
+    const unsigned rootId,
     ResultFilter f,
     TraversalFilter g,
-    const Hyperedge::TraversalDirection dir
+    const Hypergraph::TraversalDirection dir
 )
 {
     Hyperedges result;
     Hyperedges visited;
     std::queue< unsigned > edges;
 
-    edges.push(this->id());
+    edges.push(rootId);
 
     // Run through queue of unknown edges
     while (!edges.empty())
     {
-        auto edge = Hyperedge::find(edges.front());
+        auto edge = get(edges.front());
         edges.pop();
         // NOTE: We do not check the pointer here! We want it to fail if there is inconsistency!!!
 
@@ -64,7 +67,7 @@ template <typename ResultFilter, typename TraversalFilter> Hyperedge::Hyperedges
         // Inserting unknowns into queue for further searching
         for (auto unknownId : unknowns)
         {
-            auto unknown = Hyperedge::find(unknownId);
+            auto unknown = get(unknownId);
             if (g(unknown, edge)) // We need the pair of hyperedge -> hyperedge
             {
                 // edge matches filter func
