@@ -28,14 +28,16 @@ add_definitions(${hypergraph_PKGCONFIG_CFLAGS_OTHER} -ggdb --pedantic -Wall -Wer
 set(SOURCES
     src/Hyperedge.cpp
     src/Hypergraph.cpp
-    #src/Set.cpp
-    #src/Relation.cpp
+    src/Set.cpp
+    src/SetSystem.cpp
+    src/Relation.cpp
     )
 set(HEADERS
     include/Hyperedge.hpp
     include/HyperedgeYAML.hpp
-    #include/Set.hpp
-    #include/Relation.hpp
+    include/Set.hpp
+    include/SetSystem.hpp
+    include/Relation.hpp
     )
 
 #set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/")
@@ -50,6 +52,11 @@ target_link_libraries(hypergraph
 add_executable(testHyperedge test/testHyperedge.cpp)
 target_link_libraries(testHyperedge hypergraph)
 install(TARGETS testHyperedge
+RUNTIME DESTINATION bin)
+
+add_executable(testSetSystem test/testSetSystem.cpp)
+target_link_libraries(testSetSystem hypergraph)
+install(TARGETS testSetSystem
 RUNTIME DESTINATION bin)
 
 # pkg-config, to be installed:
