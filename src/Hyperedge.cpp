@@ -9,8 +9,9 @@
 #include <stdexcept>
 
 // PRIVATE CONSTRUCTORS
-Hyperedge::Hyperedge(const std::string& label)
-: _label(label)
+Hyperedge::Hyperedge(const unsigned id, const std::string& label)
+: _id(id),
+  _label(label)
 {
 }
 
@@ -22,6 +23,16 @@ Hyperedge::~Hyperedge()
 void Hyperedge::updateLabel(const std::string& label)
 {
     _label = label;
+}
+
+bool Hyperedge::pointTo(Hypergraph *graph, Hyperedge::Hyperedges otherIds)
+{
+    bool result = true;
+    for (auto otherId : otherIds)
+    {
+        result &= pointTo(graph, otherId);
+    }
+    return result;
 }
 
 bool Hyperedge::pointTo(Hypergraph *graph, const unsigned id)

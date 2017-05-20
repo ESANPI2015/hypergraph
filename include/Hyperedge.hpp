@@ -16,11 +16,13 @@ class Hypergraph;
 
 class Hyperedge
 {
-    // This class will be able to access private members: So it will be able to construct it
     friend class Hypergraph;
 
     public:
         typedef std::set<unsigned> Hyperedges;
+
+        /*Constructor*/
+        Hyperedge(const unsigned id, const std::string& label="");
 
         /*Destructor*/
         ~Hyperedge();
@@ -43,15 +45,11 @@ class Hyperedge
         /*Graph dependent operations*/
         bool isPartOf(Hypergraph *graph);
         bool pointTo(Hypergraph *graph, const unsigned id);
+        bool pointTo(Hypergraph *graph, Hyperedges otherIds);
         Hyperedges pointingTo(Hypergraph *graph, const std::string& label);
         Hyperedges pointedBy(Hypergraph *graph, const std::string& label);
 
     private:
-        /*Constructors: Private to allow only heap objects*/
-        Hyperedge(const std::string& label="");
-        Hyperedge(const Hyperedge&);
-        Hyperedge& operator=(const Hyperedge&);
-        
         /*Private members*/
         unsigned    _id;
         std::string _label;
