@@ -31,20 +31,20 @@ class Hypergraph {
         ~Hypergraph();
 
         /*Factory functions for member edges*/
-        unsigned create(const std::string& label=""); // creates a new hyperedge
+        unsigned create(const std::string& label="");               // creates a new hyperedge
         unsigned create(Hyperedges edges, const std::string& label="");
         bool     create(const unsigned id, 
-                        const std::string& label="");   // Tries to create a hyperedge with a given id ... if already taken, returns false
-        void destroy(const unsigned id); // Will remove a hyperedge from this hypergraph (and also disconnect it from anybody)
+                        const std::string& label="");               // Tries to create a hyperedge with a given id ... if already taken, returns false
+        void destroy(const unsigned id);                            // Will remove a hyperedge from this hypergraph (and also disconnect it from anybody)
 
         /*Get access to edges*/
-        Hyperedge* get(const unsigned id);              // Finds a hyperedge by id
+        Hyperedge* get(const unsigned id);                          // Finds a hyperedge by id
         // TODO: If we had a put method, we could get rid of pointers?
-        Hyperedges find(const std::string& label="") const;   // Finds all hyperedges with a certain label
+        Hyperedges find(const std::string& label="") const;         // Finds all hyperedges with a certain label
 
         /*Connect edges*/
-        bool fromTo(const unsigned srcId, const unsigned destId);
-        void disconnect(const unsigned id); // Disconnects edge from all other edges
+        bool fromTo(const unsigned srcId, const unsigned destId);               // Connects two hyperedges
+        void disconnect(const unsigned id);                                     // Disconnects edge from all other edges
 
         /*Traverse connected subgraphs*/
         enum TraversalDirection {
@@ -60,14 +60,11 @@ class Hypergraph {
             const TraversalDirection dir = DOWN     // Direction of traversal
         );
         /* Merge operations on hyperedges*/
-        // Unites the to sets of A and B creating a new edge C
-        unsigned unite(const unsigned idA, const unsigned idB);
-        // Intersect the to sets of A and B creating a new edge C
-        unsigned intersect(const unsigned idA, const unsigned idB);
-        // Create an edge C which contains all edges A points to but B does not point to
-        unsigned subtract(const unsigned idA, const unsigned idB);
+        unsigned unite(const unsigned idA, const unsigned idB);        // Unites the to sets of A and B creating a new edge C
+        unsigned intersect(const unsigned idA, const unsigned idB);    // Intersect the to sets of A and B creating a new edge C
+        unsigned subtract(const unsigned idA, const unsigned idB);     // Create an edge C which contains all edges A points to but B does not point to
 
-        /* TODO: We also need a possibility to check hypergraph equality*/
+        /* TODO: We also need a possibility to check for hypergraph equality*/
         /* TODO: We also need merge operations for complete hypergraphs!!!*/
         // Who gets the ownership of the edge pointers?
         /*template<typename EquivalenceRelation> Hypergraph* mergeWith(Hypergraph* other, EquivalenceRelation eqr);*/
@@ -81,7 +78,11 @@ class Hypergraph {
         //Hyperedge* successors(); // Go in direction of to set and register all edges AND edge of edges
         //Hyperedge* predecessors(); // Go in direction of from set and register all edges AND edges of edges
 
-    private:
+    protected:
+
+        /*Id generation: Its like a ticketing system, once you called this, you have to use it!*/
+        unsigned getNextId();
+
         /*Traversal which does not construct a new edge. Useful for internal use in e.g. constructors*/
         template <typename ResultFilter, typename TraversalFilter> Hyperedges _traversal
         ( 
@@ -93,8 +94,7 @@ class Hypergraph {
 
         // Private members for factory
         unsigned _lastId;                      // this is the id we can safely assign but should increase whenever we used it
-        // TODO: Do we need pointers anymore?
-        std::map<unsigned, Hyperedge*> _edges; // stores all dynamically created hyperedges (the ones this hypergraph created!)
+        std::map<unsigned, Hyperedge*> _edges; // stores all dynamically created hyperedges (the ones this hypergraph created!) TODO: Do we need pointers? If not, we have to define equality and membership to a graph!
 };
 
 // Include template member functions

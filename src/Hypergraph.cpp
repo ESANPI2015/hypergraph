@@ -21,12 +21,16 @@ Hypergraph::~Hypergraph()
     _edges.clear();
 }
 
+unsigned Hypergraph::getNextId()
+{
+    while (get(_lastId)) _lastId++;
+    return _lastId++;
+}
+
 unsigned Hypergraph::create(const std::string& label)
 {
-    Hyperedge* neu = new Hyperedge(label);
-    while (get(_lastId)) _lastId++;
-    neu->_id = _lastId;
-    _edges[_lastId++] = neu;
+    Hyperedge* neu = new Hyperedge(getNextId(), label);
+    _edges[neu->id()] = neu;
     return neu->id();
 }
 
@@ -46,9 +50,8 @@ bool Hypergraph::create(const unsigned id, const std::string& label)
     if (!neu)
     {
         // Create a new hyperedge
-        neu = new Hyperedge(label);
         // Give it the desired id
-        neu->_id = id;
+        neu = new Hyperedge(id, label);
         _edges[id] = neu;
         return true;
     }
