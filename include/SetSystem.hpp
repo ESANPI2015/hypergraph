@@ -30,6 +30,7 @@ class SetSystem : public Hypergraph
 
         /*For derived classes based on sets*/
         unsigned getClass(const std::string& label);    // returns an id which serves as representative of a class with the given label (DERIVED CLASSES)
+        // unsigned instantiateFrom(const std::string& classLabel, const std::string& label=""); // implies (new -- isA --> <classLabel>)
 
         /*Factory functions*/
         unsigned create(const std::string& label="");   // creates a new set
@@ -63,6 +64,7 @@ class SetSystem : public Hypergraph
         // Predefined relations
         unsigned memberOf(const unsigned id);
         unsigned isA(const unsigned id);
+        //unsigned isA(const unsigned id, const std::string=""); // also checks for a concrete label :)
         unsigned partOf(const unsigned id);
         unsigned hasA(const unsigned id);
 
