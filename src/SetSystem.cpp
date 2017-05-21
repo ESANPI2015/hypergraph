@@ -141,7 +141,7 @@ unsigned SetSystem::relateTo(const unsigned idA, const unsigned idB, const std::
     // In any case there will be at least one new hyperedge
     auto relId = Hypergraph::create(relation);
     // Check if there exists already a direct relation with that label between A and B
-    // TODO: Should we make a graph traversal here?
+    // NOTE: Never do transitive things here! We dont know if the desired relation is transitive!!!!
     auto hIds = setA->pointingTo(this, relation);
     if (hIds.size())
     {
@@ -154,16 +154,20 @@ unsigned SetSystem::relateTo(const unsigned idA, const unsigned idB, const std::
         // What we do now is creating a new isA like this:
         // A -- isA' --> C
         //       |-----> D
-        // TODO: The old isA also exists but could be disconnected from A
         for (auto otherId : hIds)
         {
             auto nextId = Hypergraph::unite(relId, otherId);
             // now previous relId is not needed anymore
             Hypergraph::destroy(relId);
+            // Cool optimization: Iff setA is the only set pointing to otherId, we can destroy it as well :)
+            if (Hypergraph::get(otherId)->pointedBy().size() < 2)
+                Hypergraph::destroy(otherId);
             // set the nextId as relId
             relId = nextId;
         }
     }
+    // Fix the label
+    Hypergraph::get(relId)->updateLabel(relation);
     // Connect idA --> relId --> idB
     Hypergraph::fromTo(idA, relId);
     Hypergraph::fromTo(relId, idB);
@@ -213,6 +217,7 @@ unsigned SetSystem::relatedTo(const unsigned id, const std::string& relation)
     // The created query is a new relation of the same type
     // Therefore id should point to this relation as well
     // ATTENTION: To be usable here, we cannot use the normal Relation::from() here!
+    // TODO: Before doing this, we should try to reuse existing relations!!! -> instead of creating a relation directly, we should use relateTo here!
     Hypergraph::get(id)->pointTo(this, query->id());
     return query->id();
 }
@@ -226,17 +231,6 @@ unsigned SetSystem::isA(const unsigned id)
 {
     return relatedTo(id, Relation::isALabel);
 }
-
-unsigned SetSystem::partOf(const unsigned id)
-{
-    return relatedTo(id, Relation::partOfLabel);
-}
-
-unsigned SetSystem::hasA(const unsigned id)
-{
-    return relatedTo(id, Relation::hasLabel);
-}
-
 
 // Inverse transitive closures of
 unsigned SetSystem::relatedToInverse(const unsigned id, const std::string& relation, const std::string& inverse)
@@ -295,17 +289,6 @@ unsigned SetSystem::superclassOf(const unsigned id)
 {
     return relatedToInverse(id, Relation::isALabel, Relation::inverseIsALabel);
 }
-
-unsigned SetSystem::wholeOf(const unsigned id)
-{
-    return relatedToInverse(id, Relation::partOfLabel, Relation::inversePartOfLabel);
-}
-
-unsigned SetSystem::ownerOf(const unsigned id)
-{
-    return relatedToInverse(id, Relation::hasLabel, Relation::inverseHasLabel);
-}
-
 
 // Merge operations on Sets
 unsigned SetSystem::unite(const unsigned idA, const unsigned idB)

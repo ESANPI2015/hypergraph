@@ -46,11 +46,16 @@ class SetSystem : public Hypergraph
 
         /*Relate sets*/
         unsigned relateTo(const unsigned idA, const unsigned idB, const std::string& relation="relatedTo"); // generic relation "A -- <label> --> B"
+        // TODO: Predefined relations?
+        // unsigned isA(const unsigned id, const unsigned typeId);
+        // TODO: Directly related sets query?
+        // Sets relatedTo(const unsigned id, const std::string& relation);
 
         // Merge operations:
         // NOTE: These operations are USING the memberOf relation ONLY!!!
         //       They also use only direct members
         // Unites the to sets of A and B creating a new set C
+        // TODO: Implement these!
         unsigned unite(const unsigned idA, const unsigned idB);
         // Intersect the to sets of A and B creating a new set C
         unsigned intersect(const unsigned idA, const unsigned idB);
@@ -59,22 +64,20 @@ class SetSystem : public Hypergraph
 
         // Queries:
         // NOTE: These make a graph traversal and give back a new relation holding the results of the closure
+        // NOTE2: Although transitive closures exist, it does not mean that they are useful.
+        //        E.g. If A hasA B && B hasA C !=> A hasA C !!!!!
         // Transitive closures of ...
         unsigned relatedTo(const unsigned id, const std::string& relation="relatedTo"); // generic transitive closure of "A -- <label> --> * -- <label> --> * ..."
         // Predefined relations
         unsigned memberOf(const unsigned id);
         unsigned isA(const unsigned id);
         //unsigned isA(const unsigned id, const std::string=""); // also checks for a concrete label :)
-        unsigned partOf(const unsigned id);
-        unsigned hasA(const unsigned id);
 
         // Inverse transitive closures of
         unsigned relatedToInverse(const unsigned id, const std::string& relation="relatedTo", const std::string& inverse="relatedTo"); // generic inverse transitive closure of "A <label> B"
         // ... predefined relations
         unsigned setOf(const unsigned id);
         unsigned superclassOf(const unsigned id);
-        unsigned wholeOf(const unsigned id);
-        unsigned ownerOf(const unsigned id);
 };
 
 #endif
