@@ -26,6 +26,11 @@ class SetSystem : public Hypergraph
         SetSystem();                                    // will create a basic set as superclass for all created sets
         ~SetSystem();
 
+        unsigned getSetClass();                         // returns an id which serves as representative of the set concept
+
+        /*For derived classes based on sets*/
+        unsigned getClass(const std::string& label);    // returns an id which serves as representative of a class with the given label (DERIVED CLASSES)
+
         /*Factory functions*/
         unsigned create(const std::string& label="");   // creates a new set
         unsigned create(Sets members, const std::string& label="");
@@ -34,7 +39,6 @@ class SetSystem : public Hypergraph
         void     destroy(const unsigned id);            // Will remove a set from this set system. Will cause all relations to be destroyed as well!
 
         /*Get access to sets*/
-        
         bool isSet(const unsigned id);                  // Checks if id -- isA --> superclassId after transitive closure
         Set* get(const unsigned id);                    // Finds a set by id
         Sets find(const std::string& label="");         // Finds all sets with a certain label
@@ -69,9 +73,6 @@ class SetSystem : public Hypergraph
         unsigned superclassOf(const unsigned id);
         unsigned wholeOf(const unsigned id);
         unsigned ownerOf(const unsigned id);
-
-    private:
-        unsigned superclassId;
 };
 
 #endif

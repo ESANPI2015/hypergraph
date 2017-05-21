@@ -5,9 +5,7 @@
 
 SetSystem::SetSystem()
 {
-    // Create the superclass and remember its id
-    // NOTE: The superclass cannot be created with the SetSystem create (otherwise it would get an isA relation to nowhere?)
-    superclassId = Hypergraph::create(Set::superclassLabel);
+    // Nothing to do?
 }
 
 SetSystem::~SetSystem()
@@ -15,12 +13,43 @@ SetSystem::~SetSystem()
     // Do we have to do something here?
 }
 
+unsigned SetSystem::getSetClass()
+{
+    auto edges = Hypergraph::find(Set::superclassLabel);
+    unsigned id;
+    if (edges.size())
+    {
+        // There are possible representatives: choose one, merge them into one?
+        id = *edges.begin();
+    } else {
+        // There are no possible representatives: create one
+        id = Hypergraph::create(Set::superclassLabel);
+    }
+    return id;
+}
+
+unsigned SetSystem::getClass(const std::string& label)
+{
+    // NOTE: This works on sets, so all derived classes based on the set concept can use this function (Sets could, but this would imply a isA loop!)
+    auto sets = find(label);
+    unsigned id;
+    if (sets.size())
+    {
+        // There are possible representatives: choose one, merge them into one?
+        id = *sets.begin();
+    } else {
+        // There are no possible representatives: create one
+        id = create(label);
+    }
+    return id;
+}
+
 /*Factory functions*/
 unsigned SetSystem::create(const std::string& label)
 {
     Set *neu = new Set(getNextId(), label);
     _edges[neu->id()] = neu;
-    relateTo(neu->id(), superclassId, Relation::isALabel);
+    relateTo(neu->id(), getSetClass(), Relation::isALabel);
     return neu->id();
 }
 
@@ -36,14 +65,14 @@ unsigned SetSystem::create(Sets members, const std::string& label)
 
 bool SetSystem::create(const unsigned id, const std::string& label)
 {
-    Set* neu = get(id);
+    Hyperedge* neu = Hypergraph::get(id);
     if (!neu)
     {
         // Create a new hyperedge
         // Give it the desired id
-        neu = new Set(id, label);
-        _edges[id] = neu;
-        relateTo(neu->id(), superclassId, Relation::isALabel);
+        Set* set = new Set(id, label);
+        _edges[id] = set;
+        relateTo(set->id(), getSetClass(), Relation::isALabel);
         return true;
     }
     return false;
@@ -70,20 +99,13 @@ void SetSystem::destroy(const unsigned id)
 
 bool SetSystem::isSet(const unsigned id)
 {
-    // ATTENTION: is called by Set::get! So we cannot use Set::get here as well!
-    // Therefore we also cannot use the transitive closure here ... because it uses relation functions
-    // Here: if any of the direct relations labelled isA is pointing to the superclass we are happy :)
-    auto edge = Hypergraph::get(id);
-    if (!edge)
-        return false;
-    auto rels = edge->pointingTo(this, Relation::isALabel);
-    for (auto relId : rels)
-    {
-        auto rel = Hypergraph::get(relId);
-        // FIXME: Either check for label or for superclassId
-        if (rel->pointingTo().count(superclassId))
-            return true;
-    }
+    // Transitive closure based
+    auto queryId = relatedTo(id, Relation::isALabel);
+    auto others = Hypergraph::get(queryId)->pointingTo(this, Set::superclassLabel);
+    // NOTE: If we do not delete the result afterwards, the system explodes!
+    Hypergraph::destroy(queryId);
+    if (others.size())
+        return true;
     return false;
 }
 
@@ -157,21 +179,41 @@ unsigned SetSystem::relatedTo(const unsigned id, const std::string& relation)
     // relation edges is returned
     // id -- {relation -- *}^N -- relation --> X
     // So, if A -- isA --> B -- isA --> C then afterwards A -- isA --> B, C
+    // We have to make sure, that we only consider full triples!!! x -- isA --> y and not only isA --> y
+    bool expectRelation = false;
     query = Relation::promote(Hypergraph::get(traversal(
         id,
         [&](Hyperedge *x)
         {
-            return ((x->id() != id) && (x->label() != relation)) ? true : false;
+            if (expectRelation)
+            {
+                // Expecting relation
+                expectRelation = false;
+                return false;
+            } else {
+                // Expecting set
+                expectRelation = true;
+                return ((x->id() != id) && (x->label() != relation)) ? true : false;
+            }
         },
         [&](Hyperedge *x, Hyperedge *y){
-            return ((x->label() == relation) || (y->label() == relation)) ? true : false;
+            if (expectRelation)
+            {
+                // y should have label of relation
+                if (y->label() == relation) return true;
+            } else {
+                // x should have label of relation
+                if (x->label() == relation) return true;
+            }
+            return false;
         },
         relation,
         DOWN
     )));
     // The created query is a new relation of the same type
     // Therefore id should point to this relation as well
-    query->from(this,id);
+    // ATTENTION: To be usable here, we cannot use the normal Relation::from() here!
+    Hypergraph::get(id)->pointTo(this, query->id());
     return query->id();
 }
 
@@ -207,21 +249,40 @@ unsigned SetSystem::relatedToInverse(const unsigned id, const std::string& relat
     // NOTE: In contrast to the relatedTo traversal, the direction is reversed!
     // Afterwards the INVERSE LABEL is given to the new relation.
     // So, if A -- isA --> B -- isA --> C then afterwards C -- superclassOf --> B, A (we started at C!)
+    bool expectRelation = false;
     query = Relation::promote(Hypergraph::get(traversal(
         id,
         [&](Hyperedge *x)
         {
-            return ((x->id() != id) && (x->label() != relation)) ? true : false;
+            if (expectRelation)
+            {
+                // Expecting relation
+                expectRelation = false;
+                return false;
+            } else {
+                // Expecting set
+                expectRelation = true;
+                return ((x->id() != id) && (x->label() != relation)) ? true : false;
+            }
         },
         [&](Hyperedge *x, Hyperedge *y){
-            return ((x->label() == relation) || (y->label() == relation)) ? true : false;
+            if (expectRelation)
+            {
+                // y should have label of relation
+                if (y->label() == relation) return true;
+            } else {
+                // x should have label of relation
+                if (x->label() == relation) return true;
+            }
+            return false;
         },
         inverse,
         UP
     )));
     // The created query is a new relation of the same type
     // Therefore id should point to this relation as well
-    query->from(this, id);
+    // ATTENTION: To be usable here, we cannot use the normal Relation::from() here!
+    Hypergraph::get(id)->pointTo(this, query->id());
     return query->id();
 }
 
