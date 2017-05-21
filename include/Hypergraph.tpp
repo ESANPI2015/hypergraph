@@ -68,7 +68,7 @@ template <typename ResultFilter, typename TraversalFilter> Hypergraph::Hyperedge
         for (auto unknownId : unknowns)
         {
             auto unknown = get(unknownId);
-            if (g(unknown, edge)) // We need the pair of hyperedge -> hyperedge
+            if (g(edge, unknown)) // We need the pair of hyperedge -> hyperedge
             {
                 // edge matches filter func
                 edges.push(unknown->id());
