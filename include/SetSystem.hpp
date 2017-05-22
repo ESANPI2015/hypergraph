@@ -43,13 +43,15 @@ class SetSystem : public Hypergraph
         bool isSet(const unsigned id);                  // Checks if id -- isA --> superclassId after transitive closure
         Set* get(const unsigned id);                    // Finds a set by id
         Sets find(const std::string& label="");         // Finds all sets with a certain label
+        Sets members(const unsigned id);                // Returns the members of a set
 
         /*Relate sets*/
         unsigned relateTo(const unsigned idA, const unsigned idB, const std::string& relation="relatedTo"); // generic relation "A -- <label> --> B"
         // TODO: Predefined relations?
         // unsigned isA(const unsigned id, const unsigned typeId);
-        // TODO: Directly related sets query?
-        // Sets relatedTo(const unsigned id, const std::string& relation);
+
+        /* Query directly related sets (id -- relation --> *) */
+        Sets directlyRelatedTo(const unsigned id, const std::string& relation="relatedTo");
 
         // Merge operations:
         // NOTE: These operations are USING the memberOf relation ONLY!!!

@@ -177,6 +177,48 @@ unsigned SetSystem::relateTo(const unsigned idA, const unsigned idB, const std::
     return relId;
 }
 
+Set::Sets SetSystem::directlyRelatedTo(const unsigned id, const std::string& relation)
+{
+    // TODO: Move the merge thing of relateTo() and directlyRelatedTo() into an own function!
+    Sets result;
+    auto setA = Hypergraph::get(id);
+    // Check if there exists already a direct relation with that label between A and B
+    // NOTE: Never do transitive things here! We dont know if the desired relation is transitive!!!!
+    auto hIds = setA->pointingTo(this, relation);
+    if (hIds.size())
+    {
+        // Relation(s) exist
+        // We merge them into one new
+        // NOTE: Just reusing them is not possbile. Consider this:
+        // A -- isA --> C  +  A -- isA --> D 
+        // B ----|
+        // Then we cannot just add D to the to set of the previous isA. B would incorrectly be a D as well afterwards.
+        // What we do now is creating a new isA like this:
+        // A -- isA' --> C
+        //       |-----> D
+        auto relId = Hypergraph::create(relation);
+        for (auto otherId : hIds)
+        {
+            auto nextId = Hypergraph::unite(relId, otherId);
+            // now previous relId is not needed anymore
+            Hypergraph::destroy(relId);
+            // Cool optimization: Iff setA is the only set pointing to otherId, we can destroy it as well :)
+            if (Hypergraph::get(otherId)->pointedBy().size() < 2)
+                Hypergraph::destroy(otherId);
+            // set the nextId as relId
+            relId = nextId;
+        }
+        // Fix the label & connect
+        Hypergraph::get(relId)->updateLabel(relation);
+        Hypergraph::fromTo(id, relId);
+        // The result are all sets to which the new master relation points to!
+        result = Hypergraph::get(relId)->pointingTo();
+    } else {
+        // No relation(s) exist
+    }
+    return result;
+}
+
 // Transitive closures of ...
 unsigned SetSystem::relatedTo(const unsigned id, const std::string& relation)
 {
@@ -279,6 +321,11 @@ unsigned SetSystem::setOf(const unsigned id)
 unsigned SetSystem::superclassOf(const unsigned id)
 {
     return relatedToInverse(id, Relation::isALabel, Relation::inverseIsALabel);
+}
+
+Set::Sets SetSystem::members(const unsigned id)
+{
+    return get(id)->members(this);
 }
 
 // Merge operations on Sets
