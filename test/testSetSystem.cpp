@@ -16,6 +16,13 @@ int main(void)
     auto firstId = universe.create("First set");
     std::cout << "First id: " << firstId << "\n";
 
+    std::cout << "> All sets" << std::endl;
+    auto sets = universe.find();
+    for (auto setId : sets)
+    {
+        std::cout << setId << " " << universe.get(setId)->label() << std::endl;
+    }
+
     std::cout << "> Create set with desired id" << std::endl;
     assert(universe.create(23, "Set with id 23") == true);
 
@@ -29,7 +36,7 @@ int main(void)
     assert(universe.get(firstId)->members(&universe).count(secondId) == 1);
 
     std::cout << "> All sets" << std::endl;
-    auto sets = universe.find();
+    sets = universe.find();
     for (auto setId : sets)
     {
         std::cout << setId << " " << universe.get(setId)->label() << std::endl;

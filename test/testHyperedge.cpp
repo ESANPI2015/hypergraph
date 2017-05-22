@@ -42,7 +42,8 @@ int main(void)
     id = testGraph.traversal(
             1,
             [](Hyperedge *x){ std::cout << x << std::endl; return true; },
-            [](Hyperedge *x, Hyperedge *y){ return true; }
+            [](Hyperedge *x, Hyperedge *y){ return true; },
+            "MyTraversal"
          );
     assert(id == 3);
     // TODO: Missing: unite, intersect, subtract

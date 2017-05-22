@@ -101,9 +101,12 @@ bool SetSystem::isSet(const unsigned id)
 {
     // Transitive closure based
     auto queryId = relatedTo(id, Relation::isALabel);
+    if (!queryId)
+        return false;
+    auto query = Hypergraph::get(queryId);
+    if (!query)
+        return false;
     auto others = Hypergraph::get(queryId)->pointingTo(this, Set::superclassLabel);
-    // NOTE: If we do not delete the result afterwards, the system explodes!
-    Hypergraph::destroy(queryId);
     if (others.size())
         return true;
     return false;
@@ -177,49 +180,42 @@ unsigned SetSystem::relateTo(const unsigned idA, const unsigned idB, const std::
 // Transitive closures of ...
 unsigned SetSystem::relatedTo(const unsigned id, const std::string& relation)
 {
-    Relation *query;
     // Here we make a graph traversal starting from id
     // every hyperedge X we discover on the way which is reachable from id via
     // relation edges is returned
     // id -- {relation -- *}^N -- relation --> X
     // So, if A -- isA --> B -- isA --> C then afterwards A -- isA --> B, C
-    // We have to make sure, that we only consider full triples!!! x -- isA --> y and not only isA --> y
-    bool expectRelation = false;
-    query = Relation::promote(Hypergraph::get(traversal(
-        id,
-        [&](Hyperedge *x)
-        {
-            if (expectRelation)
-            {
-                // Expecting relation
-                expectRelation = false;
-                return false;
-            } else {
-                // Expecting set
-                expectRelation = true;
-                return ((x->id() != id) && (x->label() != relation)) ? true : false;
-            }
-        },
-        [&](Hyperedge *x, Hyperedge *y){
-            if (expectRelation)
-            {
-                // y should have label of relation
-                if (y->label() == relation) return true;
-            } else {
-                // x should have label of relation
-                if (x->label() == relation) return true;
-            }
-            return false;
-        },
-        relation,
-        DOWN
-    )));
-    // The created query is a new relation of the same type
-    // Therefore id should point to this relation as well
-    // ATTENTION: To be usable here, we cannot use the normal Relation::from() here!
-    // TODO: Before doing this, we should try to reuse existing relations!!! -> instead of creating a relation directly, we should use relateTo here!
-    Hypergraph::get(id)->pointTo(this, query->id());
-    return query->id();
+    unsigned relId = 0;
+    Sets result;
+    auto root = Hypergraph::get(id);
+    // Make the graph traversal, iff id.label() != relation
+    if (root && (root->label() != relation))
+    {
+        result = traversal(
+                    id,
+                    [&](Hyperedge *x)
+                    {
+                        if ((x->id() != id) && (x->label() != relation))
+                            return true;
+                        return false;
+                    },
+                    [&](Hyperedge *x, Hyperedge *y){
+                        if ((x->label() == relation) && (y->label() != relation))
+                            return true;
+                        if ((x->label() != relation) && (y->label() == relation))
+                            return true;
+                        return false;
+                    },
+                    DOWN
+                 );
+    }
+    // For every set r in result, the following holds: id -- isA --> r
+    for (auto otherId : result)
+    {
+        // NOTE: relateTo is safe for usage here (since it does not use SetSystem methods)
+        relId = relateTo(id, otherId, relation);
+    }
+    return relId;
 }
 
 unsigned SetSystem::memberOf(const unsigned id)
@@ -235,7 +231,6 @@ unsigned SetSystem::isA(const unsigned id)
 // Inverse transitive closures of
 unsigned SetSystem::relatedToInverse(const unsigned id, const std::string& relation, const std::string& inverse)
 {
-    Relation *query;
     // Here we make a graph traversal starting from id
     // every hyperedge X we discover on the way which is reachable from id via
     // relation edges is returned
@@ -243,41 +238,37 @@ unsigned SetSystem::relatedToInverse(const unsigned id, const std::string& relat
     // NOTE: In contrast to the relatedTo traversal, the direction is reversed!
     // Afterwards the INVERSE LABEL is given to the new relation.
     // So, if A -- isA --> B -- isA --> C then afterwards C -- superclassOf --> B, A (we started at C!)
-    bool expectRelation = false;
-    query = Relation::promote(Hypergraph::get(traversal(
-        id,
-        [&](Hyperedge *x)
-        {
-            if (expectRelation)
-            {
-                // Expecting relation
-                expectRelation = false;
-                return false;
-            } else {
-                // Expecting set
-                expectRelation = true;
-                return ((x->id() != id) && (x->label() != relation)) ? true : false;
-            }
-        },
-        [&](Hyperedge *x, Hyperedge *y){
-            if (expectRelation)
-            {
-                // y should have label of relation
-                if (y->label() == relation) return true;
-            } else {
-                // x should have label of relation
-                if (x->label() == relation) return true;
-            }
-            return false;
-        },
-        inverse,
-        UP
-    )));
-    // The created query is a new relation of the same type
-    // Therefore id should point to this relation as well
-    // ATTENTION: To be usable here, we cannot use the normal Relation::from() here!
-    Hypergraph::get(id)->pointTo(this, query->id());
-    return query->id();
+    unsigned relId;
+    Sets result;
+    auto root = Hypergraph::get(id);
+    // Make the graph traversal, iff id.label() != relation
+    if (root && (root->label() != relation))
+    {
+        result = traversal(
+                    id,
+                    [&](Hyperedge *x)
+                    {
+                        if ((x->id() != id) && (x->label() != relation))
+                            return true;
+                        return false;
+                    },
+                    [&](Hyperedge *x, Hyperedge *y){
+                        if ((x->label() == relation) && (y->label() != relation))
+                            return true;
+                        if ((x->label() != relation) && (y->label() == relation))
+                            return true;
+                        return false;
+                    },
+                    UP
+                 );
+    }
+    // For every set r in result, the following holds: id -- superclassOf --> r
+    for (auto otherId : result)
+    {
+        // NOTE: relateTo is safe for usage here (since it does not use SetSystem methods)
+        relId = relateTo(id, otherId, inverse);
+    }
+    return relId;
 }
 
 unsigned SetSystem::setOf(const unsigned id)
