@@ -52,13 +52,24 @@ class Hypergraph {
             UP,     // in direction of the _from set
             BOTH    // in direction of both
         };
-        template <typename ResultFilter, typename TraversalFilter> unsigned traversal(
+
+        /*Traversal which returns all visited edges*/
+        template <typename ResultFilter, typename TraversalFilter> Hyperedges traversal
+        ( 
             const unsigned rootId,              // The starting edge
+            ResultFilter f,
+            TraversalFilter g,
+            const TraversalDirection dir = DOWN
+        );
+        /*Traversal which returns an hyperedge pointing to all results*/
+        template <typename ResultFilter, typename TraversalFilter> unsigned traversal(
+            const unsigned rootId,                  // The starting edge
             ResultFilter f,                         // Unary function bool f(Hyperedge *)
             TraversalFilter g,                      // Binary function bool g(Hyperedge *next, Hyperedge *current)
-            const std::string& label="Traversal",   // Label for the result hyperedge
+            const std::string& label,               // Label for the result hyperedge
             const TraversalDirection dir = DOWN     // Direction of traversal
         );
+
         /* Merge operations on hyperedges*/
         unsigned unite(const unsigned idA, const unsigned idB);        // Unites the to sets of A and B creating a new edge C
         unsigned intersect(const unsigned idA, const unsigned idB);    // Intersect the to sets of A and B creating a new edge C
@@ -82,15 +93,6 @@ class Hypergraph {
 
         /*Id generation: Its like a ticketing system, once you called this, you have to use it!*/
         unsigned getNextId();
-
-        /*Traversal which does not construct a new edge. Useful for internal use in e.g. constructors*/
-        template <typename ResultFilter, typename TraversalFilter> Hyperedges _traversal
-        ( 
-            const unsigned rootId,              // The starting edge
-            ResultFilter f,
-            TraversalFilter g,
-            const TraversalDirection dir = DOWN
-        );
 
         // Private members for factory
         unsigned _lastId;                      // this is the id we can safely assign but should increase whenever we used it
