@@ -249,3 +249,44 @@ unsigned Hypergraph::subtract(const unsigned idA, const unsigned idB)
     }
     return create(edgesC, edgeA->label() + "/" + edgeB->label());
 }
+
+Hypergraph* Hypergraph::Union(Hypergraph* A, Hypergraph *B)
+{
+    // Construct a new graph out of two others
+    Hypergraph *result = new Hypergraph;
+
+    // First pass: Creation
+    std::map<unsigned,unsigned> old2newA;
+    std::map<unsigned,unsigned> old2newB;
+    for (auto idA : A->find())
+    {
+        // Create new node in C
+        old2newA[idA] = result->create(A->get(idA)->label());
+    }
+    for (auto idB : B->find())
+    {
+        // Create new node in C
+        old2newB[idB] = result->create(B->get(idB)->label());
+    }
+
+    // Second pass: Wiring
+    for (auto idA : A->find())
+    {
+        auto newIdA = old2newA[idA];
+        for (auto otherId : A->get(idA)->pointingTo())
+        {
+            auto newOtherId = old2newA[otherId];
+            result->get(newIdA)->pointTo(result, newOtherId);
+        }
+    }
+    for (auto idB : B->find())
+    {
+        auto newIdB = old2newB[idB];
+        for (auto otherId : B->get(idB)->pointingTo())
+        {
+            auto newOtherId = old2newB[otherId];
+            result->get(newIdB)->pointTo(result, newOtherId);
+        }
+    }
+    return result;
+}

@@ -76,9 +76,11 @@ class Hypergraph {
         unsigned subtract(const unsigned idA, const unsigned idB);     // Create an edge C which contains all edges A points to but B does not point to
 
         /* TODO: We also need a possibility to check for hypergraph equality*/
-        /* TODO: We also need merge operations for complete hypergraphs!!!*/
-        // Who gets the ownership of the edge pointers?
-        /*template<typename EquivalenceRelation> Hypergraph* mergeWith(Hypergraph* other, EquivalenceRelation eqr);*/
+
+        /* Merging hypergraphs */
+        // This function constructs a new graph out of A and B which contains reindexed hedges of both graphs
+        static Hypergraph* Union(Hypergraph* A, Hypergraph *B);
+
 
         //TODO: Do these make any sense here?
         //Hyperedge* labelContains(const std::string& str="");
