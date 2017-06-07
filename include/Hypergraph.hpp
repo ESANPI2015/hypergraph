@@ -11,16 +11,10 @@ class Hyperedge;
     The hypergraph class serves as a factory and repository for hyperedges
     Within this environment IDs are unique and labels don't have to be unique
 
-    NOTE: We inherit from Hyperedge to be able to easily build a multiverse of hypergraphs
-    Consider the analogy between table of tables in a DATABASE
-    
-    Q: How do we link edge X which is a subedge of A to an edge Y being a subedge of B?
-    A: Merge A with B creating a edge C ... now X and Y are both part of C and can be linked in the context of C :)
-    TODO: Be careful when releasing the memory though ... who is responsible for that?
-
-    FIXME: When creating a new hypergraph, the hyperedge _id gets initialized with the _lastId of a possible higher level graph or 0!
-    So globally, when we have multiple graphs which are not nested, we then have many hyperedges with the same id 0!
-    To avoid that, a MASTER HYPERGRAPH (call it Universe?) has to be created initially which refers to all SUB HYPERGRAPHS (not having 0 anymore)
+    A hypergraph stores hyperedges which are placeholders for id -> {id} and id -> string.
+    The hypergraph therefore consists essentially of two tables (see HypergraphDB):
+    id | id1 ... idN    and    id | string
+    ---|------------           ---|-------
 */
 
 class Hypergraph {
@@ -80,16 +74,6 @@ class Hypergraph {
         /* Merging hypergraphs */
         // This function constructs a new graph out of A and B which contains reindexed hedges of both graphs
         static Hypergraph* Union(Hypergraph* A, Hypergraph *B);
-
-
-        //TODO: Do these make any sense here?
-        //Hyperedge* labelContains(const std::string& str="");
-        //Hyperedge* labelPartOf(const std::string& str="");
-        //Hyperedge* cardinalityLessThanOrEqual(const unsigned cardinality=0);
-        //Hyperedge* cardinalityGreaterThan(const unsigned cardinality=0);
-        //TODO: These kinda make sense in a hypergraph
-        //Hyperedge* successors(); // Go in direction of to set and register all edges AND edge of edges
-        //Hyperedge* predecessors(); // Go in direction of from set and register all edges AND edges of edges
 
     protected:
 
