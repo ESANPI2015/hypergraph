@@ -22,23 +22,26 @@ class Hypergraph {
         typedef std::set<unsigned> Hyperedges;
 
         Hypergraph();
+        Hypergraph(Hypergraph& A, Hypergraph& B);           // creates a new hypergraph out of two given ones
         ~Hypergraph();
 
         /*Factory functions for member edges*/
-        unsigned create(const std::string& label="");               // creates a new hyperedge
-        unsigned create(Hyperedges edges, const std::string& label="");
+        unsigned create(const std::string& label="");                   // creates a new hyperedge
+        unsigned create(Hyperedges fromEdges, Hyperedges toEdges, const std::string& label=""); // created a new hyperedge pointing to others
         bool     create(const unsigned id, 
-                        const std::string& label="");               // Tries to create a hyperedge with a given id ... if already taken, returns false
-        void destroy(const unsigned id);                            // Will remove a hyperedge from this hypergraph (and also disconnect it from anybody)
+                        const std::string& label="");                   // Tries to create a hyperedge with a given id ... if already taken, returns false
+        void destroy(const unsigned id);                                // Will remove a hyperedge from this hypergraph (and also disconnect it from anybody)
 
         /*Get access to edges*/
-        Hyperedge* get(const unsigned id);                          // Finds a hyperedge by id
-        // TODO: If we had a put method, we could get rid of pointers?
-        Hyperedges find(const std::string& label="") const;         // Finds all hyperedges with a certain label
+        Hyperedge* get(const unsigned id);                              // Provides access to the hyperedge given by id
+        Hyperedges find(const std::string& label="") const;             // Finds all hyperedges with a certain label
 
         /*Connect edges*/
-        bool fromTo(const unsigned srcId, const unsigned destId);               // Connects two hyperedges
-        void disconnect(const unsigned id);                                     // Disconnects edge from all other edges
+        bool to(const unsigned srcId, const unsigned destId);           // Afterwards srcId will point to destId. But the converse is not true!!!
+        bool to(const unsigned srcId, const Hyperedges others);         // Convenience function
+        bool from(const unsigned srcId, const unsigned destId);         // Afterwards destId will point from srcId. But the converse is not true!!!
+        bool from(const Hyperedges others, const unsigned destId);      // Convenience function
+        void disconnect(const unsigned id);                             // Disconnects edge from all other edges (this means finding all edges which reference the given id)
 
         /*Traverse connected subgraphs*/
         enum TraversalDirection {
@@ -65,15 +68,9 @@ class Hypergraph {
         );
 
         /* Merge operations on hyperedges*/
-        unsigned unite(const unsigned idA, const unsigned idB);        // Unites the to sets of A and B creating a new edge C
-        unsigned intersect(const unsigned idA, const unsigned idB);    // Intersect the to sets of A and B creating a new edge C
-        unsigned subtract(const unsigned idA, const unsigned idB);     // Create an edge C which contains all edges A points to but B does not point to
-
-        /* TODO: We also need a possibility to check for hypergraph equality*/
-
-        /* Merging hypergraphs */
-        // This function constructs a new graph out of A and B which contains reindexed hedges of both graphs
-        static Hypergraph* Union(Hypergraph* A, Hypergraph *B);
+        unsigned unite(const unsigned idA, const unsigned idB);        // Unites the to/from sets of A and B creating a new edge C
+        unsigned intersect(const unsigned idA, const unsigned idB);    // Intersect the to/from sets of A and B creating a new edge C
+        unsigned subtract(const unsigned idA, const unsigned idB);     // Create an edge C which contains all edges A points to/from but B does not point to/from
 
     protected:
 
@@ -82,7 +79,7 @@ class Hypergraph {
 
         // Private members for factory
         unsigned _lastId;                      // this is the id we can safely assign but should increase whenever we used it
-        std::map<unsigned, Hyperedge*> _edges; // stores all dynamically created hyperedges (the ones this hypergraph created!) TODO: Do we need pointers? If not, we have to define equality and membership to a graph!
+        std::map<unsigned, Hyperedge> _edges;  // stores all hyperedges in a map id -> hyperedge
 };
 
 // Include template member functions

@@ -6,19 +6,58 @@ Hypergraph::Hypergraph()
     _lastId = 1;
 }
 
-Hypergraph::~Hypergraph()
+Hypergraph::Hypergraph(Hypergraph& A, Hypergraph& B)
 {
-    // Destroy only those edges which have been created by factory (all!)
-    auto localCopy = _edges;
+    _lastId = 1;
 
-    // finally destroy
-    for (auto edgeIt : localCopy)
+    // First pass: Creation
+    std::map<unsigned,unsigned> old2newA;
+    std::map<unsigned,unsigned> old2newB;
+    for (auto idA : A.find())
     {
-        auto edge = edgeIt.second;
-        delete edge;
+        // Create new node in C
+        old2newA[idA] = create(A.get(idA)->label());
+    }
+    for (auto idB : B.find())
+    {
+        // Create new node in C
+        old2newB[idB] = create(B.get(idB)->label());
     }
 
-    _edges.clear();
+    // Second pass: Wiring
+    for (auto idA : A.find())
+    {
+        auto newIdA = old2newA[idA];
+        for (auto otherId : A.get(idA)->pointingTo())
+        {
+            auto newOtherId = old2newA[otherId];
+            to(newIdA, newOtherId);
+        }
+        for (auto otherId : A.get(idA)->pointingFrom())
+        {
+            auto newOtherId = old2newA[otherId];
+            from(newOtherId, newIdA);
+        }
+    }
+    for (auto idB : B.find())
+    {
+        auto newIdB = old2newB[idB];
+        for (auto otherId : B.get(idB)->pointingTo())
+        {
+            auto newOtherId = old2newB[otherId];
+            to(newIdB, newOtherId);
+        }
+        for (auto otherId : B.get(idB)->pointingFrom())
+        {
+            auto newOtherId = old2newB[otherId];
+            from(newOtherId, newIdB);
+        }
+    }
+}
+
+Hypergraph::~Hypergraph()
+{
+    // We hold no pointers so we do not need to do anything here
 }
 
 unsigned Hypergraph::getNextId()
@@ -29,19 +68,17 @@ unsigned Hypergraph::getNextId()
 
 unsigned Hypergraph::create(const std::string& label)
 {
-    Hyperedge* neu = new Hyperedge(getNextId(), label);
-    _edges[neu->id()] = neu;
-    return neu->id();
+    unsigned id = getNextId();
+    _edges[id] = Hyperedge(id, label);
+    return id;
 }
 
-unsigned Hypergraph::create(Hyperedges edges, const std::string& label)
+unsigned Hypergraph::create(Hyperedges fromEdges, Hyperedges toEdges, const std::string& label)
 {
-    Hyperedge* neu = get(Hypergraph::create(label));
-    for (auto edgeId : edges)
-    {
-        fromTo(neu->id(), edgeId);
-    }
-    return neu->id();
+    unsigned id = create(label);
+    to(id, toEdges);
+    from(fromEdges, id);
+    return id;
 }
 
 bool Hypergraph::create(const unsigned id, const std::string& label)
@@ -51,8 +88,7 @@ bool Hypergraph::create(const unsigned id, const std::string& label)
     {
         // Create a new hyperedge
         // Give it the desired id
-        neu = new Hyperedge(id, label);
-        _edges[id] = neu;
+        _edges[id] = Hyperedge(id, label);
         return true;
     }
     return false;
@@ -72,32 +108,23 @@ void Hypergraph::destroy(const unsigned id)
     {
         _edges.erase(id);
     }
-
-    // delete permanently
-    delete edge;
 }
 
 void Hypergraph::disconnect(const unsigned id)
 {
-    auto edge = get(id);
-    if (!edge)
-        return;
-
-    // others -> edge
-    for (auto edgeId : edge->pointedBy())
+    // We have to find all edges referring to us!
+    Hyperedges all = find();
+    for (auto otherId : all)
     {
-        auto other = get(edgeId);
-        if (other && other->isPointingTo(id))
+        auto other = get(otherId);
+        if (other->isPointingTo(id))
         {
+            // remove id from _to set
             other->_to.erase(id);
         }
-    }
-    // edge -> others
-    for (auto edgeId : edge->pointingTo())
-    {
-        auto other = get(edgeId);
-        if (other && other->isPointedBy(id))
+        if (other->isPointingFrom(id))
         {
+            // remove id from _from set
             other->_from.erase(id);
         }
     }
@@ -107,7 +134,7 @@ Hyperedge* Hypergraph::get(const unsigned id)
 {
     if (_edges.count(id))
     {
-        return _edges[id];
+        return &_edges[id];
     } else {
         return NULL;
     }
@@ -121,108 +148,133 @@ Hyperedge::Hyperedges Hypergraph::find(const std::string& label) const
         auto id = pair.first;
         auto edge = pair.second;
         // Filters by label if given. It suffices that the edge label contains the given one.
-        if (label.empty() || (edge->label() == label))
+        if (label.empty() || (edge.label() == label))
             result.insert(id);
     }
     return result;
 }
 
 
-bool Hypergraph::fromTo(const unsigned srcId, const unsigned destId)
+bool Hypergraph::to(const unsigned srcId, const unsigned destId)
+{
+    auto srcEdge = get(srcId);
+    auto destEdge = get(destId);
+    if (!srcEdge || !destEdge)
+        return false;
+    srcEdge->to(destId);
+    return true;
+}
+
+bool Hypergraph::to(const unsigned srcId, const Hyperedges otherIds)
 {
     auto srcEdge = get(srcId);
     if (!srcEdge)
         return false;
-    return srcEdge->pointTo(this, destId);
+    for (auto otherId : otherIds)
+    {
+        // Check if other is part of this graph as well
+        auto other = get(otherId);
+        if (!other)
+            return false;
+        srcEdge->to(otherId);
+    }
+    return true;
+}
+
+bool Hypergraph::from(const unsigned srcId, const unsigned destId)
+{
+    auto srcEdge = get(srcId);
+    auto destEdge = get(destId);
+    if (!srcEdge || !destEdge)
+        return false;
+    destEdge->from(srcId);
+    return true;
+}
+
+bool Hypergraph::from(const Hyperedges otherIds, const unsigned destId)
+{
+    auto destEdge = get(destId);
+    if (!destEdge)
+        return false;
+    for (auto otherId : otherIds)
+    {
+        // Check if other is part of this graph as well
+        auto other = get(otherId);
+        if (!other)
+            return false;
+        destEdge->from(otherId);
+    }
+    return true;
 }
 
 unsigned Hypergraph::unite(const unsigned idA, const unsigned idB)
 {
-    // We will create a Hyperedge which will contain
-    // x which are part of either A->edges() or B->edges() or both
+    // The resulting hyperedge points to/from the union of the two link sets of A and B
     auto edgeA = get(idA);
     auto edgeB = get(idB);
-    auto edgesA = get(idA)->pointingTo();
-    auto edgesB = get(idB)->pointingTo();
-    edgesA.insert(edgesB.begin(), edgesB.end());
-    return create(edgesA, edgeA->label() + "||" + edgeB->label());
+    auto toedgesA = get(idA)->pointingTo();
+    auto toedgesB = get(idB)->pointingTo();
+    auto fromedgesA = get(idA)->pointingFrom();
+    auto fromedgesB = get(idB)->pointingFrom();
+    toedgesA.insert(toedgesB.begin(), toedgesB.end());
+    fromedgesA.insert(fromedgesB.begin(), fromedgesB.end());
+
+    return create(fromedgesA, toedgesA, edgeA->label() + "||" + edgeB->label());
 }
 
 unsigned Hypergraph::intersect(const unsigned idA, const unsigned idB)
 {
-    // We will create a Hyperedge which will contain
-    // x which are part of both A->edges() and B->edges()
+    // The resulting hyperedge points to/from the edges which A and B points to/from
     auto edgeA = get(idA);
     auto edgeB = get(idB);
-    auto edgesA = get(idA)->pointingTo();
-    auto edgesB = get(idB)->pointingTo();
-    Hyperedges edgesC;
-    for (auto id : edgesA)
+    auto toedgesA = get(idA)->pointingTo();
+    auto toedgesB = get(idB)->pointingTo();
+    auto fromedgesA = get(idA)->pointingFrom();
+    auto fromedgesB = get(idB)->pointingFrom();
+    Hyperedges toedgesC, fromedgesC;
+    for (auto id : toedgesA)
     {
-        if (edgesB.count(id))
+        if (toedgesB.count(id))
         {
-            edgesC.insert(id);
+            toedgesC.insert(id);
         }
     }
-    return create(edgesC, edgeA->label() + "&&" + edgeB->label());
+    for (auto id : fromedgesA)
+    {
+        if (fromedgesB.count(id))
+        {
+            fromedgesC.insert(id);
+        }
+    }
+
+    return create(fromedgesC, toedgesC, edgeA->label() + "&&" + edgeB->label());
 }
 
 unsigned Hypergraph::subtract(const unsigned idA, const unsigned idB)
 {
-    // We will create a hyperedge with
-    // only those x which are part of A->edges() but not part of B->edges()
+    // The resulting hyperedge points to/from the edges which A points to/from but B does not
     auto edgeA = get(idA);
     auto edgeB = get(idB);
-    auto edgesA = get(idA)->pointingTo();
-    auto edgesB = get(idB)->pointingTo();
-    Hyperedges edgesC;
-    for (auto id : edgesA)
+    auto toedgesA = get(idA)->pointingTo();
+    auto toedgesB = get(idB)->pointingTo();
+    auto fromedgesA = get(idA)->pointingFrom();
+    auto fromedgesB = get(idB)->pointingFrom();
+    Hyperedges toedgesC, fromedgesC;
+    for (auto id : toedgesA)
     {
-        if (!edgesB.count(id))
+        if (!toedgesB.count(id))
         {
-            edgesC.insert(id);
+            toedgesC.insert(id);
         }
     }
-    return create(edgesC, edgeA->label() + "/" + edgeB->label());
+    for (auto id : fromedgesA)
+    {
+        if (!fromedgesB.count(id))
+        {
+            fromedgesC.insert(id);
+        }
+    }
+
+    return create(fromedgesC, toedgesC, edgeA->label() + "/" + edgeB->label());
 }
 
-Hypergraph* Hypergraph::Union(Hypergraph* A, Hypergraph *B)
-{
-    // Construct a new graph out of two others
-    Hypergraph *result = new Hypergraph;
-
-    // First pass: Creation
-    std::map<unsigned,unsigned> old2newA;
-    std::map<unsigned,unsigned> old2newB;
-    for (auto idA : A->find())
-    {
-        // Create new node in C
-        old2newA[idA] = result->create(A->get(idA)->label());
-    }
-    for (auto idB : B->find())
-    {
-        // Create new node in C
-        old2newB[idB] = result->create(B->get(idB)->label());
-    }
-
-    // Second pass: Wiring
-    for (auto idA : A->find())
-    {
-        auto newIdA = old2newA[idA];
-        for (auto otherId : A->get(idA)->pointingTo())
-        {
-            auto newOtherId = old2newA[otherId];
-            result->get(newIdA)->pointTo(result, newOtherId);
-        }
-    }
-    for (auto idB : B->find())
-    {
-        auto newIdB = old2newB[idB];
-        for (auto otherId : B->get(idB)->pointingTo())
-        {
-            auto newOtherId = old2newB[otherId];
-            result->get(newIdB)->pointTo(result, newOtherId);
-        }
-    }
-    return result;
-}

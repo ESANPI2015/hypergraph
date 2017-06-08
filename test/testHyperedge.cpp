@@ -33,15 +33,15 @@ int main(void)
     }
 
     std::cout << "> Connect edges 1 -> 2" << std::endl;
-    assert(testGraph.fromTo(1,2) == true);
+    assert(testGraph.to(1,2) == true);
     std::cout << "> Connect edges 2 -> 23" << std::endl;
-    assert(testGraph.fromTo(2,23) == true);
+    assert(testGraph.to(2,23) == true);
     std::cout << "> Connect edges 23 -> 24 (should fail)" << std::endl;
-    assert(testGraph.fromTo(23,24) == false);
+    assert(testGraph.to(23,24) == false);
     std::cout << "> Make a traversal starting at 1" << std::endl;
     id = testGraph.traversal(
             1,
-            [](Hyperedge *x){ std::cout << x << std::endl; return true; },
+            [](Hyperedge *x){ std::cout << *x << std::endl; return true; },
             [](Hyperedge *x, Hyperedge *y){ return true; },
             "MyTraversal"
          );

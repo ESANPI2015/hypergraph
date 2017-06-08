@@ -13,7 +13,7 @@ template <typename ResultFilter, typename TraversalFilter> unsigned Hypergraph::
     const Hypergraph::TraversalDirection dir
 )
 {
-    return create(traversal(rootId,f,g,dir), label);
+    return create(Hyperedges(), traversal(rootId,f,g,dir), label);
 }
 
 template <typename ResultFilter, typename TraversalFilter> Hypergraph::Hyperedges Hypergraph::traversal(

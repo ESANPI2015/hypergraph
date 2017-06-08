@@ -26,6 +26,10 @@ namespace YAML {
                 {
                     node["pointingTo"].push_back(edgeId);
                 }
+                for (auto edgeId : rhs->pointingFrom())
+                {
+                    node["pointingFrom"].push_back(edgeId);
+                }
                 return node;
             }
 
@@ -81,20 +85,32 @@ namespace YAML {
                     std::string label = current["label"].as<std::string>();
 
                     // Find the edges we are pointing to
-                    if (!current["pointingTo"])
+                    if (current["pointingTo"])
                     {
-                        // We do not point to anything so, we skip
-                        continue;
+                        // Point from id to otherIds
+                        std::vector<unsigned> otherIds = current["pointingTo"].as< std::vector<unsigned> >();
+                        for (auto otherId : otherIds)
+                        {
+                            if (!rhs->to(id, otherId))
+                            {
+                                std::cout << "YAML::decode(Hypergraph): " << id << " -> " << otherId << " failed\n";
+                                return false;
+                            }
+                        }
                     }
 
-                    // Point from id to otherIds
-                    std::vector<unsigned> otherIds = current["pointingTo"].as< std::vector<unsigned> >();
-                    for (auto otherId : otherIds)
+                    // Find the edges we are pointing from
+                    if (current["pointingFrom"])
                     {
-                        if (!rhs->fromTo(id, otherId))
+                        // Point from id to otherIds
+                        std::vector<unsigned> otherIds = current["pointingFrom"].as< std::vector<unsigned> >();
+                        for (auto otherId : otherIds)
                         {
-                            std::cout << "YAML::decode(Hypergraph): " << id << " -> " << otherId << " failed\n";
-                            return false;
+                            if (!rhs->from(otherId, id))
+                            {
+                                std::cout << "YAML::decode(Hypergraph): " << id << " <- " << otherId << " failed\n";
+                                return false;
+                            }
                         }
                     }
                 }
