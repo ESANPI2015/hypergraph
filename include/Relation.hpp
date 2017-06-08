@@ -4,49 +4,37 @@
 #include "Hyperedge.hpp"
 
 /* 
-* A relation is a hyperedge which points to all entities (hyperedges) in the target set
+* A relation is something which connects different concepts with each other ... It 'relates' them.
 * Example:
 * PART X ---\
-* ...         PART-OF ----> WHOLE
+* ...         PART-OF ----> WHOLE Z
 * PART Y ---/
 *
 * WHOLE is in the to set of the RELATION PART-OF
 * PART X and PART Y are in the from set of it.
+* 
+* Encoding in a hypergraph
+* Currently, the encoding of a relation is as follows:
+* If r is a relation then there exists a hyperedge labelled Relation::Identifier which points to r.
+* r is R <=> (HEDGE(R.Id) -> HEDGE(r))
+* This way the relation itself as being a N:M HEDGE is not disturbed by the identifier.
+* It is because HEDGE(R.Id) -> HEDGE(r) does not imply HEDGE(R.Id) <- HEDGE(r) !!!
 *
-* Relations are part of a set system which is based on a hypergraph
 */
-
-class Set;
-class SetSystem;
 
 class Relation : public Hyperedge
 {
     public:
+        // Predefined label to encode a hyperedge as being interpretable as a relation
+        static const std::string Identifier;
+
         // Constructor
-        Relation(const unsigned id, const std::string& label="");
+        Relation(const unsigned id=0, const std::string& label="");
 
-        // Predefined labels for fundamental relations
-        static const std::string isALabel;
-        static const std::string memberOfLabel;
-        static const std::string partOfLabel;
-        static const std::string hasLabel;
-        static const std::string connectedToLabel;
+        // Checks if a relation is valid
+        bool isValid();
 
-        // Predefined labels for the inverses of the relations
-        static const std::string inverseIsALabel;
-        static const std::string inverseMemberOfLabel;
-        static const std::string inversePartOfLabel;
-        static const std::string inverseHasLabel;
-        static const std::string inverseConnectedToLabel;
-
-        // Promotion to Relation
-        // This is a shortcut casting mechanism
-        static Relation* promote(Hyperedge *edge);
-
-        /*Graph dependent operations*/
-        bool from(SetSystem* system, const unsigned fromId);                        // fromId --> this
-        bool to(SetSystem* system, const unsigned toId);                            // this --> toId
-        bool fromTo(SetSystem* system, const unsigned fromId, const unsigned toId); // fromId --> this --> toId
+        // TODO: Here you can place convenience functions ... but until there is nothing valuable, you don't have to.
 };
 
 #endif
