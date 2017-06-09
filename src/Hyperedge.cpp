@@ -124,10 +124,17 @@ bool Hyperedge::isPartOf(Hypergraph &graph)
 
 std::ostream& operator<< (std::ostream& stream, const Hyperedge& edge)
 {
+    stream << "[";
+    auto fromIds = edge.pointingFrom();
+    for (auto otherId : fromIds)
+    {
+        stream << " " << otherId << " ";
+    }
+    stream << "] ";
     stream << edge.id() << ":";
-    stream << edge.label() << "[";
-    auto otherIds = edge.pointingTo();
-    for (auto otherId : otherIds)
+    stream << edge.label() << " [";
+    auto toIds = edge.pointingTo();
+    for (auto otherId : toIds)
     {
         stream << " " << otherId << " ";
     }
