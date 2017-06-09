@@ -38,21 +38,14 @@ int main(void)
     assert(testGraph.to(2,23) == true);
     std::cout << "> Connect edges 23 -> 24 (should fail)" << std::endl;
     assert(testGraph.to(23,24) == false);
-    std::cout << "> Connect edge 1 <- 23" << std::endl;
+    std::cout << "> Connect edge 23 <- 1" << std::endl;
     assert(testGraph.from(23,1) == true);
     std::cout << "> Make a traversal starting at 1" << std::endl;
-    id = testGraph.traversal(
+    testGraph.traversal(
             1,
             [](Hyperedge *x){ std::cout << *x << std::endl; return true; },
-            [](Hyperedge *x, Hyperedge *y){ return true; },
-            "MyTraversal"
+            [](Hyperedge *x, Hyperedge *y){ return true; }
          );
-    assert(id == 3);
-    // TODO: Missing: unite, intersect, subtract
-
-    std::cout << "> Deleting traversal edge" << std::endl;
-    testGraph.destroy(id);
-    assert(testGraph.get(id) == NULL);
 
     std::cout << "> Store hypergraph using YAML" << std::endl;
 

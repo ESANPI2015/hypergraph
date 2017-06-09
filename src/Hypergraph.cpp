@@ -140,7 +140,10 @@ Hyperedge* Hypergraph::get(const unsigned id)
     }
 }
 
-Hyperedge::Hyperedges Hypergraph::find(const std::string& label) const
+Hypergraph::Hyperedges Hypergraph::find(const std::string& label,
+                                        const std::string& lhs,
+                                        const std::string& rhs
+                                       )
 {
     Hyperedges result;
     for (auto pair : _edges)
@@ -150,6 +153,44 @@ Hyperedge::Hyperedges Hypergraph::find(const std::string& label) const
         // Filters by label if given. It suffices that the edge label contains the given one.
         if (label.empty() || (edge.label() == label))
             result.insert(id);
+        // If edge does not match the label, skip it
+        if (!label.empty() && (edge.label() != label))
+            continue;
+        // Find label in lhs
+        if (!lhs.empty())
+        {
+            bool found = false;
+            auto fromIds = edge.pointingFrom();
+            for (auto fromId : fromIds)
+            {
+                auto other = get(fromId);
+                if (other->label() == lhs)
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+                continue;
+        }
+        // Find label in rhs
+        if (!rhs.empty())
+        {
+            bool found = false;
+            auto toIds = edge.pointingTo();
+            for (auto toId : toIds)
+            {
+                auto other = get(toId);
+                if (other->label() == rhs)
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+                continue;
+        }
+        result.insert(id);
     }
     return result;
 }
@@ -207,74 +248,81 @@ bool Hypergraph::from(const Hyperedges otherIds, const unsigned destId)
     return true;
 }
 
-unsigned Hypergraph::unite(const unsigned idA, const unsigned idB)
+Hypergraph::Hyperedges Hypergraph::from(const unsigned id, const std::string& label)
 {
-    // The resulting hyperedge points to/from the union of the two link sets of A and B
-    auto edgeA = get(idA);
-    auto edgeB = get(idB);
-    auto toedgesA = get(idA)->pointingTo();
-    auto toedgesB = get(idB)->pointingTo();
-    auto fromedgesA = get(idA)->pointingFrom();
-    auto fromedgesB = get(idB)->pointingFrom();
-    toedgesA.insert(toedgesB.begin(), toedgesB.end());
-    fromedgesA.insert(fromedgesB.begin(), fromedgesB.end());
-
-    return create(fromedgesA, toedgesA, edgeA->label() + "||" + edgeB->label());
+    Hyperedges result;
+    Hyperedges fromIds = get(id)->pointingFrom();
+    for (auto fromId : fromIds)
+    {
+        if (label.empty() || (get(fromId)->label() == label))
+            result.insert(fromId);
+    }
+    return result;
 }
 
-unsigned Hypergraph::intersect(const unsigned idA, const unsigned idB)
+Hypergraph::Hyperedges Hypergraph::to(const unsigned id, const std::string& label)
 {
-    // The resulting hyperedge points to/from the edges which A and B points to/from
-    auto edgeA = get(idA);
-    auto edgeB = get(idB);
-    auto toedgesA = get(idA)->pointingTo();
-    auto toedgesB = get(idB)->pointingTo();
-    auto fromedgesA = get(idA)->pointingFrom();
-    auto fromedgesB = get(idB)->pointingFrom();
-    Hyperedges toedgesC, fromedgesC;
-    for (auto id : toedgesA)
+    Hyperedges result;
+    Hyperedges toIds = get(id)->pointingTo();
+    for (auto toId : toIds)
     {
-        if (toedgesB.count(id))
-        {
-            toedgesC.insert(id);
-        }
+        if (label.empty() || (get(toId)->label() == label))
+            result.insert(toId);
     }
-    for (auto id : fromedgesA)
-    {
-        if (fromedgesB.count(id))
-        {
-            fromedgesC.insert(id);
-        }
-    }
-
-    return create(fromedgesC, toedgesC, edgeA->label() + "&&" + edgeB->label());
+    return result;
 }
 
-unsigned Hypergraph::subtract(const unsigned idA, const unsigned idB)
+Hypergraph::Hyperedges Hypergraph::from(const Hyperedges& ids, const std::string& label)
 {
-    // The resulting hyperedge points to/from the edges which A points to/from but B does not
-    auto edgeA = get(idA);
-    auto edgeB = get(idB);
-    auto toedgesA = get(idA)->pointingTo();
-    auto toedgesB = get(idB)->pointingTo();
-    auto fromedgesA = get(idA)->pointingFrom();
-    auto fromedgesB = get(idB)->pointingFrom();
-    Hyperedges toedgesC, fromedgesC;
-    for (auto id : toedgesA)
+    Hyperedges result;
+    for (auto id : ids)
     {
-        if (!toedgesB.count(id))
-        {
-            toedgesC.insert(id);
-        }
+        auto fromIds = from(id, label);
+        result.insert(fromIds.begin(), fromIds.end());
     }
-    for (auto id : fromedgesA)
-    {
-        if (!fromedgesB.count(id))
-        {
-            fromedgesC.insert(id);
-        }
-    }
-
-    return create(fromedgesC, toedgesC, edgeA->label() + "/" + edgeB->label());
+    return result;
 }
 
+Hypergraph::Hyperedges Hypergraph::to(const Hyperedges& ids, const std::string& label)
+{
+    Hyperedges result;
+    for (auto id : ids)
+    {
+        auto toIds = to(id, label);
+        result.insert(toIds.begin(), toIds.end());
+    }
+    return result;
+}
+
+Hypergraph::Hyperedges Hypergraph::unite(const Hyperedges& edgesA, const Hyperedges& edgesB)
+{
+    Hyperedges result(edgesA);
+    result.insert(edgesB.begin(), edgesB.end());
+    return result;
+}
+
+Hypergraph::Hyperedges Hypergraph::intersect(const Hyperedges& edgesA, const Hyperedges& edgesB)
+{
+    Hyperedges edgesC;
+    for (auto id : edgesA)
+    {
+        if (edgesB.count(id))
+        {
+            edgesC.insert(id);
+        }
+    }
+    return edgesC;
+}
+
+Hypergraph::Hyperedges Hypergraph::subtract(const Hyperedges& edgesA, const Hyperedges& edgesB)
+{
+    Hyperedges edgesC;
+    for (auto id : edgesA)
+    {
+        if (!edgesB.count(id))
+        {
+            edgesC.insert(id);
+        }
+    }
+    return edgesC;
+}

@@ -5,17 +5,6 @@
 #include <queue>
 #include <sstream>
 
-template <typename ResultFilter, typename TraversalFilter> unsigned Hypergraph::traversal(
-    const unsigned rootId,
-    ResultFilter f,
-    TraversalFilter g,
-    const std::string& label,
-    const Hypergraph::TraversalDirection dir
-)
-{
-    return create(Hyperedges(), traversal(rootId,f,g,dir), label);
-}
-
 template <typename ResultFilter, typename TraversalFilter> Hypergraph::Hyperedges Hypergraph::traversal(
     const unsigned rootId,
     ResultFilter f,

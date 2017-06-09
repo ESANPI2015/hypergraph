@@ -34,7 +34,10 @@ class Hypergraph {
 
         /*Get access to edges*/
         Hyperedge* get(const unsigned id);                              // Provides access to the hyperedge given by id
-        Hyperedges find(const std::string& label="") const;             // Finds all hyperedges with a certain label
+        Hyperedges find(const std::string& label="",                    // Finds all hyperedges with a certain label
+                        const std::string& lhs="",                      // ... and a certain label in the from set
+                        const std::string& rhs=""                       // ... and in the to set
+                       );
 
         /*Connect edges*/
         bool to(const unsigned srcId, const unsigned destId);           // Afterwards srcId will point to destId. But the converse is not true!!!
@@ -43,34 +46,32 @@ class Hypergraph {
         bool from(const Hyperedges others, const unsigned destId);      // Convenience function
         void disconnect(const unsigned id);                             // Disconnects edge from all other edges (this means finding all edges which reference the given id)
 
+        /*Queries (LHS() and RHS() operators) */
+        Hyperedges from(const unsigned id, const std::string& label=""); // Returns all hyperedges from which id points (filtered by label)
+        Hyperedges to(const unsigned id, const std::string& label="");   // Returns all hyperedges to which id points (filtered by label)
+        Hyperedges from(const Hyperedges& ids, const std::string& label=""); // Nice for chaining
+        Hyperedges to(const Hyperedges& ids, const std::string& label="");   // Nice for chaining
+
         /*Traverse connected subgraphs*/
         enum TraversalDirection {
             DOWN,   // in direction of the _to set
             UP,     // in direction of the _from set
             BOTH    // in direction of both
         };
-
         /*Traversal which returns all visited edges*/
+        // TODO: Rethink signature of functors f and g
         template <typename ResultFilter, typename TraversalFilter> Hyperedges traversal
         ( 
-            const unsigned rootId,              // The starting edge
-            ResultFilter f,
-            TraversalFilter g,
-            const TraversalDirection dir = DOWN
-        );
-        /*Traversal which returns an hyperedge pointing to all results*/
-        template <typename ResultFilter, typename TraversalFilter> unsigned traversal(
             const unsigned rootId,                  // The starting edge
             ResultFilter f,                         // Unary function bool f(Hyperedge *)
-            TraversalFilter g,                      // Binary function bool g(Hyperedge *next, Hyperedge *current)
-            const std::string& label,               // Label for the result hyperedge
-            const TraversalDirection dir = DOWN     // Direction of traversal
+            TraversalFilter g,                      // Binary function bool g(Hyperedge *current, Hyperedge *next)
+            const TraversalDirection dir = DOWN
         );
 
-        /* Merge operations on hyperedges*/
-        unsigned unite(const unsigned idA, const unsigned idB);        // Unites the to/from sets of A and B creating a new edge C
-        unsigned intersect(const unsigned idA, const unsigned idB);    // Intersect the to/from sets of A and B creating a new edge C
-        unsigned subtract(const unsigned idA, const unsigned idB);     // Create an edge C which contains all edges A points to/from but B does not point to/from
+        /* Merge operations on hyperedge sets */
+        Hyperedges unite(const Hyperedges& edgesA, const Hyperedges& edgesB);       // Unites the two hyperedge sets to a new one
+        Hyperedges intersect(const Hyperedges& edgesA, const Hyperedges& edgesB);   // Intersects the two hyperedge sets and returns the result (DLOG)
+        Hyperedges subtract(const Hyperedges& edgesA, const Hyperedges& edgesB);    // Returns all edges which are in A but not in B
 
     protected:
 
