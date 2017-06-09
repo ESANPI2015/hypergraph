@@ -28,11 +28,7 @@ int main(void)
     std::cout << "> Create another concept and check it" << std::endl;
     auto secondId = universe.create("Second concept");
     std::cout << "Second id: " << secondId << "\n";
-    //assert(universe.isConcept(secondId) == true);
-
-    //std::cout << "> Make second concept member of first concept\n";
-    //universe.get(secondId)->memberOf(&universe, firstId); // TODO: Looks nasty
-    //assert(universe.get(firstId)->members(&universe).count(secondId) == 1);
+    assert(universe.find("Second concept").count(secondId) > 0);
 
     std::cout << "> Relate the first and the second concept\n";
     universe.relate(firstId, secondId, "relatedTo");
@@ -68,19 +64,22 @@ int main(void)
     auto edges = restoredGraph->find();
     for (auto edgeId : edges)
     {
-        std::cout << edgeId << " " << restoredGraph->get(edgeId)->label() << std::endl;
+        std::cout << *restoredGraph->get(edgeId) << std::endl;
     }
 
     std::cout << "> Make it a concept graph" << std::endl;
     Conceptgraph universe2(*restoredGraph);
-    //auto superclassId = other->getSetClass();
-    //std::cout << "Id of superclass: " << superclassId << "\n";
 
     std::cout << "> All concepts" << std::endl;
     concepts = universe2.find();
     for (auto conceptId : concepts)
     {
         std::cout << conceptId << " " << universe2.get(conceptId)->label() << std::endl;
+        auto relations = universe2.relationsOf(conceptId);
+        for (auto relId : relations)
+        {
+            std::cout << "\t" << relId << " " << universe2.get(relId)->label() << std::endl;
+        }
     }
 
     std::cout << "*** TESTS DONE ***" << std::endl;
