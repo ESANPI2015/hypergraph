@@ -29,14 +29,19 @@ class Conceptgraph : public Hypergraph
         Hyperedges find(const std::string& label="");
         // creates (a --R--> b) and (R.Id -> R)
         unsigned relate(const unsigned fromId, const unsigned toId, const std::string& label="");
+        // Nice version for chaining with queries: This and the queries actually encode rules!
+        unsigned relate(const Hyperedges& fromIds, const Hyperedges& toIds, const std::string& label="");
         // destroys either a concept or a relation (destruction of a concept will destroy relations as well)
         void     destroy(const unsigned id);
 
 
         // returns all relations R of which c is either in the from or the to set (and having a certain label)
         Hyperedges relationsOf(const unsigned conceptId, const std::string& relationLabel="");
-        // creates the transitive closure of a relation (which (probably) creates a new relation!)
-        unsigned transitiveClosure(const unsigned root, const std::string& relationLabel="");
+        // Nice version for chaining with find() and previous relationsOf()
+        Hyperedges relationsOf(const Hyperedges& concepts, const std::string& relationLabel="");
+
+        // Graph rewriting: It creates a new concept graph out of an old one by transforming concepts labelled <oldLabel> to <newLabel>
+        //Conceptgraph(ConceptGraph& A, const std::string& oldLabel, const std::string& newLabel);
 
     protected:
         // get concept and relation candidates

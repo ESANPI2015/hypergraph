@@ -134,6 +134,21 @@ unsigned Conceptgraph::relate(const unsigned fromId, const unsigned toId, const 
     return id;
 }
 
+unsigned Conceptgraph::relate(const Hyperedges& fromIds, const Hyperedges& toIds, const std::string& label)
+{
+    // Creating relations means creating a (RELATION -> X) pair
+    unsigned id = Hypergraph::create(label);
+    unsigned relId = getRelationHyperedge();
+    Hypergraph::to(relId, id); // This cannot fail
+    // Furthermore, we have to connect the relation
+    // NOTE: relations can also relate relations not only concepts!!!
+    Hypergraph::from(fromIds, id); // FIXME: Can fail
+    Hypergraph::to(id, toIds);     // FIXME: Can fail
+    // We could either add this new edge to the set of _relations or call a reparse() function
+    _relations.insert(id);
+    return id;
+}
+
 void     Conceptgraph::destroy(const unsigned id)
 {
     if (_concepts.count(id))
@@ -173,7 +188,13 @@ Hypergraph::Hyperedges Conceptgraph::relationsOf(const unsigned conceptId, const
     return result;
 }
 
-unsigned   Conceptgraph::transitiveClosure(const unsigned root, const std::string& relationLabel)
+Hypergraph::Hyperedges Conceptgraph::relationsOf(const Hyperedges& concepts, const std::string& relationLabel)
 {
-    return 0;
+    Hyperedges result;
+    for (auto conceptId : concepts)
+    {
+        auto relIds = relationsOf(conceptId, relationLabel);
+        result.insert(relIds.begin(), relIds.end());
+    }
+    return result;
 }
