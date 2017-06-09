@@ -55,10 +55,10 @@ target_link_libraries(testHyperedge hypergraph)
 install(TARGETS testHyperedge
 RUNTIME DESTINATION bin)
 
-#add_executable(testConceptgraph test/testConceptgraph.cpp)
-#target_link_libraries(testConceptgraph hypergraph)
-#install(TARGETS testConceptgraph
-#RUNTIME DESTINATION bin)
+add_executable(testConceptgraph test/testConceptgraph.cpp)
+target_link_libraries(testConceptgraph hypergraph)
+install(TARGETS testConceptgraph
+RUNTIME DESTINATION bin)
 
 # pkg-config, to be installed:
 configure_file(${PROJECT_NAME}.pc.in ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.pc @ONLY)
