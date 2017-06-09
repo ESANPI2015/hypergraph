@@ -1,4 +1,5 @@
 #include "Conceptgraph.hpp"
+#include <map>
 
 const std::string Conceptgraph::ConceptLabel = "CONCEPT";
 const std::string Conceptgraph::RelationLabel = "RELATION";
@@ -11,7 +12,55 @@ Conceptgraph::Conceptgraph()
 Conceptgraph::Conceptgraph(Hypergraph& A)
 {
     // Construct from a given hypergraph
-    // This means cloning all hyperedges and sorting them into _concepts or _relations sets
+    // Get the master edges first
+    Hyperedges labelledAsConcept = A.find(Conceptgraph::ConceptLabel);
+    Hyperedges labelledAsRelation = A.find(Conceptgraph::RelationLabel);
+    // Parse concepts
+    Hyperedges allConcepts;
+    for (auto masterId : labelledAsConcept)
+    {
+        auto concepts = A.get(masterId)->pointingTo();
+        allConcepts.insert(concepts.begin(), concepts.end());
+    }
+    // Parse relations
+    Hyperedges allRelations;
+    for (auto masterId : labelledAsRelation)
+    {
+        auto relations = A.get(masterId)->pointingTo();
+        allRelations.insert(relations.begin(), relations.end());
+    }
+
+    // So, create all concepts first (with possibly new ids)
+    std::map<unsigned, unsigned> old2newIds;
+    for (auto conceptId : allConcepts)
+    {
+        auto concept = A.get(conceptId);
+        auto id = create(concept->label());
+        old2newIds[conceptId] = id;
+    }
+    // ... then we create the relations
+    for (auto relationId : allRelations)
+    {
+        // NOTE: We use relate here, but it will fail to wire things (imagine relations of relations)
+        auto relation = A.get(relationId);
+        auto id = relate(0,0,relation->label());
+        old2newIds[relationId] = id;
+    }
+    // Wire all relations
+    for (auto relationId : allRelations)
+    {
+        auto newRelId = old2newIds[relationId];
+        for (auto otherId : A.get(relationId)->pointingTo())
+        {
+            auto newOtherId = old2newIds[otherId];
+            to(newRelId, newOtherId);
+        }
+        for (auto otherId : A.get(relationId)->pointingFrom())
+        {
+            auto newOtherId = old2newIds[otherId];
+            from(newOtherId, newRelId);
+        }
+    }
 }
 
 unsigned Conceptgraph::getConceptHyperedge()
@@ -77,6 +126,7 @@ unsigned Conceptgraph::relate(const unsigned fromId, const unsigned toId, const 
     unsigned relId = getRelationHyperedge();
     Hypergraph::to(relId, id); // This cannot fail
     // Furthermore, we have to connect the relation
+    // NOTE: relations can also relate relations not only concepts!!!
     Hypergraph::from(fromId, id); // FIXME: Can fail
     Hypergraph::to(id, toId);     // FIXME: Can fail
     // We could either add this new edge to the set of _relations or call a reparse() function
