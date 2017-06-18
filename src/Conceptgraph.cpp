@@ -1,5 +1,7 @@
 #include "Conceptgraph.hpp"
 #include <map>
+#include <set>
+#include <queue>
 
 const std::string Conceptgraph::ConceptLabel = "CONCEPT";
 const std::string Conceptgraph::RelationLabel = "RELATION";
@@ -196,5 +198,50 @@ Hypergraph::Hyperedges Conceptgraph::relationsOf(const Hyperedges& concepts, con
         auto relIds = relationsOf(conceptId, relationLabel);
         result.insert(relIds.begin(), relIds.end());
     }
+    return result;
+}
+
+Hypergraph::Hyperedges Conceptgraph::traverse(const unsigned rootId, const std::string& conceptLabel, const std::string& relationLabel)
+{
+    Hyperedges result;
+    Hyperedges visited;
+    std::queue< unsigned > concepts;
+
+    concepts.push(rootId);
+
+    // Run through queue of unknown edges
+    while (!concepts.empty())
+    {
+        auto concept = get(concepts.front());
+        concepts.pop();
+
+        if (visited.count(concept->id()))
+            continue;
+
+        // Visiting!!!
+        visited.insert(concept->id());
+        if (conceptLabel.empty() || (concept->label() == conceptLabel))
+        {
+            // edge matches filter func
+            result.insert(concept->id());
+        }
+
+        // Get all relations with relationLabel
+        Hyperedges relations = relationsOf(concept->id(), relationLabel);
+        for (auto relId : relations)
+        {
+            // Put all successor nodes into the set of concepts to be searched
+            auto rel = get(relId);
+            if (rel->isPointingFrom(concept->id()))
+            {
+                auto others = rel->pointingTo();
+                for (auto otherId : others)
+                {
+                    concepts.push(otherId);
+                }
+            }
+        }
+    }
+
     return result;
 }
