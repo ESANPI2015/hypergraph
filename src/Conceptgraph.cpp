@@ -201,7 +201,7 @@ Hypergraph::Hyperedges Conceptgraph::relationsOf(const Hyperedges& concepts, con
     return result;
 }
 
-Hypergraph::Hyperedges Conceptgraph::traverse(const unsigned rootId, const std::string& conceptLabel, const std::string& relationLabel)
+Hypergraph::Hyperedges Conceptgraph::traverse(const unsigned rootId, const std::string& conceptLabel, const std::string& relationLabel, const TraversalDirection dir)
 {
     Hyperedges result;
     Hyperedges visited;
@@ -230,15 +230,39 @@ Hypergraph::Hyperedges Conceptgraph::traverse(const unsigned rootId, const std::
         Hyperedges relations = relationsOf(concept->id(), relationLabel);
         for (auto relId : relations)
         {
-            // Put all successor nodes into the set of concepts to be searched
+            // Put all successor hedges (DOWN) or predecessor hedges (UP)  into the set of concepts to be searched
             auto rel = get(relId);
-            if (rel->isPointingFrom(concept->id()))
+            switch (dir)
             {
-                auto others = rel->pointingTo();
-                for (auto otherId : others)
-                {
-                    concepts.push(otherId);
-                }
+                case DOWN:
+                    if (rel->isPointingFrom(concept->id()))
+                    {
+                        auto others = rel->pointingTo();
+                        for (auto otherId : others)
+                        {
+                            concepts.push(otherId);
+                        }
+                    }
+                    break;
+                case BOTH:
+                    if (rel->isPointingFrom(concept->id()))
+                    {
+                        auto others = rel->pointingTo();
+                        for (auto otherId : others)
+                        {
+                            concepts.push(otherId);
+                        }
+                    }
+                case UP:
+                    if (rel->isPointingTo(concept->id()))
+                    {
+                        auto others = rel->pointingFrom();
+                        for (auto otherId : others)
+                        {
+                            concepts.push(otherId);
+                        }
+                    }
+                    break;
             }
         }
     }

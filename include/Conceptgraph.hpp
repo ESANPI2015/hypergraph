@@ -45,7 +45,7 @@ class Conceptgraph : public Hypergraph
 
         // Traverse the subgraph starting at root, filtering result by conceptLabel and only taking paths via relations labelled relationLabel
         // NOTE: This is very different from the Hypergraph::traversal!
-        Hyperedges traverse(const unsigned rootId, const std::string& conceptLabel="", const std::string& relationLabel="");
+        Hyperedges traverse(const unsigned rootId, const std::string& conceptLabel="", const std::string& relationLabel="", const TraversalDirection dir=DOWN);
 
         // Graph rewriting: It creates a new concept graph out of an old one by transforming concepts labelled <oldLabel> to <newLabel>
         //Conceptgraph(ConceptGraph& A, const std::string& oldLabel, const std::string& newLabel);
