@@ -22,9 +22,6 @@ int main(void)
         std::cout << conceptId << " " << universe.get(conceptId)->label() << std::endl;
     }
 
-    //std::cout << "> Create concept with desired id" << std::endl;
-    //assert(universe.create(23, "Concept with id 23") == true);
-
     std::cout << "> Create another concept and check it" << std::endl;
     auto secondId = universe.create("Second concept");
     std::cout << "Second id: " << secondId << "\n";
@@ -32,6 +29,19 @@ int main(void)
 
     std::cout << "> Relate the first and the second concept\n";
     universe.relate(firstId, secondId, "relatedTo");
+
+    std::cout << "> Create a tree of concepts related by a common relation\n";
+    unsigned rootId = universe.create("Root");
+    universe.relate(rootId, universe.create("I"), "R");
+    universe.relate(rootId, universe.create("You"), "R");
+    universe.relate(rootId, universe.create("It"), "R");
+    universe.relate(rootId, universe.create("Huh?"), "A");
+    unsigned pluralId = universe.create("Plural");
+    universe.relate(pluralId, universe.create("We"), "R");
+    universe.relate(pluralId, universe.create("You"), "R");
+    universe.relate(pluralId, universe.create("They"), "R");
+    universe.relate(pluralId, universe.create("Doh?"), "B");
+    universe.relate(rootId, pluralId, "R");
 
     std::cout << "> All concepts" << std::endl;
     concepts = universe.find();
@@ -72,6 +82,18 @@ int main(void)
 
     std::cout << "> All concepts" << std::endl;
     concepts = universe2.find();
+    for (auto conceptId : concepts)
+    {
+        std::cout << conceptId << " " << universe2.get(conceptId)->label() << std::endl;
+        auto relations = universe2.relationsOf(conceptId);
+        for (auto relId : relations)
+        {
+            std::cout << "\t" << relId << " " << universe2.get(relId)->label() << std::endl;
+        }
+    }
+
+    std::cout << "> Make a traversal returning concepts connected by a certain relation\n";
+    concepts = universe2.traverse(*universe2.find("Root").begin(), "", "R");
     for (auto conceptId : concepts)
     {
         std::cout << conceptId << " " << universe2.get(conceptId)->label() << std::endl;
