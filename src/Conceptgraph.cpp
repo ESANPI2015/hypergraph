@@ -13,6 +13,8 @@ Conceptgraph::Conceptgraph()
 
 Conceptgraph::Conceptgraph(Hypergraph& A)
 {
+    // TODO: In the hwgraph lib, the derived graph first calls the hypergraph constructor and then just sorts things into sets afterwards
+    //       We could do the same here, just sort hedges into _concepts and _relations sets (using Hypergraph::traversal function?)
     // Construct from a given hypergraph
     // Get the master edges first
     Hyperedges labelledAsConcept = A.find(Conceptgraph::ConceptLabel);
