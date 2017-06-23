@@ -17,9 +17,9 @@
 class Conceptgraph : public Hypergraph
 {
     public:
-        // Labels for identifiing concepts or relations
-        static const std::string ConceptLabel;
-        static const std::string RelationLabel;
+        // IDs which will identify the HEDGES encoding other HEDGES as either being a CONCEPT or a RELATION
+        static const unsigned ConceptId;
+        static const unsigned RelationId;
 
         // Constructors
         Conceptgraph();
@@ -51,10 +51,6 @@ class Conceptgraph : public Hypergraph
         //Conceptgraph(ConceptGraph& A, const std::string& oldLabel, const std::string& newLabel);
 
     protected:
-        // get concept and relation candidates
-        unsigned getConceptHyperedge();
-        unsigned getRelationHyperedge();
-
         // two sets which hold either concept hedges or relation hedges (this is a cache)
         Hyperedges _concepts;
         Hyperedges _relations;
