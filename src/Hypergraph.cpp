@@ -29,8 +29,12 @@ Hypergraph::Hypergraph(Hypergraph& A, Hypergraph& B)
     for (auto id : allOfMe)
     {
         // The new hedges will point to/from the union of the corresponding sets of the A and B hedges with the same id
-        from(unite(A.get(id)->pointingFrom(), B.get(id)->pointingFrom()), id);
-        to(id, unite(A.get(id)->pointingTo(), B.get(id)->pointingTo()));
+        Hyperedges fromA = A.get(id) ? A.get(id)->pointingFrom() : Hyperedges();
+        Hyperedges fromB = B.get(id) ? B.get(id)->pointingFrom() : Hyperedges();
+        Hyperedges toA = A.get(id) ? A.get(id)->pointingTo() : Hyperedges();
+        Hyperedges toB = B.get(id) ? B.get(id)->pointingTo() : Hyperedges();
+        from(unite(fromA, fromB), id);
+        to(id, unite(toA, toB));
     }
 }
 
