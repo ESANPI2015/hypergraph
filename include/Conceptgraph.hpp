@@ -28,9 +28,12 @@ class Conceptgraph : public Hypergraph
 
         // creates c and (C.Id -> c)
         unsigned create(const std::string& label="");
+        // creates c.id and (C.Id -> c)
+        bool create(const unsigned id, const std::string& label="");
         // Find all concepts with a given label (none given means returning all concepts)
         Hyperedges find(const std::string& label="");
         // creates (a --R--> b) and (R.Id -> R)
+        // TODO: We need a relate(fromId, toId, relationConceptId) version!!! This will enable us to have common relations
         unsigned relate(const unsigned fromId, const unsigned toId, const std::string& label="");
         // Nice version for chaining with queries: This and the queries actually encode rules!
         unsigned relate(const Hyperedges& fromIds, const Hyperedges& toIds, const std::string& label="");

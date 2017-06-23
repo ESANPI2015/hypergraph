@@ -43,6 +43,18 @@ unsigned Conceptgraph::create(const std::string& label)
     return id;
 }
 
+bool Conceptgraph::create(const unsigned id, const std::string& label)
+{
+    if (Hypergraph::create(id, label))
+    {
+        Hypergraph::create(Conceptgraph::ConceptId, "CONCEPT");
+        Hypergraph::to(Conceptgraph::ConceptId, id); // This cannot fail
+        _concepts.insert(id);
+        return true;
+    }
+    return false;
+}
+
 Hypergraph::Hyperedges Conceptgraph::find(const std::string& label)
 {
     // Find edges which have the right label and are part of the _concepts set
