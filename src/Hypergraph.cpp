@@ -10,48 +10,27 @@ Hypergraph::Hypergraph(Hypergraph& A, Hypergraph& B)
 {
     _lastId = 1;
 
-    // First pass: Creation
-    std::map<unsigned,unsigned> old2newA;
-    std::map<unsigned,unsigned> old2newB;
-    for (auto idA : A.find())
+    // If things have the same ID they are the same!
+    Hyperedges allOfA = A.find();
+    Hyperedges allOfB = B.find();
+
+    // First pass: Clone hedges of A and B
+    for (auto idA : allOfA)
     {
-        // Create new node in C
-        old2newA[idA] = create(A.get(idA)->label());
+        create(idA, A.get(idA)->label());
     }
-    for (auto idB : B.find())
+    for (auto idB : allOfB)
     {
-        // Create new node in C
-        old2newB[idB] = create(B.get(idB)->label());
+        create(idB, B.get(idB)->label());
     }
 
-    // Second pass: Wiring
-    for (auto idA : A.find())
+    // Second pass: Wire the hedges
+    Hyperedges allOfMe = find();
+    for (auto id : allOfMe)
     {
-        auto newIdA = old2newA[idA];
-        for (auto otherId : A.get(idA)->pointingTo())
-        {
-            auto newOtherId = old2newA[otherId];
-            to(newIdA, newOtherId);
-        }
-        for (auto otherId : A.get(idA)->pointingFrom())
-        {
-            auto newOtherId = old2newA[otherId];
-            from(newOtherId, newIdA);
-        }
-    }
-    for (auto idB : B.find())
-    {
-        auto newIdB = old2newB[idB];
-        for (auto otherId : B.get(idB)->pointingTo())
-        {
-            auto newOtherId = old2newB[otherId];
-            to(newIdB, newOtherId);
-        }
-        for (auto otherId : B.get(idB)->pointingFrom())
-        {
-            auto newOtherId = old2newB[otherId];
-            from(newOtherId, newIdB);
-        }
+        // The new hedges will point to/from the union of the corresponding sets of the A and B hedges with the same id
+        from(unite(A.get(id)->pointingFrom(), B.get(id)->pointingFrom()), id);
+        to(id, unite(A.get(id)->pointingTo(), B.get(id)->pointingTo()));
     }
 }
 
