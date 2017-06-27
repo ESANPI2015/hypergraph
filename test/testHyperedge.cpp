@@ -13,17 +13,13 @@ int main(void)
     Hypergraph testGraph;
 
     std::cout << "> Create edge" << std::endl;
-    auto id = testGraph.create("First edge");
-    assert(id == 1);
-    std::cout << "First id: " << id << "\n";
+    assert(testGraph.create(1, "First edge"));
 
     std::cout << "> Create edge with desired id" << std::endl;
     assert(testGraph.create(23, "Edge with id 23") == true);
 
     std::cout << "> Create edge" << std::endl;
-    id = testGraph.create("Second edge");
-    assert(id == 2);
-    std::cout << "Second id: " << id << "\n";
+    assert(testGraph.create(2, "Second edge"));
 
     std::cout << "> All edges" << std::endl;
     auto edges = testGraph.find();

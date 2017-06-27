@@ -15,6 +15,8 @@ class Hyperedge;
     The hypergraph therefore consists essentially of two tables (see HypergraphDB):
     id | id1 ... idN    and    id | string
     ---|------------           ---|-------
+
+    We want to enforce unique ids, so ids will not be assigned automatically but it can be checked if it is available
 */
 
 class Hypergraph {
@@ -26,10 +28,8 @@ class Hypergraph {
         ~Hypergraph();
 
         /*Factory functions for member edges*/
-        unsigned create(const std::string& label="");                   // creates a new hyperedge
-        unsigned create(Hyperedges fromEdges, Hyperedges toEdges, const std::string& label=""); // created a new hyperedge pointing to others
-        bool     create(const unsigned id, 
-                        const std::string& label="");                   // Tries to create a hyperedge with a given id ... if already taken, returns false
+        bool create(const unsigned id, 
+                    const std::string& label="");                       // Tries to create a hyperedge with a given id ... if already taken, returns false
         void destroy(const unsigned id);                                // Will remove a hyperedge from this hypergraph (and also disconnect it from anybody)
 
         /*Get access to edges*/
@@ -71,12 +71,7 @@ class Hypergraph {
         Hyperedges subtract(const Hyperedges& edgesA, const Hyperedges& edgesB);    // Returns all edges which are in A but not in B
 
     protected:
-
-        /*Id generation: Its like a ticketing system, once you called this, you have to use it!*/
-        unsigned getNextId();
-
         // Private members for factory
-        unsigned _lastId;                      // this is the id we can safely assign but should increase whenever we used it
         std::map<unsigned, Hyperedge> _edges;  // stores all hyperedges in a map id -> hyperedge
 };
 

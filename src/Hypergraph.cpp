@@ -3,13 +3,10 @@
 
 Hypergraph::Hypergraph()
 {
-    _lastId = 1;
 }
 
 Hypergraph::Hypergraph(Hypergraph& A, Hypergraph& B)
 {
-    _lastId = 1;
-
     // If things have the same ID they are the same!
     Hyperedges allOfA = A.find();
     Hyperedges allOfB = B.find();
@@ -43,27 +40,6 @@ Hypergraph::~Hypergraph()
     // We hold no pointers so we do not need to do anything here
 }
 
-unsigned Hypergraph::getNextId()
-{
-    while (get(_lastId)) _lastId++;
-    return _lastId++;
-}
-
-unsigned Hypergraph::create(const std::string& label)
-{
-    unsigned id = getNextId();
-    _edges[id] = Hyperedge(id, label);
-    return id;
-}
-
-unsigned Hypergraph::create(Hyperedges fromEdges, Hyperedges toEdges, const std::string& label)
-{
-    unsigned id = create(label);
-    to(id, toEdges);
-    from(fromEdges, id);
-    return id;
-}
-
 bool Hypergraph::create(const unsigned id, const std::string& label)
 {
     Hyperedge* neu = get(id);
@@ -72,6 +48,11 @@ bool Hypergraph::create(const unsigned id, const std::string& label)
         // Create a new hyperedge
         // Give it the desired id
         _edges[id] = Hyperedge(id, label);
+        return true;
+    }
+    else if (neu->label() == label)
+    {
+        // If a hyperedge with the same id and label exists, it is assumed to have been created and counts as success
         return true;
     }
     return false;
