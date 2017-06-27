@@ -123,56 +123,16 @@ Hyperedge* Hypergraph::get(const unsigned id)
     }
 }
 
-Hypergraph::Hyperedges Hypergraph::find(const std::string& label,
-                                        const std::string& lhs,
-                                        const std::string& rhs
-                                       )
+Hypergraph::Hyperedges Hypergraph::find(const std::string& label)
 {
     Hyperedges result;
     for (auto pair : _edges)
     {
         auto id = pair.first;
         auto edge = pair.second;
-        // Filters by label if given. It suffices that the edge label contains the given one.
-        if (label.empty() || (edge.label() == label))
-            result.insert(id);
         // If edge does not match the label, skip it
         if (!label.empty() && (edge.label() != label))
             continue;
-        // Find label in lhs
-        if (!lhs.empty())
-        {
-            bool found = false;
-            auto fromIds = edge.pointingFrom();
-            for (auto fromId : fromIds)
-            {
-                auto other = get(fromId);
-                if (other->label() == lhs)
-                {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found)
-                continue;
-        }
-        // Find label in rhs
-        if (!rhs.empty())
-        {
-            bool found = false;
-            auto toIds = edge.pointingTo();
-            for (auto toId : toIds)
-            {
-                auto other = get(toId);
-                if (other->label() == rhs)
-                {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found)
-                continue;
-        }
         result.insert(id);
     }
     return result;

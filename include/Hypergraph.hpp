@@ -34,10 +34,7 @@ class Hypergraph {
 
         /*Get access to edges*/
         Hyperedge* get(const unsigned id);                              // Provides access to the hyperedge given by id
-        Hyperedges find(const std::string& label="",                    // Finds all hyperedges with a certain label
-                        const std::string& lhs="",                      // ... and a certain label in the from set
-                        const std::string& rhs=""                       // ... and in the to set
-                       );
+        Hyperedges find(const std::string& label="");                   // Finds all hyperedges with a certain label
 
         /*Connect edges*/
         bool to(const unsigned srcId, const unsigned destId);           // Afterwards srcId will point to destId. But the converse is not true!!!
