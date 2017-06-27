@@ -12,8 +12,7 @@ int main(void)
     Conceptgraph universe;
 
     std::cout << "> Create concept" << std::endl;
-    auto firstId = universe.create("First concept");
-    std::cout << "First id: " << firstId << "\n";
+    universe.create(3, "First concept");
 
     std::cout << "> All concepts" << std::endl;
     auto concepts = universe.find();
@@ -23,25 +22,33 @@ int main(void)
     }
 
     std::cout << "> Create another concept and check it" << std::endl;
-    auto secondId = universe.create("Second concept");
-    std::cout << "Second id: " << secondId << "\n";
-    assert(universe.find("Second concept").count(secondId) > 0);
+    universe.create(4, "Second concept");
+    assert(universe.find("Second concept").count(4) > 0);
 
     std::cout << "> Relate the first and the second concept\n";
-    universe.relate(firstId, secondId, "relatedTo");
+    universe.relate(5, 3, 4, "relatedTo");
 
     std::cout << "> Create a tree of concepts related by a common relation\n";
-    unsigned rootId = universe.create("Root");
-    universe.relate(rootId, universe.create("I"), "R");
-    universe.relate(rootId, universe.create("You"), "R");
-    universe.relate(rootId, universe.create("It"), "R");
-    universe.relate(rootId, universe.create("Huh?"), "A");
-    unsigned pluralId = universe.create("Plural");
-    universe.relate(pluralId, universe.create("We"), "R");
-    universe.relate(pluralId, universe.create("You"), "R");
-    universe.relate(pluralId, universe.create("They"), "R");
-    universe.relate(pluralId, universe.create("Doh?"), "B");
-    universe.relate(rootId, pluralId, "R");
+    universe.create(6, "Root");
+    universe.create(11,"I");
+    universe.create(12,"You");
+    universe.create(13,"It"); 
+    universe.create(14,"Huh?");
+    universe.create(15, "Plural");
+    universe.create(20, "We"); 
+    universe.create(21, "You");
+    universe.create(22, "They");
+    auto hashedId = universe.create("Doh?");
+
+    universe.relate(7,  6, 11, "R");
+    universe.relate(8,  6, 12, "R");
+    universe.relate(9,  6, 13, "R");
+    universe.relate(10, 6, 14, "A");
+    universe.relate(16, 15, 20, "R");
+    universe.relate(17, 15, 21, "R");
+    universe.relate(18, 15, 22, "R");
+    universe.relate(19, 15, hashedId, "B");
+    universe.relate(24, 6, 15, "R");
 
     std::cout << "> All concepts" << std::endl;
     concepts = universe.find();

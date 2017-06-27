@@ -2,6 +2,8 @@
 #include <map>
 #include <set>
 #include <queue>
+#include <functional>
+#include <sstream>
 
 const unsigned Conceptgraph::ConceptId = 1;
 const unsigned Conceptgraph::RelationId = 2;
@@ -17,30 +19,9 @@ Conceptgraph::Conceptgraph()
 Conceptgraph::Conceptgraph(Hypergraph& A)
 : Hypergraph(A)
 {
-    // We assume that the Hypergraph contains HEDGES with the specified ids.
-    // If it does, we will sort every HEDGE in their TO sets to either CONCEPT or RELATION set
-    Hyperedge* masterConcept = Hypergraph::get(Conceptgraph::ConceptId);
-    Hyperedge* masterRelation = Hypergraph::get(Conceptgraph::RelationId);
-    if (masterConcept)
-    {
-        Hyperedges allConcepts = masterConcept->pointingTo();
-        _concepts.insert(allConcepts.begin(), allConcepts.end());
-        if (masterRelation)
-        {
-            Hyperedges allRelations = masterRelation->pointingTo();
-            _relations.insert(allRelations.begin(), allRelations.end());
-        }
-    }
-}
-
-unsigned Conceptgraph::create(const std::string& label)
-{
-    // Creating a concepts means creating a (HEDGE(ConceptId) -> HEDGE(label)) pair
-    unsigned id = Hypergraph::create(label);
+    // Create the URHEDGES (if they exist, nothing will happen :))
     Hypergraph::create(Conceptgraph::ConceptId, "CONCEPT");
-    Hypergraph::to(Conceptgraph::ConceptId, id); // This cannot fail
-    _concepts.insert(id);
-    return id;
+    Hypergraph::create(Conceptgraph::RelationId, "RELATION");
 }
 
 bool Conceptgraph::create(const unsigned id, const std::string& label)
@@ -49,60 +30,91 @@ bool Conceptgraph::create(const unsigned id, const std::string& label)
     {
         Hypergraph::create(Conceptgraph::ConceptId, "CONCEPT");
         Hypergraph::to(Conceptgraph::ConceptId, id); // This cannot fail
-        _concepts.insert(id);
         return true;
     }
     return false;
 }
 
+unsigned Conceptgraph::create(const std::string& label)
+{
+    unsigned id = std::hash<std::string>{}(label);
+    if (create(id, label))
+        return id;
+    return 0;
+}
+
 Hypergraph::Hyperedges Conceptgraph::find(const std::string& label)
 {
-    // Find edges which have the right label and are part of the _concepts set
+    // Find edges which have the right label and are part of the concepts set
     Hyperedges resultIds;
-    Hyperedges edgeIds = Hypergraph::find(label);
-    for (auto edgeId : edgeIds)
+    Hyperedges candidateIds = Hypergraph::get(Conceptgraph::ConceptId)->pointingTo();
+    for (auto candidateId : candidateIds)
     {
-        if (_concepts.count(edgeId))
+        if (!label.empty() && (Hypergraph::get(candidateId)->label() == label))
         {
-            resultIds.insert(edgeId);
+            resultIds.insert(candidateId);
         }
     }
     return resultIds;
 }
 
-unsigned Conceptgraph::relate(const unsigned fromId, const unsigned toId, const std::string& label)
+bool Conceptgraph::relate(const unsigned id, const unsigned fromId, const unsigned toId, const std::string& label)
 {
     // Creating relations means creating a (RELATION -> X) pair
-    unsigned id = Hypergraph::create(label);
+    if (!Hypergraph::create(id, label))
+        return false;
     Hypergraph::create(Conceptgraph::RelationId, "RELATION");
-    Hypergraph::to(Conceptgraph::RelationId, id); // This cannot fail
+    Hypergraph::to(Conceptgraph::RelationId, id);
+
     // Furthermore, we have to connect the relation
     // NOTE: relations can also relate relations not only concepts!!!
-    Hypergraph::from(fromId, id); // FIXME: Can fail if fromId is not in graph
-    Hypergraph::to(id, toId);     // FIXME: Can fail
-    // We could either add this new edge to the set of _relations or call a reparse() function
-    _relations.insert(id);
-    return id;
+    Hypergraph::from(fromId, id);
+    Hypergraph::to(id, toId);
+    return true;
+}
+
+bool Conceptgraph::relate(const unsigned id, const Hyperedges& fromIds, const Hyperedges& toIds, const std::string& label)
+{
+    // Creating relations means creating a (RELATION -> X) pair
+    if (!Hypergraph::create(id, label))
+        return false;
+    Hypergraph::create(Conceptgraph::RelationId, "RELATION");
+    Hypergraph::to(Conceptgraph::RelationId, id);
+
+    // Furthermore, we have to connect the relation
+    // NOTE: relations can also relate relations not only concepts!!!
+    Hypergraph::from(fromIds, id);
+    Hypergraph::to(id, toIds);
+    return true;
+}
+
+unsigned Conceptgraph::relate(const unsigned fromId, const unsigned toId, const std::string& label)
+{
+    std::stringstream ss;
+    ss << get(fromId)->label() << get(toId)->label() << label;
+    unsigned id = std::hash<std::string>{}(ss.str());
+    if (relate(id, fromId, toId, label))
+        return id;
+    return 0;
 }
 
 unsigned Conceptgraph::relate(const Hyperedges& fromIds, const Hyperedges& toIds, const std::string& label)
 {
-    // Creating relations means creating a (RELATION -> X) pair
-    unsigned id = Hypergraph::create(label);
-    Hypergraph::create(Conceptgraph::RelationId, "RELATION");
-    Hypergraph::to(Conceptgraph::RelationId, id); // This cannot fail
-    // Furthermore, we have to connect the relation
-    // NOTE: relations can also relate relations not only concepts!!!
-    Hypergraph::from(fromIds, id); // FIXME: Can fail
-    Hypergraph::to(id, toIds);     // FIXME: Can fail
-    // We could either add this new edge to the set of _relations or call a reparse() function
-    _relations.insert(id);
-    return id;
+    std::stringstream ss;
+    for (auto fromId : fromIds)
+        ss << get(fromId)->label();
+    for (auto toId : toIds)
+        ss << get(toId)->label();
+    ss << label;
+    unsigned id = std::hash<std::string>{}(ss.str());
+    if (relate(id, fromIds, toIds, label))
+        return id;
+    return 0;
 }
 
 void     Conceptgraph::destroy(const unsigned id)
 {
-    if (_concepts.count(id))
+    if (Hypergraph::get(Conceptgraph::ConceptId)->isPointingTo(id))
     {
         // For a concept, we have to get rid of ALL associated relations
         auto relationIds = relationsOf(id);
@@ -116,35 +128,37 @@ void     Conceptgraph::destroy(const unsigned id)
     Hypergraph::destroy(id);
 }
 
-Hypergraph::Hyperedges Conceptgraph::relationsOf(const unsigned conceptId, const std::string& relationLabel)
+Hypergraph::Hyperedges Conceptgraph::relationsOf(const unsigned conceptId, const std::string& label)
 {
-    Hyperedges result;
-    // First we have to get all hyperedges with a certain label
-    Hyperedges allIds = Hypergraph::find(relationLabel);
-    for (auto edgeId : allIds)
+    Hyperedges resultIds;
+    // Find edges which have the right label and are part of the relation set
+    Hyperedges candidateIds = Hypergraph::get(Conceptgraph::RelationId)->pointingTo();
+    for (auto candidateId : candidateIds)
     {
-        // ... then we check if it also is a relation
-        if (_relations.count(edgeId))
+        auto rel = Hypergraph::get(candidateId);
+        // Valid edge?
+        if (!rel)
+            continue;
+        // Match by label?
+        if (!label.empty() && (rel->label() != label))
+            continue;
+        // Found a relation with the given label
+        // Now we have to check if conceptId is part of either the from or the to set
+        if (rel->isPointingTo(conceptId) || rel->isPointingFrom(conceptId))
         {
-            // Found a relation with the given label
-            // Now we have to check if conceptId is part of either the from or the to set
-            auto rel = get(edgeId);
-            if (rel && (rel->isPointingTo(conceptId) || rel->isPointingFrom(conceptId)))
-            {
-                // gotya!
-                result.insert(edgeId);
-            }
+            // gotya!
+            resultIds.insert(candidateId);
         }
     }
-    return result;
+    return resultIds;
 }
 
-Hypergraph::Hyperedges Conceptgraph::relationsOf(const Hyperedges& concepts, const std::string& relationLabel)
+Hypergraph::Hyperedges Conceptgraph::relationsOf(const Hyperedges& concepts, const std::string& label)
 {
     Hyperedges result;
     for (auto conceptId : concepts)
     {
-        auto relIds = relationsOf(conceptId, relationLabel);
+        auto relIds = relationsOf(conceptId, label);
         result.insert(relIds.begin(), relIds.end());
     }
     return result;
