@@ -73,6 +73,12 @@ bool Conceptgraph::relate(const unsigned id, const unsigned fromId, const unsign
     return true;
 }
 
+bool Conceptgraph::relate(const unsigned id, const unsigned fromId, const unsigned toId, const unsigned relId)
+{
+   std::string label = Hypergraph::get(relId)->label();
+   return Conceptgraph::relate(id,fromId,toId,label);
+}
+
 bool Conceptgraph::relate(const unsigned id, const Hyperedges& fromIds, const Hyperedges& toIds, const std::string& label)
 {
     // Creating relations means creating a (RELATION -> X) pair
@@ -88,6 +94,12 @@ bool Conceptgraph::relate(const unsigned id, const Hyperedges& fromIds, const Hy
     return true;
 }
 
+bool Conceptgraph::relate(const unsigned id, const Hyperedges& fromIds, const Hyperedges& toIds, const unsigned relId)
+{
+   std::string label = Hypergraph::get(relId)->label();
+   return Conceptgraph::relate(id,fromIds,toIds,label);
+}
+
 unsigned Conceptgraph::relate(const unsigned fromId, const unsigned toId, const std::string& label)
 {
     std::stringstream ss;
@@ -96,6 +108,12 @@ unsigned Conceptgraph::relate(const unsigned fromId, const unsigned toId, const 
     if (relate(id, fromId, toId, label))
         return id;
     return 0;
+}
+
+unsigned Conceptgraph::relate(const unsigned fromId, const unsigned toId, const unsigned relId)
+{
+   std::string label = Hypergraph::get(relId)->label();
+   return Conceptgraph::relate(fromId,toId,label);
 }
 
 unsigned Conceptgraph::relate(const Hyperedges& fromIds, const Hyperedges& toIds, const std::string& label)
@@ -110,6 +128,12 @@ unsigned Conceptgraph::relate(const Hyperedges& fromIds, const Hyperedges& toIds
     if (relate(id, fromIds, toIds, label))
         return id;
     return 0;
+}
+
+unsigned Conceptgraph::relate(const Hyperedges& fromIds, const Hyperedges& toIds, const unsigned relId)
+{
+   std::string label = Hypergraph::get(relId)->label();
+   return Conceptgraph::relate(fromIds,toIds,label);
 }
 
 void     Conceptgraph::destroy(const unsigned id)
