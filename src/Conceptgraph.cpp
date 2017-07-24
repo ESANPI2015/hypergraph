@@ -50,7 +50,7 @@ Hypergraph::Hyperedges Conceptgraph::find(const std::string& label)
     Hyperedges candidateIds = Hypergraph::get(Conceptgraph::ConceptId)->pointingTo();
     for (auto candidateId : candidateIds)
     {
-        if (!label.empty() && (Hypergraph::get(candidateId)->label() == label))
+        if (label.empty() || (Hypergraph::get(candidateId)->label() == label))
         {
             resultIds.insert(candidateId);
         }

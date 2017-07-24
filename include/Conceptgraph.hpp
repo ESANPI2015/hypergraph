@@ -35,10 +35,10 @@ class Conceptgraph : public Hypergraph
         Hyperedges find(const std::string& label="");                   //< Find a concept by label
 
         /* RELATIONS */
-        bool relate(const unsigned id, const unsigned fromId, const unsigned toId, const std::string& label="");            //< Create relation fromId -- id --> toId
-        bool relate(const unsigned id, const Hyperedges& fromIds, const Hyperedges& toIds, const std::string& label="");    //< Create N:M relation
-        unsigned relate(const unsigned fromId, const unsigned toId, const std::string& label="");                           //< Create relation using hash(concat(labels)) as id
-        unsigned relate(const Hyperedges& fromIds, const Hyperedges& toIds, const std::string& label="");
+        bool relate(const unsigned id, const unsigned fromId, const unsigned toId, const std::string& label);            //< Create relation fromId -- id --> toId
+        bool relate(const unsigned id, const Hyperedges& fromIds, const Hyperedges& toIds, const std::string& label);    //< Create N:M relation
+        unsigned relate(const unsigned fromId, const unsigned toId, const std::string& label);                           //< Create relation using hash(concat(labels)) as id
+        unsigned relate(const Hyperedges& fromIds, const Hyperedges& toIds, const std::string& label);
         
         /* QUERIES */
         Hyperedges relationsOf(const unsigned conceptId, const std::string& label="");                  //< Find all occurences of (label --> conceptId) || (conceptId <-- label)
