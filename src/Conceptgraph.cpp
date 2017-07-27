@@ -58,6 +58,21 @@ Hypergraph::Hyperedges Conceptgraph::find(const std::string& label)
     return resultIds;
 }
 
+Hypergraph::Hyperedges Conceptgraph::relations(const std::string& label)
+{
+    // Find edges which have the right label and are part of the relations set
+    Hyperedges resultIds;
+    Hyperedges candidateIds = Hypergraph::get(Conceptgraph::RelationId)->pointingTo();
+    for (auto candidateId : candidateIds)
+    {
+        if (label.empty() || (Hypergraph::get(candidateId)->label() == label))
+        {
+            resultIds.insert(candidateId);
+        }
+    }
+    return resultIds;
+}
+
 bool Conceptgraph::relate(const unsigned id, const unsigned fromId, const unsigned toId, const std::string& label)
 {
     // Creating relations means creating a (RELATION -> X) pair
@@ -152,7 +167,7 @@ void     Conceptgraph::destroy(const unsigned id)
     Hypergraph::destroy(id);
 }
 
-Hypergraph::Hyperedges Conceptgraph::relationsOf(const unsigned conceptId, const std::string& label)
+Hypergraph::Hyperedges Conceptgraph::relationsOf(const unsigned id, const std::string& label)
 {
     Hyperedges resultIds;
     // Find edges which have the right label and are part of the relation set
@@ -168,7 +183,7 @@ Hypergraph::Hyperedges Conceptgraph::relationsOf(const unsigned conceptId, const
             continue;
         // Found a relation with the given label
         // Now we have to check if conceptId is part of either the from or the to set
-        if (rel->isPointingTo(conceptId) || rel->isPointingFrom(conceptId))
+        if (rel->isPointingTo(id) || rel->isPointingFrom(id))
         {
             // gotya!
             resultIds.insert(candidateId);
@@ -177,12 +192,12 @@ Hypergraph::Hyperedges Conceptgraph::relationsOf(const unsigned conceptId, const
     return resultIds;
 }
 
-Hypergraph::Hyperedges Conceptgraph::relationsOf(const Hyperedges& concepts, const std::string& label)
+Hypergraph::Hyperedges Conceptgraph::relationsOf(const Hyperedges& ids, const std::string& label)
 {
     Hyperedges result;
-    for (auto conceptId : concepts)
+    for (auto id : ids)
     {
-        auto relIds = relationsOf(conceptId, label);
+        auto relIds = relationsOf(id, label);
         result.insert(relIds.begin(), relIds.end());
     }
     return result;

@@ -39,12 +39,11 @@ class Conceptgraph : public Hypergraph
         bool relate(const unsigned id, const Hyperedges& fromIds, const Hyperedges& toIds, const std::string& label);    //< Create N:M relation
         unsigned relate(const unsigned fromId, const unsigned toId, const std::string& label);                           //< Create relation using hash(concat(labels)) as id
         unsigned relate(const Hyperedges& fromIds, const Hyperedges& toIds, const std::string& label);
+        Hyperedges relations(const std::string& label="");              //< Find relations by label
         
         /* QUERIES */
-        Hyperedges relationsOf(const unsigned conceptId, const std::string& label="");                  //< Find all occurences of (label --> conceptId) || (conceptId <-- label)
-        Hyperedges relationsOf(const Hyperedges& concepts, const std::string& label="");                //< Search over multiple concepts
-        Hyperedges traverse(const unsigned rootId, const std::string& conceptLabel="",                  //< Traverse the (sub)graph starting at rootId
-                            const std::string& relationLabel="", const TraversalDirection dir=DOWN);    //< filtering visited concepts/following resolved relations by label
+        Hyperedges relationsOf(const unsigned id, const std::string& label="");     //< Find all occurences of (label --> id) || (id <-- label)
+        Hyperedges relationsOf(const Hyperedges& ids, const std::string& label=""); //< Search over multiple ids
 
         /* RELATIONS FROM TEMPLATES */
         bool relate(const unsigned id, const unsigned fromId, const unsigned toId, const unsigned relId);   //< Create a relation using relId as template
