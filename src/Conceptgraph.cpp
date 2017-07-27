@@ -4,6 +4,7 @@
 #include <queue>
 #include <functional>
 #include <sstream>
+#include <algorithm>
 
 const unsigned Conceptgraph::ConceptId = 1;
 const unsigned Conceptgraph::RelationId = 2;
@@ -203,65 +204,75 @@ Hypergraph::Hyperedges Conceptgraph::relationsOf(const Hyperedges& ids, const st
     return result;
 }
 
-Hypergraph::Hyperedges Conceptgraph::traverse(const unsigned rootId, const std::string& conceptLabel, const std::string& relationLabel, const TraversalDirection dir)
+Hypergraph::Hyperedges Conceptgraph::traverse(const unsigned rootId,
+                    const std::vector<std::string>& visitLabels,
+                    const std::vector<std::string>& relationLabels,
+                    const TraversalDirection dir)
 {
     Hyperedges result;
     Hyperedges visited;
-    std::queue< unsigned > concepts;
+    std::queue< unsigned > toVisit;
 
-    concepts.push(rootId);
+    toVisit.push(rootId);
 
     // Run through queue of unknown edges
-    while (!concepts.empty())
+    while (!toVisit.empty())
     {
-        auto concept = get(concepts.front());
-        concepts.pop();
+        auto current = get(toVisit.front());
+        toVisit.pop();
 
-        if (visited.count(concept->id()))
+        if (visited.count(current->id()))
             continue;
 
         // Visiting!!!
-        visited.insert(concept->id());
-        if (conceptLabel.empty() || (concept->label() == conceptLabel))
+        visited.insert(current->id());
+        // Insert the hedge iff either visitLabels is empty OR current label matches one of the visitLabels
+        if (!visitLabels.size() || (std::find(visitLabels.begin(), visitLabels.end(), current->label()) != visitLabels.end()))
         {
-            // edge matches filter func
-            result.insert(concept->id());
+            // edge matches filter
+            result.insert(current->id());
         }
 
-        // Get all relations with relationLabel
-        Hyperedges relations = relationsOf(concept->id(), relationLabel);
+        // Get all relations which match at least one of the relationLabels
+        Hyperedges relations;
+        for (std::string label : relationLabels)
+        {
+            Hyperedges some = relationsOf(current->id(), label);
+            relations.insert(some.begin(), some.end());
+        }
+
         for (auto relId : relations)
         {
-            // Put all successor hedges (DOWN) or predecessor hedges (UP)  into the set of concepts to be searched
+            // Put all successor hedges (DOWN) or predecessor hedges (UP)  into the set of toVisit to be searched
             auto rel = get(relId);
             switch (dir)
             {
                 case DOWN:
-                    if (rel->isPointingFrom(concept->id()))
+                    if (rel->isPointingFrom(current->id()))
                     {
                         auto others = rel->pointingTo();
                         for (auto otherId : others)
                         {
-                            concepts.push(otherId);
+                            toVisit.push(otherId);
                         }
                     }
                     break;
                 case BOTH:
-                    if (rel->isPointingFrom(concept->id()))
+                    if (rel->isPointingFrom(current->id()))
                     {
                         auto others = rel->pointingTo();
                         for (auto otherId : others)
                         {
-                            concepts.push(otherId);
+                            toVisit.push(otherId);
                         }
                     }
                 case UP:
-                    if (rel->isPointingTo(concept->id()))
+                    if (rel->isPointingTo(current->id()))
                     {
                         auto others = rel->pointingFrom();
                         for (auto otherId : others)
                         {
-                            concepts.push(otherId);
+                            toVisit.push(otherId);
                         }
                     }
                     break;
@@ -270,4 +281,15 @@ Hypergraph::Hyperedges Conceptgraph::traverse(const unsigned rootId, const std::
     }
 
     return result;
+}
+
+Hypergraph::Hyperedges Conceptgraph::traverse(const unsigned rootId, const std::string& visitLabel, const std::string& relationLabel, const TraversalDirection dir)
+{
+    std::vector<std::string> v;
+    std::vector<std::string> r;
+    if (!visitLabel.empty())
+        v.push_back(visitLabel);
+    if (!relationLabel.empty())
+        r.push_back(relationLabel);
+    return traverse(rootId, v, r, dir);
 }
