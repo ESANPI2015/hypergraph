@@ -141,13 +141,20 @@ unsigned CommonConceptGraph::instanceOf(const unsigned individualId, const unsig
 Hypergraph::Hyperedges CommonConceptGraph::factsOf(const unsigned superRelId, const std::string& label)
 {
     Hyperedges result;
+    // NOTE: all contains FACT-OF with (FACT-OF --> superRelId)
     Hyperedges all = Conceptgraph::relationsTo(superRelId, get(CommonConceptGraph::FactOfId)->label());
-    // NOTE: all contains (FACT-OF --> superRelId)
-    for (unsigned id : all)
+    // ... the result will then contain all facts with (facts <-- FACT-OF --> superRelId)
+    result = Hypergraph::from(all, label);
+    return result;
+}
+
+Hypergraph::Hyperedges CommonConceptGraph::factsOf(const Hyperedges& superRelIds, const std::string& label)
+{
+    Hyperedges result;
+    for (unsigned superRelId : superRelIds)
     {
-        // Here we filter out the hedges in the from set not matching the label
-        Hyperedges matches = Hypergraph::from(id, label);
-        result.insert(matches.begin(), matches.end());
+        Hyperedges some = factsOf(superRelId, label);
+        result.insert(some.begin(), some.end());
     }
     return result;
 }

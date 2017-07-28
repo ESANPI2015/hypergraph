@@ -85,6 +85,7 @@ class CommonConceptGraph : public Conceptgraph
 
         /*Common queries*/
         Hyperedges factsOf(const unsigned superRelId, const std::string& label="");        //non-transitive
+        Hyperedges factsOf(const Hyperedges& superRelIds, const std::string& label="");
         Hyperedges subrelationsOf(const unsigned superRelId, const std::string& label=""); //transitive
 
         /*Other common queries using subrelationsOf!*/
