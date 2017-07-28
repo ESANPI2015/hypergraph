@@ -194,8 +194,7 @@ Hypergraph::Hyperedges CommonConceptGraph::subclassesOf(const unsigned superId, 
 
 Hypergraph::Hyperedges CommonConceptGraph::partsOf(const unsigned wholeId, const std::string& label)
 {
-    Hyperedges result;
-    return result;
+    return transitiveClosure(wholeId, CommonConceptGraph::PartOfId, label, UP);
 }
 
 Hypergraph::Hyperedges CommonConceptGraph::instancesOf(const unsigned superId, const std::string& label)
