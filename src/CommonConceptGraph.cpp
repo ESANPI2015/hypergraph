@@ -201,6 +201,17 @@ Hypergraph::Hyperedges CommonConceptGraph::partsOf(const unsigned wholeId, const
 Hypergraph::Hyperedges CommonConceptGraph::instancesOf(const unsigned superId, const std::string& label)
 {
     Hyperedges result;
+    // Get all subrelationsOf INSTANCE-OF
+    Hyperedges subRels = subrelationsOf(CommonConceptGraph::InstanceOfId);
+    // Get all factsOf these subrelations
+    Hyperedges facts = factsOf(subRels);
+    // Get all relationsTo superId
+    Hyperedges relsToSuper = Conceptgraph::relationsTo(superId);
+
+    // Contains all (X <-- factFromSubRelOfInstanceOf --> superId) relations
+    Hyperedges relevantRels = intersect(relsToSuper, facts);
+    // Get all these X matching the label
+    result = Hypergraph::from(relevantRels, label);
     return result;
 }
 
