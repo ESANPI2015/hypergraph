@@ -200,5 +200,19 @@ Hypergraph::Hyperedges CommonConceptGraph::instancesOf(const unsigned superId, c
 Hypergraph::Hyperedges CommonConceptGraph::childrenOf(const unsigned parentId, const std::string& label)
 {
     Hyperedges result;
+    // Get all subrelations of HAS-A
+    Hyperedges subRels = subrelationsOf(CommonConceptGraph::HasAId);
+
+    // For each subrelation, find all occurrences (parentId <-- subRelLabel --> X) and register the children X matching the label
+    for (unsigned subRelId : subRels)
+    {
+        Hyperedges relsFromParent = Conceptgraph::relationsFrom(parentId, get(subRelId)->label()); 
+        for (unsigned relId : relsFromParent)
+        {
+            // Here we filter out the hedges in the to set not matching the label
+            Hyperedges matches = Hypergraph::to(relId, label);
+            result.insert(matches.begin(), matches.end());
+        }
+    }
     return result;
 }
