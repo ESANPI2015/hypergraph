@@ -73,6 +73,7 @@ class CommonConceptGraph : public Conceptgraph
         /*Make facts*/
         unsigned factOf(const unsigned factId, const unsigned superRelId);
         unsigned relateFrom(const unsigned fromId, const unsigned toId, const unsigned superId);
+        unsigned relateFrom(const Hyperedges& fromIds, const Hyperedges& toIds, const unsigned superId);
 
         /*Constructive functions using predefined relations*/
         unsigned subrelationOf(const unsigned subRelId, const unsigned superRelId);

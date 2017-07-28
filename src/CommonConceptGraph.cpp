@@ -69,6 +69,18 @@ unsigned CommonConceptGraph::relateFrom(const unsigned fromId, const unsigned to
     return id;
 }
 
+unsigned CommonConceptGraph::relateFrom(const Hyperedges& fromIds, const Hyperedges& toIds, const unsigned superId)
+{
+    // At first create the relation ...
+    unsigned id = Conceptgraph::relate(fromIds, toIds, superId);
+    if (id)
+    {
+        // ... then make the new relation a factOf the super relation
+        factOf(id, superId);
+    }
+    return id;
+}
+
 unsigned CommonConceptGraph::subrelationOf(const unsigned subRelId, const unsigned superRelId)
 {
     unsigned id = 0;
