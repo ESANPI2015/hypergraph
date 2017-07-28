@@ -42,8 +42,18 @@ class Conceptgraph : public Hypergraph
         Hyperedges relations(const std::string& label="");              //< Find relations by label
         
         /* QUERIES */
-        Hyperedges relationsOf(const unsigned id, const std::string& label="");     //< Find all occurences of (label --> id) || (id <-- label)
-        Hyperedges relationsOf(const Hyperedges& ids, const std::string& label=""); //< Search over multiple ids
+        Hyperedges relationsFrom(const unsigned id, const std::string& label="");   //< Find all occurences of (id <-- label)
+        Hyperedges relationsFrom(const Hyperedges& ids, const std::string& label="");
+        Hyperedges relationsTo(const unsigned id, const std::string& label="");     //< Find all occurences of (label --> id)
+        Hyperedges relationsTo(const Hyperedges& ids, const std::string& label="");
+        Hyperedges relationsOf(const unsigned id, const std::string& label="")      //< Find all occurences of (label --> id) || (id <-- label)
+        {
+            return unite(relationsFrom(id,label), relationsTo(id,label));
+        }
+        Hyperedges relationsOf(const Hyperedges& ids, const std::string& label="")
+        {
+            return unite(relationsFrom(ids,label), relationsTo(ids,label));
+        }
         Hyperedges traverse(const unsigned rootId,                                  //< Traverse the (sub)graph starting at rootId
                             const std::string& visitLabel="",                       //< filter visited relations OR concepts by this label
                             const std::string& relationLabel="",                    //< follow relations matching this label

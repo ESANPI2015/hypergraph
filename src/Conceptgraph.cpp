@@ -168,7 +168,7 @@ void     Conceptgraph::destroy(const unsigned id)
     Hypergraph::destroy(id);
 }
 
-Hypergraph::Hyperedges Conceptgraph::relationsOf(const unsigned id, const std::string& label)
+Hypergraph::Hyperedges Conceptgraph::relationsFrom(const unsigned id, const std::string& label)
 {
     Hyperedges resultIds;
     // Find edges which have the right label and are part of the relation set
@@ -183,8 +183,8 @@ Hypergraph::Hyperedges Conceptgraph::relationsOf(const unsigned id, const std::s
         if (!label.empty() && (rel->label() != label))
             continue;
         // Found a relation with the given label
-        // Now we have to check if conceptId is part of either the from or the to set
-        if (rel->isPointingTo(id) || rel->isPointingFrom(id))
+        // Now we have to check if conceptId is part of the from set
+        if (rel->isPointingFrom(id))
         {
             // gotya!
             resultIds.insert(candidateId);
@@ -193,12 +193,48 @@ Hypergraph::Hyperedges Conceptgraph::relationsOf(const unsigned id, const std::s
     return resultIds;
 }
 
-Hypergraph::Hyperedges Conceptgraph::relationsOf(const Hyperedges& ids, const std::string& label)
+Hypergraph::Hyperedges Conceptgraph::relationsTo(const unsigned id, const std::string& label)
+{
+    Hyperedges resultIds;
+    // Find edges which have the right label and are part of the relation set
+    Hyperedges candidateIds = Hypergraph::get(Conceptgraph::RelationId)->pointingTo();
+    for (auto candidateId : candidateIds)
+    {
+        auto rel = Hypergraph::get(candidateId);
+        // Valid edge?
+        if (!rel)
+            continue;
+        // Match by label?
+        if (!label.empty() && (rel->label() != label))
+            continue;
+        // Found a relation with the given label
+        // Now we have to check if conceptId is part of the to set
+        if (rel->isPointingTo(id))
+        {
+            // gotya!
+            resultIds.insert(candidateId);
+        }
+    }
+    return resultIds;
+}
+
+Hypergraph::Hyperedges Conceptgraph::relationsFrom(const Hyperedges& ids, const std::string& label)
 {
     Hyperedges result;
     for (auto id : ids)
     {
-        auto relIds = relationsOf(id, label);
+        auto relIds = relationsFrom(id, label);
+        result.insert(relIds.begin(), relIds.end());
+    }
+    return result;
+}
+
+Hypergraph::Hyperedges Conceptgraph::relationsTo(const Hyperedges& ids, const std::string& label)
+{
+    Hyperedges result;
+    for (auto id : ids)
+    {
+        auto relIds = relationsTo(id, label);
         result.insert(relIds.begin(), relIds.end());
     }
     return result;
@@ -233,6 +269,7 @@ Hypergraph::Hyperedges Conceptgraph::traverse(const unsigned rootId,
             result.insert(current->id());
         }
 
+        // TODO: Rewrite this part using relationsTo and relationsFrom depending on dir!
         // Get all relations which match at least one of the relationLabels
         Hyperedges relations;
         for (std::string label : relationLabels)
