@@ -128,6 +128,7 @@ unsigned CommonConceptGraph::connects(const unsigned connectorId, const unsigned
     }
     return id;
 }
+
 unsigned CommonConceptGraph::instanceOf(const unsigned individualId, const unsigned superId)
 {
     unsigned id = 0;
@@ -136,6 +137,11 @@ unsigned CommonConceptGraph::instanceOf(const unsigned individualId, const unsig
         id = relateFrom(individualId, superId, CommonConceptGraph::InstanceOfId);
     }
     return id;
+}
+
+unsigned CommonConceptGraph::instanceOf(const Hyperedges& individualIds, const Hyperedges& superIds)
+{
+    return relateFrom(intersect(Conceptgraph::find(), individualIds), intersect(Conceptgraph::find(), superIds), CommonConceptGraph::InstanceOfId);
 }
 
 Hypergraph::Hyperedges CommonConceptGraph::factsOf(const unsigned superRelId, const std::string& label)
