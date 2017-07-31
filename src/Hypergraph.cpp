@@ -50,11 +50,6 @@ bool Hypergraph::create(const unsigned id, const std::string& label)
         _edges[id] = Hyperedge(id, label);
         return true;
     }
-    else if (neu->label() == label)
-    {
-        // If a hyperedge with the same id and label exists, it is assumed to have been created and counts as success
-        return true;
-    }
     return false;
 }
 
