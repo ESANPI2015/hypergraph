@@ -39,9 +39,8 @@ bool Conceptgraph::create(const unsigned id, const std::string& label)
 unsigned Conceptgraph::create(const std::string& label)
 {
     unsigned id = std::hash<std::string>{}(label);
-    if (create(id, label))
-        return id;
-    return 0;
+    while (!create(id, label)) id++;
+    return id;
 }
 
 Hypergraph::Hyperedges Conceptgraph::find(const std::string& label)
@@ -121,9 +120,8 @@ unsigned Conceptgraph::relate(const unsigned fromId, const unsigned toId, const 
     std::stringstream ss;
     ss << get(fromId)->label() << get(toId)->label() << label;
     unsigned id = std::hash<std::string>{}(ss.str());
-    if (relate(id, fromId, toId, label))
-        return id;
-    return 0;
+    while (!relate(id, fromId, toId, label)) id++;
+    return id;
 }
 
 unsigned Conceptgraph::relate(const unsigned fromId, const unsigned toId, const unsigned relId)
@@ -141,9 +139,8 @@ unsigned Conceptgraph::relate(const Hyperedges& fromIds, const Hyperedges& toIds
         ss << get(toId)->label();
     ss << label;
     unsigned id = std::hash<std::string>{}(ss.str());
-    if (relate(id, fromIds, toIds, label))
-        return id;
-    return 0;
+    while (!relate(id, fromIds, toIds, label)) id++;
+    return id;
 }
 
 unsigned Conceptgraph::relate(const Hyperedges& fromIds, const Hyperedges& toIds, const unsigned relId)
