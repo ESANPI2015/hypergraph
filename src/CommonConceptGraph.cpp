@@ -144,6 +144,19 @@ unsigned CommonConceptGraph::instanceOf(const Hyperedges& individualIds, const H
     return relateFrom(intersect(Conceptgraph::find(), individualIds), intersect(Conceptgraph::find(), superIds), CommonConceptGraph::InstanceOfId);
 }
 
+unsigned CommonConceptGraph::instantiateFrom(const unsigned superId, const std::string& label)
+{
+    std::string theLabel = label;
+    if (theLabel.empty())
+    {
+        theLabel = Hypergraph::get(superId)->label();
+    }
+
+    unsigned id = Conceptgraph::create(theLabel);
+    instanceOf(id, superId);
+    return id;
+}
+
 Hypergraph::Hyperedges CommonConceptGraph::factsOf(const unsigned superRelId, const std::string& label)
 {
     Hyperedges result;

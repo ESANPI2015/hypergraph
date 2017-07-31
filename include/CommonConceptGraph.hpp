@@ -83,6 +83,7 @@ class CommonConceptGraph : public Conceptgraph
         unsigned connects(const unsigned connectorId, const unsigned interfaceId);
         unsigned instanceOf(const unsigned individualId, const unsigned superId);
         unsigned instanceOf(const Hyperedges& individualIds, const Hyperedges& superIds);
+        unsigned instantiateFrom(const unsigned superId, const std::string& label="");
 
         /*Common queries*/
         Hyperedges factsOf(const unsigned superRelId, const std::string& label="");        //non-transitive
