@@ -211,6 +211,11 @@ Hypergraph::Hyperedges CommonConceptGraph::subclassesOf(const unsigned superId, 
     return transitiveClosure(superId, CommonConceptGraph::IsAId, label, UP);
 }
 
+Hypergraph::Hyperedges CommonConceptGraph::superclassesOf(const unsigned subId, const std::string& label)
+{
+    return transitiveClosure(subId, CommonConceptGraph::IsAId, label, DOWN);
+}
+
 Hypergraph::Hyperedges CommonConceptGraph::partsOf(const unsigned wholeId, const std::string& label)
 {
     return transitiveClosure(wholeId, CommonConceptGraph::PartOfId, label, UP);
@@ -230,6 +235,23 @@ Hypergraph::Hyperedges CommonConceptGraph::instancesOf(const unsigned superId, c
     Hyperedges relevantRels = intersect(relsToSuper, facts);
     // Get all these X matching the label
     result = Hypergraph::from(relevantRels, label);
+    return result;
+}
+
+Hypergraph::Hyperedges CommonConceptGraph::classesOf(const unsigned individualId, const std::string& label)
+{
+    Hyperedges result;
+    // Get all subrelationsOf INSTANCE-OF
+    Hyperedges subRels = subrelationsOf(CommonConceptGraph::InstanceOfId);
+    // Get all factsOf these subrelations
+    Hyperedges facts = factsOf(subRels);
+    // Get all relationsFrom individualId
+    Hyperedges relsFromIndividual = Conceptgraph::relationsFrom(individualId);
+
+    // Contains all (individualId <-- factFromSubRelOfInstanceOf --> X) relations
+    Hyperedges relevantRels = intersect(relsFromIndividual, facts);
+    // Get all these X matching the label
+    result = Hypergraph::to(relevantRels, label);
     return result;
 }
 

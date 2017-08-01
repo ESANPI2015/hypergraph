@@ -93,8 +93,10 @@ class CommonConceptGraph : public Conceptgraph
         /*Other common queries using subrelationsOf!*/
         Hyperedges transitiveClosure(const unsigned rootId, const unsigned relId, const std::string& label="", const TraversalDirection dir=DOWN);
         Hyperedges subclassesOf(const unsigned superId, const std::string& label="");      //transitive
+        Hyperedges superclassesOf(const unsigned subId, const std::string& label="");      //transitive
         Hyperedges partsOf(const unsigned wholeId, const std::string& label="");           //transitive
         Hyperedges instancesOf(const unsigned superId, const std::string& label="");       //non-transitive
+        Hyperedges classesOf(const unsigned individualId, const std::string& label="");       //non-transitive
         Hyperedges childrenOf(const unsigned parentId, const std::string& label="");       //non-transitive
 };
 
