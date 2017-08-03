@@ -91,10 +91,32 @@ class CommonConceptGraph : public Conceptgraph
         /*Other common queries using subrelationsOf!*/
         /*NOTE: The traversal direction tells if the basic relation is to be followed in its direction(DOWN) or against it(UP)*/
         Hyperedges transitiveClosure(const unsigned rootId, const unsigned relId, const std::string& label="", const TraversalDirection dir=DOWN);
-        Hyperedges subclassesOf(const Hyperedges& superId, const std::string& label="", const TraversalDirection dir=UP);      //transitive
-        Hyperedges partsOf(const Hyperedges& wholeId, const std::string& label="", const TraversalDirection dir=UP);           //transitive
-        Hyperedges instancesOf(const Hyperedges& superId, const std::string& label="", const TraversalDirection dir=UP);       //non-transitive
-        Hyperedges childrenOf(const Hyperedges& parentId, const std::string& label="", const TraversalDirection dir=DOWN);     //non-transitive
+        Hyperedges subclassesOf(const Hyperedges& ids, const std::string& label="", const TraversalDirection dir=UP);      //transitive
+        Hyperedges partsOf(const Hyperedges& ids, const std::string& label="", const TraversalDirection dir=UP);           //transitive
+        Hyperedges instancesOf(const Hyperedges& ids, const std::string& label="", const TraversalDirection dir=UP);       //non-transitive
+        Hyperedges childrenOf(const Hyperedges& ids, const std::string& label="", const TraversalDirection dir=DOWN);     //non-transitive
+
+        /*Shortcuts*/
+        unsigned subrelationOf(const unsigned subRelId, const unsigned superRelId)
+        {
+            return subrelationOf(Hyperedges{subRelId}, Hyperedges{superRelId});
+        }
+        Hyperedges subclassesOf(const unsigned id, const std::string& label="", const TraversalDirection dir=UP)
+        {
+            return subclassesOf(Hyperedges{id}, label, dir);
+        }
+        unsigned isA(const unsigned subId, const unsigned superId)
+        {
+            return isA(Hyperedges{subId}, Hyperedges{superId});
+        }
+        Hyperedges childrenOf(const unsigned id, const std::string& label="", const TraversalDirection dir=DOWN)
+        {
+            return childrenOf(Hyperedges{id}, label, dir);
+        }
+        Hyperedges instancesOf(const unsigned id, const std::string& label="", const TraversalDirection dir=UP)
+        {
+            return instancesOf(Hyperedges{id}, label, dir);
+        }
 };
 
 #endif
