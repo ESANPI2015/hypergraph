@@ -71,33 +71,30 @@ class CommonConceptGraph : public Conceptgraph
         CommonConceptGraph(Conceptgraph& base);
 
         /*Make facts*/
-        unsigned factOf(const unsigned factId, const unsigned superRelId);
-        unsigned relateFrom(const unsigned fromId, const unsigned toId, const unsigned superId);
+        unsigned factOf(const Hyperedges& factIds, const Hyperedges& superRelIds);
         unsigned relateFrom(const Hyperedges& fromIds, const Hyperedges& toIds, const unsigned superId);
 
         /*Constructive functions using predefined relations*/
-        unsigned subrelationOf(const unsigned subRelId, const unsigned superRelId);
-        unsigned isA(const unsigned subId, const unsigned superId);
-        unsigned hasA(const unsigned parentId, const unsigned childId);
-        unsigned partOf(const unsigned partId, const unsigned wholeId);
-        unsigned connects(const unsigned connectorId, const unsigned interfaceId);
-        unsigned instanceOf(const unsigned individualId, const unsigned superId);
+        unsigned subrelationOf(const Hyperedges& subRelId, const Hyperedges& superRelId);
+        unsigned isA(const Hyperedges& subId, const Hyperedges& superId);
+        unsigned hasA(const Hyperedges& parentId, const Hyperedges& childId);
+        unsigned partOf(const Hyperedges& partId, const Hyperedges& wholeId);
+        unsigned connects(const Hyperedges& connectorId, const Hyperedges& interfaceId);
         unsigned instanceOf(const Hyperedges& individualIds, const Hyperedges& superIds);
         unsigned instantiateFrom(const unsigned superId, const std::string& label="");
 
         /*Common queries*/
-        Hyperedges factsOf(const unsigned superRelId, const std::string& label="");        //non-transitive
-        Hyperedges factsOf(const Hyperedges& superRelIds, const std::string& label="");
-        Hyperedges subrelationsOf(const unsigned superRelId, const std::string& label=""); //transitive
+        Hyperedges factsOf(const unsigned superRelId, const std::string& label="");           // non-transitive
+        Hyperedges factsOf(const Hyperedges& superRelIds, const std::string& label="");       // non-transitive
+        Hyperedges subrelationsOf(const unsigned superRelId, const std::string& label="");    //transitive
 
         /*Other common queries using subrelationsOf!*/
+        /*NOTE: The traversal direction tells if the basic relation is to be followed in its direction(DOWN) or against it(UP)*/
         Hyperedges transitiveClosure(const unsigned rootId, const unsigned relId, const std::string& label="", const TraversalDirection dir=DOWN);
-        Hyperedges subclassesOf(const unsigned superId, const std::string& label="");      //transitive
-        Hyperedges superclassesOf(const unsigned subId, const std::string& label="");      //transitive
-        Hyperedges partsOf(const unsigned wholeId, const std::string& label="");           //transitive
-        Hyperedges instancesOf(const unsigned superId, const std::string& label="");       //non-transitive
-        Hyperedges classesOf(const unsigned individualId, const std::string& label="");       //non-transitive
-        Hyperedges childrenOf(const unsigned parentId, const std::string& label="");       //non-transitive
+        Hyperedges subclassesOf(const Hyperedges& superId, const std::string& label="", const TraversalDirection dir=UP);      //transitive
+        Hyperedges partsOf(const Hyperedges& wholeId, const std::string& label="", const TraversalDirection dir=UP);           //transitive
+        Hyperedges instancesOf(const Hyperedges& superId, const std::string& label="", const TraversalDirection dir=UP);       //non-transitive
+        Hyperedges childrenOf(const Hyperedges& parentId, const std::string& label="", const TraversalDirection dir=DOWN);     //non-transitive
 };
 
 #endif

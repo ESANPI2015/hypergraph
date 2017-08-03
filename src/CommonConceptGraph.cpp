@@ -39,15 +39,15 @@ CommonConceptGraph::CommonConceptGraph(Conceptgraph& A)
     createCommonConcepts();
 }
 
-unsigned CommonConceptGraph::factOf(const unsigned factId, const unsigned superRelId)
+unsigned CommonConceptGraph::factOf(const Hyperedges& factIds, const Hyperedges& superRelIds)
 {
     // Is it as simple as this?
-    // TODO:
-    // * Currently, relate can fail giving id=0 ... in this case that means that there already exists a factOf relation between factId and superRelId?
     unsigned id = 0;
-    if (Conceptgraph::relations().count(factId) && Conceptgraph::relations().count(superRelId))
+    Hyperedges fromIds = Hypergraph::intersect(Conceptgraph::relations(), factIds);
+    Hyperedges toIds = Hypergraph::intersect(Conceptgraph::relations(), superRelIds);
+    if (fromIds.size() && toIds.size())
     {
-        id = Conceptgraph::relate(factId, superRelId, CommonConceptGraph::FactOfId);
+        id = Conceptgraph::relate(fromIds, toIds, CommonConceptGraph::FactOfId);
         if (id)
         {
             // If we have created a factOf a factOf superrelation :D , we have to link them
@@ -57,84 +57,76 @@ unsigned CommonConceptGraph::factOf(const unsigned factId, const unsigned superR
     return id;
 }
 
-unsigned CommonConceptGraph::relateFrom(const unsigned fromId, const unsigned toId, const unsigned superId)
-{
-    // At first create the relation ...
-    unsigned id = Conceptgraph::relate(fromId, toId, superId);
-    if (id)
-    {
-        // ... then make the new relation a factOf the super relation
-        factOf(id, superId);
-    }
-    return id;
-}
-
 unsigned CommonConceptGraph::relateFrom(const Hyperedges& fromIds, const Hyperedges& toIds, const unsigned superId)
 {
     // At first create the relation ...
-    unsigned id = Conceptgraph::relate(fromIds, toIds, superId);
-    if (id)
+    unsigned id = 0;
+    if (fromIds.size() && toIds.size())
     {
-        // ... then make the new relation a factOf the super relation
-        factOf(id, superId);
+        id = Conceptgraph::relate(fromIds, toIds, superId);
+        if (id)
+        {
+            // ... then make the new relation a factOf the super relation
+            factOf(Hyperedges{id}, Hyperedges{superId});
+        }
     }
     return id;
 }
 
-unsigned CommonConceptGraph::subrelationOf(const unsigned subRelId, const unsigned superRelId)
+unsigned CommonConceptGraph::subrelationOf(const Hyperedges& subRelIds, const Hyperedges& superRelIds)
 {
     unsigned id = 0;
-    if (Conceptgraph::relations().count(subRelId) && Conceptgraph::relations().count(superRelId))
+    Hyperedges fromIds = Hypergraph::intersect(Conceptgraph::relations(), subRelIds);
+    Hyperedges toIds = Hypergraph::intersect(Conceptgraph::relations(), superRelIds);
+    if (fromIds.size() && toIds.size())
     {
-        id = relateFrom(subRelId, superRelId, CommonConceptGraph::SubrelOfId);
+        id = relateFrom(fromIds, toIds, CommonConceptGraph::SubrelOfId);
     }
     return id;
 }
 
-unsigned CommonConceptGraph::isA(const unsigned subId, const unsigned superId)
+unsigned CommonConceptGraph::isA(const Hyperedges& subIds, const Hyperedges& superIds)
 {
     unsigned id = 0;
-    if (Conceptgraph::find().count(subId) && Conceptgraph::find().count(superId))
+    Hyperedges fromIds = Hypergraph::intersect(Conceptgraph::find(), subIds);
+    Hyperedges toIds = Hypergraph::intersect(Conceptgraph::find(), superIds);
+    if (fromIds.size() && toIds.size())
     {
-        id = relateFrom(subId, superId, CommonConceptGraph::IsAId);
+        id = relateFrom(fromIds, toIds, CommonConceptGraph::IsAId);
     }
     return id;
 }
 
-unsigned CommonConceptGraph::hasA(const unsigned parentId, const unsigned childId)
+unsigned CommonConceptGraph::hasA(const Hyperedges& parentIds, const Hyperedges& childIds)
 {
     unsigned id = 0;
-    if (Conceptgraph::find().count(parentId) && Conceptgraph::find().count(childId))
+    Hyperedges fromIds = Hypergraph::intersect(Conceptgraph::find(), parentIds);
+    Hyperedges toIds = Hypergraph::intersect(Conceptgraph::find(), childIds);
+    if (fromIds.size() && toIds.size())
     {
-        id = relateFrom(parentId, childId, CommonConceptGraph::HasAId);
+        id = relateFrom(fromIds, toIds, CommonConceptGraph::HasAId);
     }
     return id;
 }
-unsigned CommonConceptGraph::partOf(const unsigned partId, const unsigned wholeId)
+unsigned CommonConceptGraph::partOf(const Hyperedges& partIds, const Hyperedges& wholeIds)
 {
     unsigned id = 0;
-    if (Conceptgraph::find().count(partId) && Conceptgraph::find().count(wholeId))
+    Hyperedges fromIds = Hypergraph::intersect(Conceptgraph::find(), partIds);
+    Hyperedges toIds = Hypergraph::intersect(Conceptgraph::find(), wholeIds);
+    if (fromIds.size() && toIds.size())
     {
-        id = relateFrom(partId, wholeId, CommonConceptGraph::PartOfId);
+        id = relateFrom(fromIds, toIds, CommonConceptGraph::PartOfId);
     }
     return id;
 }
-unsigned CommonConceptGraph::connects(const unsigned connectorId, const unsigned interfaceId)
+unsigned CommonConceptGraph::connects(const Hyperedges& connectorIds, const Hyperedges& interfaceIds)
 {
     unsigned id = 0;
-    if (Conceptgraph::find().count(connectorId) && Conceptgraph::find().count(interfaceId))
+    Hyperedges fromIds = Hypergraph::intersect(Conceptgraph::find(), connectorIds);
+    Hyperedges toIds = Hypergraph::intersect(Conceptgraph::find(), interfaceIds);
+    if (fromIds.size() && toIds.size())
     {
-        id = relateFrom(connectorId, interfaceId, CommonConceptGraph::ConnectsId);
-    }
-    return id;
-}
-
-unsigned CommonConceptGraph::instanceOf(const unsigned individualId, const unsigned superId)
-{
-    unsigned id = 0;
-    if (Conceptgraph::find().count(individualId) && Conceptgraph::find().count(superId))
-    {
-        id = relateFrom(individualId, superId, CommonConceptGraph::InstanceOfId);
+        id = relateFrom(fromIds, toIds, CommonConceptGraph::ConnectsId);
     }
     return id;
 }
@@ -153,7 +145,7 @@ unsigned CommonConceptGraph::instantiateFrom(const unsigned superId, const std::
     }
 
     unsigned id = Conceptgraph::create(theLabel);
-    instanceOf(id, superId);
+    instanceOf(Hyperedges{id}, Hyperedges{superId});
     return id;
 }
 
@@ -206,68 +198,108 @@ Hypergraph::Hyperedges CommonConceptGraph::transitiveClosure(const unsigned root
     return Conceptgraph::traverse(rootId, visitedLabels, relLabels, dir);
 }
 
-Hypergraph::Hyperedges CommonConceptGraph::subclassesOf(const unsigned superId, const std::string& label)
+Hypergraph::Hyperedges CommonConceptGraph::subclassesOf(const Hyperedges& superIds, const std::string& label, const TraversalDirection dir)
 {
-    return transitiveClosure(superId, CommonConceptGraph::IsAId, label, UP);
+    Hyperedges result;
+    for (unsigned id : superIds)
+    {
+        result = unite(result, transitiveClosure(id, CommonConceptGraph::IsAId, label, dir));
+    }
+    return result;
 }
 
-Hypergraph::Hyperedges CommonConceptGraph::superclassesOf(const unsigned subId, const std::string& label)
+Hypergraph::Hyperedges CommonConceptGraph::partsOf(const Hyperedges& wholeIds, const std::string& label, const TraversalDirection dir)
 {
-    return transitiveClosure(subId, CommonConceptGraph::IsAId, label, DOWN);
+    Hyperedges result;
+    for (unsigned id : wholeIds)
+    {
+        result = unite(result, transitiveClosure(id, CommonConceptGraph::PartOfId, label, dir));
+    }
+    return result;
 }
 
-Hypergraph::Hyperedges CommonConceptGraph::partsOf(const unsigned wholeId, const std::string& label)
-{
-    return transitiveClosure(wholeId, CommonConceptGraph::PartOfId, label, UP);
-}
-
-Hypergraph::Hyperedges CommonConceptGraph::instancesOf(const unsigned superId, const std::string& label)
+Hypergraph::Hyperedges CommonConceptGraph::instancesOf(const Hyperedges& ids, const std::string& label, const TraversalDirection dir)
 {
     Hyperedges result;
     // Get all subrelationsOf INSTANCE-OF
     Hyperedges subRels = subrelationsOf(CommonConceptGraph::InstanceOfId);
     // Get all factsOf these subrelations
     Hyperedges facts = factsOf(subRels);
-    // Get all relationsTo superId
-    Hyperedges relsToSuper = Conceptgraph::relationsTo(superId);
 
-    // Contains all (X <-- factFromSubRelOfInstanceOf --> superId) relations
-    Hyperedges relevantRels = intersect(relsToSuper, facts);
-    // Get all these X matching the label
-    result = Hypergraph::from(relevantRels, label);
+    switch (dir)
+    {
+        case DOWN:
+        {
+            // Get all relationsFrom id
+            Hyperedges relsFromIndividuals = Conceptgraph::relationsFrom(ids);
+            // Contains all (id <-- factFromSubRelOfInstanceOf --> X) relations
+            Hyperedges relevantRels = intersect(relsFromIndividuals, facts);
+            // Get all these X matching the label
+            result = Hypergraph::to(relevantRels, label);
+        }
+        break;
+        case BOTH:
+        {
+            // Get all relationsFrom id
+            Hyperedges relsFromIndividuals = Conceptgraph::relationsFrom(ids);
+            // Contains all (id <-- factFromSubRelOfInstanceOf --> X) relations
+            Hyperedges relevantRels = intersect(relsFromIndividuals, facts);
+            // Get all these X matching the label
+            result = Hypergraph::to(relevantRels, label);
+        }
+        case UP:
+        {
+            // Get all relationsTo id
+            Hyperedges relsToSupers = Conceptgraph::relationsTo(ids);
+            // Contains all (X <-- factFromSubRelOfInstanceOf --> id) relations
+            Hyperedges relevantRels = intersect(relsToSupers, facts);
+            // Get all these X matching the label
+            result = Hypergraph::from(relevantRels, label);
+        }
+        break;
+    }
     return result;
 }
 
-Hypergraph::Hyperedges CommonConceptGraph::classesOf(const unsigned individualId, const std::string& label)
-{
-    Hyperedges result;
-    // Get all subrelationsOf INSTANCE-OF
-    Hyperedges subRels = subrelationsOf(CommonConceptGraph::InstanceOfId);
-    // Get all factsOf these subrelations
-    Hyperedges facts = factsOf(subRels);
-    // Get all relationsFrom individualId
-    Hyperedges relsFromIndividual = Conceptgraph::relationsFrom(individualId);
-
-    // Contains all (individualId <-- factFromSubRelOfInstanceOf --> X) relations
-    Hyperedges relevantRels = intersect(relsFromIndividual, facts);
-    // Get all these X matching the label
-    result = Hypergraph::to(relevantRels, label);
-    return result;
-}
-
-Hypergraph::Hyperedges CommonConceptGraph::childrenOf(const unsigned parentId, const std::string& label)
+Hypergraph::Hyperedges CommonConceptGraph::childrenOf(const Hyperedges& ids, const std::string& label, const TraversalDirection dir)
 {
     Hyperedges result;
     // Get all subrelationsOf HAS-A
     Hyperedges subRels = subrelationsOf(CommonConceptGraph::HasAId);
     // Get all factsOf these subrelations
     Hyperedges facts = factsOf(subRels);
-    // Get all relationsFrom parentId
-    Hyperedges relsFromParent = Conceptgraph::relationsFrom(parentId);
 
-    // Contains all (parentId <-- factFromSubRelOfHasA --> X) relations
-    Hyperedges relevantRels = intersect(relsFromParent, facts);
-    // Get all these X mathcing the label
-    result = Hypergraph::to(relevantRels, label);
+    switch (dir)
+    {
+        case DOWN:
+        {
+            // Get all relationsFrom ids
+            Hyperedges relsFromParents = Conceptgraph::relationsFrom(ids);
+            // Contains all (id <-- factFromSubRelOfHasA --> X) relations
+            Hyperedges relevantRels = intersect(relsFromParents, facts);
+            // Get all these X matching the label
+            result = Hypergraph::to(relevantRels, label);
+        }
+        break;
+        case BOTH:
+        {
+            // Get all relationsFrom ids
+            Hyperedges relsFromParents = Conceptgraph::relationsFrom(ids);
+            // Contains all (id <-- factFromSubRelOfHasA --> X) relations
+            Hyperedges relevantRels = intersect(relsFromParents, facts);
+            // Get all these X matching the label
+            result = Hypergraph::to(relevantRels, label);
+        }
+        case UP:
+        {
+            // Get all relationsTo id
+            Hyperedges relsToParents = Conceptgraph::relationsTo(ids);
+            // Contains all (X <-- factFromSubRelOfHasA --> id) relations
+            Hyperedges relevantRels = intersect(relsToParents, facts);
+            // Get all these X matching the label
+            result = Hypergraph::from(relevantRels, label);
+        }
+        break;
+    }
     return result;
 }
