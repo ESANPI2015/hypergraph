@@ -373,10 +373,10 @@ Hypergraph::Hyperedges Hypergraph::match(Hypergraph& other)
     // Here we should check if we have a mapping or not and convert it
     if (currentMapping.size() == otherIds.size())
     {
-        std::cout << "Match found\n";
+        //std::cout << "Match found\n";
         for (HedgePair pair : currentMapping)
         {
-            std::cout << pair.first << " -> " << pair.second << "\n";
+            //std::cout << pair.first << " -> " << pair.second << "\n";
             result.insert(pair.second);
         }
     }

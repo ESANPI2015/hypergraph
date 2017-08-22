@@ -114,7 +114,7 @@ int main(void)
     std::cout << "> Create another concept graph for inexact pattern matching\n";
     
     Conceptgraph query;
-    query.relate(query.create("Root"),query.create(""),"A");
+    query.relate(query.create("Root"),query.create(""),"R");
     concepts = query.Hypergraph::find();
     for (auto conceptId : concepts)
     {
