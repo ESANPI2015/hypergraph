@@ -114,7 +114,12 @@ int main(void)
     std::cout << "> Create another concept graph for inexact pattern matching\n";
     
     Conceptgraph query;
-    query.relate(query.create("Root"),query.create(""),"R");
+    query.relate(query.create("Root"),query.create(""),"A");
+    concepts = query.Hypergraph::find();
+    for (auto conceptId : concepts)
+    {
+        std::cout << "\t" << *query.get(conceptId) << std::endl;
+    }
 
     test.reset();
     test = static_cast<Hypergraph*>(&query);
@@ -130,7 +135,7 @@ int main(void)
     Hypergraph::Hyperedges hedges = universe2.match(query);
     for (unsigned id : hedges)
     {
-        std::cout << *universe2.get(id) << std::endl;
+        std::cout << "\t" << *universe2.get(id) << std::endl;
     }
 
     std::cout << "*** TESTS DONE ***" << std::endl;
