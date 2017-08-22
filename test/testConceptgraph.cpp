@@ -111,6 +111,28 @@ int main(void)
         }
     }
 
+    std::cout << "> Create another concept graph for inexact pattern matching\n";
+    
+    Conceptgraph query;
+    query.relate(query.create("Root"),query.create(""),"R");
+
+    test.reset();
+    test = static_cast<Hypergraph*>(&query);
+    fout.open("query.yml");
+    if(fout.good()) {
+        fout << test;
+    } else {
+        std::cout << "FAILED\n";
+    }
+    fout.close();
+
+    std::cout << "> Try to find a match of the query graph in the data graph\n";
+    Hypergraph::Hyperedges hedges = universe2.match(query);
+    for (unsigned id : hedges)
+    {
+        std::cout << *universe2.get(id) << std::endl;
+    }
+
     std::cout << "*** TESTS DONE ***" << std::endl;
 
     return 0;

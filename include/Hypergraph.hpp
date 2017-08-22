@@ -49,6 +49,9 @@ class Hypergraph {
         Hyperedges from(const Hyperedges& ids, const std::string& label=""); // Nice for chaining
         Hyperedges to(const Hyperedges& ids, const std::string& label="");   // Nice for chaining
 
+        Hyperedges neighboursOf(const unsigned id, const std::string& label=""); // Returns all hyperedges which a) are in id's to||from sets or b) have id in their to||from set
+        Hyperedges neighboursOf(const Hyperedges& ids, const std::string& label=""); // Nice for chaining
+
         /*Traverse connected subgraphs*/
         enum TraversalDirection {
             DOWN,   // in direction of the _to set
@@ -69,6 +72,9 @@ class Hypergraph {
         Hyperedges unite(const Hyperedges& edgesA, const Hyperedges& edgesB);       // Unites the two hyperedge sets to a new one
         Hyperedges intersect(const Hyperedges& edgesA, const Hyperedges& edgesB);   // Intersects the two hyperedge sets and returns the result (DLOG)
         Hyperedges subtract(const Hyperedges& edgesA, const Hyperedges& edgesB);    // Returns all edges which are in A but not in B
+
+        /* Pattern matching */
+        Hyperedges match(Hypergraph& other);                                      //< Try to find an occurrence of other in this graph
 
     protected:
         // Private members for factory

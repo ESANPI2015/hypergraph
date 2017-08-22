@@ -1,6 +1,9 @@
 #include "Hypergraph.hpp"
 #include "Hyperedge.hpp"
 
+#include <iostream>
+#include <stack>
+
 Hypergraph::Hypergraph()
 {
 }
@@ -244,4 +247,129 @@ Hypergraph::Hyperedges Hypergraph::subtract(const Hyperedges& edgesA, const Hype
         }
     }
     return edgesC;
+}
+
+Hypergraph::Hyperedges Hypergraph::neighboursOf(const unsigned id, const std::string& label)
+{
+    Hyperedges result;
+    result = unite(from(id,label), to(id,label));
+    Hyperedges all = find();
+    for (unsigned other : all)
+    {
+        // Label matching
+        if (!label.empty() && (get(other)->label() != label))
+            continue;
+        // Check if id is in the TO or the FROM set of other
+        if (get(other)->isPointingTo(id) || get(other)->isPointingFrom(id))
+            result.insert(other);
+    }
+    return result;
+}
+
+Hypergraph::Hyperedges Hypergraph::neighboursOf(const Hyperedges& ids, const std::string& label)
+{
+    Hyperedges result;
+    for (unsigned id : ids)
+    {
+        Hyperedges n = neighboursOf(id, label);
+        result.insert(n.begin(), n.end());
+    }
+    return result;
+}
+
+Hypergraph::Hyperedges Hypergraph::match(Hypergraph& other)
+{
+    /*
+        IDEA:
+        I. Select one hyperedge x in other
+        II. Get candidates C of x in our graph (first label matching)
+        III. For each c in C:
+            a) Initialize stack with <x,c>.
+            b) Perform a DFS in both graphs simultaneously
+    */
+    unsigned matches = other.find().size();
+    unsigned selectedId = *(other.find().begin());
+    std::cout << "\tselected: " << selectedId << "\n";
+    Hyperedges candidateIds = find(other.get(selectedId)->label());
+    std::cout << "\t#candidates: " << candidateIds.size() << std::endl;
+    for (unsigned candidateId : candidateIds)
+    {
+        Hyperedges result;
+        Hyperedges visited;
+        std::stack< std::pair<unsigned,unsigned> > toVisit; //III(a)
+        toVisit.push(std::pair<unsigned, unsigned>(selectedId,candidateId));
+        std::cout << "\tpair: " << selectedId << " " << candidateId << std::endl;
+        while (!toVisit.empty())
+        {
+            // Get the top of the stack
+            auto top = toVisit.top();
+            toVisit.pop();
+            Hyperedge* current = other.get(top.first);
+            Hyperedge* candidate = get(top.second);
+
+            // Visiting!!! If already visited, get the next pair from stack
+            if (visited.count(current->id()))
+                continue;
+            visited.insert(current->id());
+
+            std::cout << "\tpair: " << current->id() << " " << candidate->id() << std::endl;
+            // Matching. If no match skip everything else!
+            if (!current->label().empty() && (current->label() != candidate->label()))
+            {
+                // Mismatch!
+                std::cout << "Mismatch\n";
+                continue;
+            } else {
+                // Match!
+                std::cout << "Match\n";
+                result.insert(candidate->id());
+                if (result.size() >= matches)
+                    break;
+            }
+
+            // Get the NEIGHBOURS of both current and candidate and put them into stack if they match
+            Hyperedges neighbourIds = other.neighboursOf(current->id());
+            Hyperedges candidateNeighbourIds = neighboursOf(candidate->id());
+            if (neighbourIds.size() > candidateNeighbourIds.size())
+            {
+                std::cout << "Match impossible\n";
+                break;
+            }
+            std::cout << "\t#neighbours: " << neighbourIds.size() << " " << candidateNeighbourIds.size() << std::endl;
+            for (Hyperedges::iterator fit = neighbourIds.begin(); fit != neighbourIds.end(); ++fit)
+            {
+                unsigned neighbourId = *fit;
+                Hyperedge* neighbour = other.get(neighbourId);
+                if (visited.count(neighbourId))
+                    continue;
+                for (Hyperedges::iterator sit = candidateNeighbourIds.begin(); sit != candidateNeighbourIds.end(); ++sit)
+                {
+                    unsigned candidateNeighbourId = *sit;
+                    Hyperedge* candidatesNeighbour = get(candidateNeighbourId);
+                    std::cout << "\tpair: " << neighbourId << " " << candidateNeighbourId << std::endl;
+                    //toVisit.push(std::pair<unsigned,unsigned>(neighbourId, candidateNeighbourId));
+                    // Matching. If they match, add them to the stack
+                    if (neighbour->label().empty() || (neighbour->label() == candidatesNeighbour->label()))
+                    {
+                        std::cout << "Forward Match\n";
+                        toVisit.push(std::pair<unsigned,unsigned>(neighbourId, candidateNeighbourId));
+                        // ... additionally we have to erase them from sets such that we ensure one-to-one mapping
+                        //candidateNeighbourIds.erase(sit);
+                        //neighbourIds.erase(fit);
+                        //break;
+                    }
+                }
+            }
+        }
+        // If the result set is of the size of the other graph, we found a match
+        if (result.size() == matches)
+        {
+            // Success :)
+            std::cout << "Match found\n";
+            return result;
+        } else {
+            std::cout << "Match not found\n";
+        }
+    }
+    return Hyperedges();
 }
