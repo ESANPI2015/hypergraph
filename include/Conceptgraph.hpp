@@ -40,6 +40,7 @@ class Conceptgraph : public Hypergraph
         unsigned relate(const unsigned fromId, const unsigned toId, const std::string& label);                           //< Create relation using hash(concat(labels)) as id
         unsigned relate(const Hyperedges& fromIds, const Hyperedges& toIds, const std::string& label);
         Hyperedges relations(const std::string& label="");              //< Find relations by label
+        //Hyperedges relations(const std::vector<std::string>& labels="");              //< Find relations matching one of the given labels
         
         /* QUERIES */
         Hyperedges relationsFrom(const unsigned id, const std::string& label="");   //< Find all occurences of (id <-- label)
@@ -54,6 +55,7 @@ class Conceptgraph : public Hypergraph
         {
             return unite(relationsFrom(ids,label), relationsTo(ids,label));
         }
+        /* TRAVERSALS */
         Hyperedges traverse(const unsigned rootId,                                  //< Traverse the (sub)graph starting at rootId
                             const std::string& visitLabel="",                       //< filter visited relations OR concepts by this label
                             const std::string& relationLabel="",                    //< follow relations matching this label
