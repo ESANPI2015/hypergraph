@@ -25,23 +25,6 @@ template <typename ResultFilter, typename TraversalFilter> Hypergraph::Hyperedge
         edges.pop();
         // NOTE: We do not check the pointer here! We want it to fail if there is inconsistency!!!
 
-        // Handle search direction
-        Hyperedges unknowns;
-        switch (dir)
-        {
-            case DOWN:
-                unknowns.insert(edge->_to.begin(), edge->_to.end());
-                break;
-            case BOTH:
-                unknowns.insert(edge->_to.begin(), edge->_to.end());
-            case UP:
-                unknowns.insert(edge->_from.begin(), edge->_from.end());
-                break;
-            default:
-                result.clear();
-                return result;
-        }
-
         if (visited.count(edge->id()))
             continue;
 
@@ -51,6 +34,24 @@ template <typename ResultFilter, typename TraversalFilter> Hypergraph::Hyperedge
         {
             // edge matches filter func
             result.insert(edge->id());
+        }
+
+        // Handle search direction
+        Hyperedges unknowns;
+        switch (dir)
+        {
+            case DOWN:
+                unknowns = nextNeighboursOf(edge->id());
+                break;
+            case UP:
+                unknowns = prevNeighboursOf(edge->id());
+                break;
+            case BOTH:
+                unknowns = allNeighboursOf(edge->id());
+                break;
+            default:
+                result.clear();
+                return result;
         }
 
         // Inserting unknowns into queue for further searching
