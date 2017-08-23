@@ -49,8 +49,13 @@ class Hypergraph {
         Hyperedges from(const Hyperedges& ids, const std::string& label=""); // Nice for chaining
         Hyperedges to(const Hyperedges& ids, const std::string& label="");   // Nice for chaining
 
-        Hyperedges neighboursOf(const unsigned id, const std::string& label=""); // Returns all hyperedges which a) are in id's to||from sets or b) have id in their to||from set
-        Hyperedges neighboursOf(const Hyperedges& ids, const std::string& label=""); // Nice for chaining
+        /*Adjacency queries*/
+        Hyperedges prevNeighboursOf(const unsigned id, const std::string& label=""); // Returns all hyperedges which a) are in id's from set or b) have id in their to set
+        Hyperedges nextNeighboursOf(const unsigned id, const std::string& label=""); // Returns all hyperedges which a) are in id's to set or b) have id in their from set
+        Hyperedges allNeighboursOf(const unsigned id, const std::string& label=""); // Returns all hyperedges which a) are in id's to||from sets or b) have id in their to||from set
+        Hyperedges prevNeighboursOf(const Hyperedges& ids, const std::string& label=""); // Nice for chaining 
+        Hyperedges nextNeighboursOf(const Hyperedges& ids, const std::string& label=""); // Nice for chaining 
+        Hyperedges allNeighboursOf(const Hyperedges& ids, const std::string& label=""); // Nice for chaining
 
         /*Traverse connected subgraphs*/
         enum TraversalDirection {

@@ -249,29 +249,75 @@ Hypergraph::Hyperedges Hypergraph::subtract(const Hyperedges& edgesA, const Hype
     return edgesC;
 }
 
-Hypergraph::Hyperedges Hypergraph::neighboursOf(const unsigned id, const std::string& label)
+Hypergraph::Hyperedges Hypergraph::prevNeighboursOf(const unsigned id, const std::string& label)
 {
     Hyperedges result;
-    result = unite(from(id,label), to(id,label));
+    result = from(id,label);
     Hyperedges all = find();
     for (unsigned other : all)
     {
         // Label matching
         if (!label.empty() && (get(other)->label() != label))
             continue;
-        // Check if id is in the TO or the FROM set of other
-        if (get(other)->isPointingTo(id) || get(other)->isPointingFrom(id))
+        // Check if id is in the TO set of other
+        if (get(other)->isPointingTo(id))
             result.insert(other);
     }
     return result;
 }
 
-Hypergraph::Hyperedges Hypergraph::neighboursOf(const Hyperedges& ids, const std::string& label)
+Hypergraph::Hyperedges Hypergraph::prevNeighboursOf(const Hyperedges& ids, const std::string& label)
 {
     Hyperedges result;
     for (unsigned id : ids)
     {
-        Hyperedges n = neighboursOf(id, label);
+        Hyperedges n = prevNeighboursOf(id, label);
+        result.insert(n.begin(), n.end());
+    }
+    return result;
+}
+
+Hypergraph::Hyperedges Hypergraph::nextNeighboursOf(const unsigned id, const std::string& label)
+{
+    Hyperedges result;
+    result = to(id,label);
+    Hyperedges all = find();
+    for (unsigned other : all)
+    {
+        // Label matching
+        if (!label.empty() && (get(other)->label() != label))
+            continue;
+        // Check if id is in the FROM set of other
+        if (get(other)->isPointingFrom(id))
+            result.insert(other);
+    }
+    return result;
+}
+
+Hypergraph::Hyperedges Hypergraph::nextNeighboursOf(const Hyperedges& ids, const std::string& label)
+{
+    Hyperedges result;
+    for (unsigned id : ids)
+    {
+        Hyperedges n = nextNeighboursOf(id, label);
+        result.insert(n.begin(), n.end());
+    }
+    return result;
+}
+
+Hypergraph::Hyperedges Hypergraph::allNeighboursOf(const unsigned id, const std::string& label)
+{
+    Hyperedges result;
+    result = unite(prevNeighboursOf(id,label), nextNeighboursOf(id,label));
+    return result;
+}
+
+Hypergraph::Hyperedges Hypergraph::allNeighboursOf(const Hyperedges& ids, const std::string& label)
+{
+    Hyperedges result;
+    for (unsigned id : ids)
+    {
+        Hyperedges n = allNeighboursOf(id, label);
         result.insert(n.begin(), n.end());
     }
     return result;
@@ -331,10 +377,10 @@ Hypergraph::Hyperedges Hypergraph::match(Hypergraph& other)
 
         // Found unmapped hedge
         Hyperedges candidates = candidateIds[unmappedId];
-        Hyperedges neighbourIds = other.neighboursOf(unmappedId);
+        Hyperedges neighbourIds = other.allNeighboursOf(unmappedId);
         for (unsigned candidateId : candidates)
         {
-            Hyperedges candidateNeighbours = neighboursOf(candidateId);
+            Hyperedges candidateNeighbours = allNeighboursOf(candidateId);
             // Ignore all candidates whose neighbourhood is smaller
             if (candidateNeighbours.size() < neighbourIds.size())
                 continue;
