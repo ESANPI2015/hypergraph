@@ -67,7 +67,7 @@ namespace YAML {
                     std::string label = current["label"].as<std::string>();
 
                     // Create the edge
-                    if (!rhs->create(id, label))
+                    if (rhs->create(id, label).empty())
                     {
                         // In case a node with the same id exists, we cannot do anything and also not create a new one!!!
                         // This is because the underlying assumption is that of UNIQUE IDs (even between load & stores!)
@@ -91,7 +91,7 @@ namespace YAML {
                         std::vector<unsigned> otherIds = current["pointingTo"].as< std::vector<unsigned> >();
                         for (auto otherId : otherIds)
                         {
-                            if (!rhs->to(id, otherId))
+                            if (rhs->to(id, otherId).empty())
                             {
                                 std::cout << "YAML::decode(Hypergraph): " << id << " -> " << otherId << " failed\n";
                                 return false;
@@ -106,7 +106,7 @@ namespace YAML {
                         std::vector<unsigned> otherIds = current["pointingFrom"].as< std::vector<unsigned> >();
                         for (auto otherId : otherIds)
                         {
-                            if (!rhs->from(otherId, id))
+                            if (rhs->from(otherId, id).empty())
                             {
                                 std::cout << "YAML::decode(Hypergraph): " << id << " <- " << otherId << " failed\n";
                                 return false;
