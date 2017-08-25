@@ -73,6 +73,16 @@ Hypergraph::Hyperedges CommonConceptGraph::relateFrom(const Hyperedges& fromIds,
     return id;
 }
 
+Hypergraph::Hyperedges CommonConceptGraph::relateFrom(const Hyperedges& fromIds, const Hyperedges& toIds, const Hyperedges& superIds)
+{
+    Hyperedges result;
+    for (unsigned superId : superIds)
+    {
+        result = unite(result, relateFrom(fromIds, toIds, superId));
+    }
+    return result;
+}
+
 Hypergraph::Hyperedges CommonConceptGraph::subrelationOf(const Hyperedges& subRelIds, const Hyperedges& superRelIds)
 {
     Hyperedges id;
@@ -149,6 +159,16 @@ Hypergraph::Hyperedges CommonConceptGraph::instantiateFrom(const unsigned superI
     Hyperedges id = Conceptgraph::create(theLabel);
     instanceOf(Hyperedges{id}, Hyperedges{superId});
     return id;
+}
+
+Hypergraph::Hyperedges CommonConceptGraph::instantiateFrom(const Hyperedges& superIds, const std::string& label)
+{
+    Hyperedges result;
+    for (unsigned superId : superIds)
+    {
+        result = unite(result, instantiateFrom(superId, label));
+    }
+    return result;
 }
 
 Hypergraph::Hyperedges CommonConceptGraph::factsOf(const unsigned superRelId, const std::string& label)
