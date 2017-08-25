@@ -43,7 +43,7 @@ Hypergraph::~Hypergraph()
     // We hold no pointers so we do not need to do anything here
 }
 
-bool Hypergraph::create(const unsigned id, const std::string& label)
+Hypergraph::Hyperedges Hypergraph::create(const unsigned id, const std::string& label)
 {
     Hyperedge* neu = get(id);
     if (!neu)
@@ -51,9 +51,9 @@ bool Hypergraph::create(const unsigned id, const std::string& label)
         // Create a new hyperedge
         // Give it the desired id
         _edges[id] = Hyperedge(id, label);
-        return true;
+        return Hyperedges{id};
     }
-    return false;
+    return Hyperedges();
 }
 
 void Hypergraph::destroy(const unsigned id)
@@ -118,56 +118,56 @@ Hypergraph::Hyperedges Hypergraph::find(const std::string& label)
 }
 
 
-bool Hypergraph::to(const unsigned srcId, const unsigned destId)
+Hypergraph::Hyperedges Hypergraph::to(const unsigned srcId, const unsigned destId)
 {
     auto srcEdge = get(srcId);
     auto destEdge = get(destId);
     if (!srcEdge || !destEdge)
-        return false;
+        return Hyperedges();
     srcEdge->to(destId);
-    return true;
+    return Hyperedges{srcId, destId};
 }
 
-bool Hypergraph::to(const unsigned srcId, const Hyperedges otherIds)
+Hypergraph::Hyperedges Hypergraph::to(const unsigned srcId, const Hyperedges& otherIds)
 {
     auto srcEdge = get(srcId);
     if (!srcEdge)
-        return false;
+        return Hyperedges();
     for (auto otherId : otherIds)
     {
         // Check if other is part of this graph as well
         auto other = get(otherId);
         if (!other)
-            return false;
+            return Hyperedges();
         srcEdge->to(otherId);
     }
-    return true;
+    return unite(Hyperedges{srcId}, otherIds);
 }
 
-bool Hypergraph::from(const unsigned srcId, const unsigned destId)
+Hypergraph::Hyperedges Hypergraph::from(const unsigned srcId, const unsigned destId)
 {
     auto srcEdge = get(srcId);
     auto destEdge = get(destId);
     if (!srcEdge || !destEdge)
-        return false;
+        return Hyperedges();
     destEdge->from(srcId);
-    return true;
+    return Hyperedges{srcId, destId};
 }
 
-bool Hypergraph::from(const Hyperedges otherIds, const unsigned destId)
+Hypergraph::Hyperedges Hypergraph::from(const Hyperedges& otherIds, const unsigned destId)
 {
     auto destEdge = get(destId);
     if (!destEdge)
-        return false;
+        return Hyperedges();
     for (auto otherId : otherIds)
     {
         // Check if other is part of this graph as well
         auto other = get(otherId);
         if (!other)
-            return false;
+            return Hyperedges();
         destEdge->from(otherId);
     }
-    return true;
+    return unite(Hyperedges{destId}, otherIds);
 }
 
 Hypergraph::Hyperedges Hypergraph::from(const unsigned id, const std::string& label)

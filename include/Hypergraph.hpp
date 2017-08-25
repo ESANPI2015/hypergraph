@@ -28,8 +28,8 @@ class Hypergraph {
         ~Hypergraph();
 
         /*Factory functions for member edges*/
-        bool create(const unsigned id, 
-                    const std::string& label="");                       // Tries to create a hyperedge with a given id ... if already taken, returns false
+        Hyperedges create(const unsigned id, 
+                          const std::string& label="");                 // Tries to create a hyperedge with a given id ... if already taken, returns empty set
         void destroy(const unsigned id);                                // Will remove a hyperedge from this hypergraph (and also disconnect it from anybody)
 
         /*Get access to edges*/
@@ -37,10 +37,10 @@ class Hypergraph {
         Hyperedges find(const std::string& label="");                   // Finds all hyperedges with a certain label
 
         /*Connect edges*/
-        bool to(const unsigned srcId, const unsigned destId);           // Afterwards srcId will point to destId. But the converse is not true!!!
-        bool to(const unsigned srcId, const Hyperedges others);         // Convenience function
-        bool from(const unsigned srcId, const unsigned destId);         // Afterwards destId will point from srcId. But the converse is not true!!!
-        bool from(const Hyperedges others, const unsigned destId);      // Convenience function
+        Hyperedges to(const unsigned srcId, const unsigned destId);           // Afterwards srcId will point to destId. But the converse is not true!!!
+        Hyperedges to(const unsigned srcId, const Hyperedges& others);         // Convenience function
+        Hyperedges from(const unsigned srcId, const unsigned destId);         // Afterwards destId will point from srcId. But the converse is not true!!!
+        Hyperedges from(const Hyperedges& others, const unsigned destId);      // Convenience function
         void disconnect(const unsigned id);                             // Disconnects edge from all other edges (this means finding all edges which reference the given id)
 
         /*Queries (LHS() and RHS() operators) */
