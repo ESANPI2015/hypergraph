@@ -323,29 +323,25 @@ Hypergraph::Hyperedges Hypergraph::allNeighboursOf(const Hyperedges& ids, const 
     return result;
 }
 
-Hypergraph::Hyperedges Hypergraph::match(Hypergraph& other)
+Hypergraph::Mapping Hypergraph::match(const Hyperedges& otherIds)
 {
     // This algorithm is according to Ullmann
     // and has been implemented following "An In-depth Comparison of Subgraph Isomorphism Algorithms in Graph Databases"
-    Hyperedges result;
-    typedef std::pair<unsigned,unsigned> HedgePair;
-    typedef std::set< HedgePair > HedgePairSet;
-    
-    // First step: For each vertex in other, we find suitable candidates in this graph
-    Hyperedges otherIds = other.find();
+    // First step: For each vertex in subgraph, we find other suitable candidates
+    Mapping currentMapping;
     std::map< unsigned, Hyperedges > candidateIds;
     for (unsigned otherId : otherIds)
     {
-        candidateIds[otherId] = find(other.get(otherId)->label());
+        candidateIds[otherId] = find(get(otherId)->label());
+        candidateIds[otherId].erase(otherId); // Do this to prevent finding the trivial case (itself)
         if (!candidateIds[otherId].size())
-            return result;
+            return currentMapping;
     }
 
     // Second step: Find possible mapping(s)
     // We need a stack of mappings to prevent recursion
-    HedgePairSet currentMapping;
-    std::stack< HedgePairSet > mappings;
-    mappings.push(HedgePairSet());
+    std::stack< Mapping > mappings;
+    mappings.push(Mapping());
     while (!mappings.empty())
     {
         // Get top of stack
@@ -354,30 +350,20 @@ Hypergraph::Hyperedges Hypergraph::match(Hypergraph& other)
 
         // Check if we can stop the search
         if (currentMapping.size() == otherIds.size())
-            break;
+            return currentMapping;
 
         // Otherwise search for a possible new mapping and proceed
-        // TODO: This should be optimized
         unsigned unmappedId = 0;
         for (unsigned otherId : otherIds)
         {
-            bool unmapped = true;
             unmappedId = otherId;
-            for (HedgePair pair : currentMapping)
-            {
-                if (pair.first == otherId)
-                {
-                    unmapped = false;
-                    break;
-                } 
-            }
-            if (unmapped)
+            if (!currentMapping.count(otherId))
                 break;
         }
 
         // Found unmapped hedge
         Hyperedges candidates = candidateIds[unmappedId];
-        Hyperedges neighbourIds = other.allNeighboursOf(unmappedId);
+        Hyperedges neighbourIds = allNeighboursOf(unmappedId); // TODO: Check if we have to split this into nextNeighboursOf and prevNeighboursOf
         for (unsigned candidateId : candidates)
         {
             Hyperedges candidateNeighbours = allNeighboursOf(candidateId);
@@ -387,45 +373,156 @@ Hypergraph::Hyperedges Hypergraph::match(Hypergraph& other)
             bool foundMatch = true;
             for (unsigned neighbourId : neighbourIds)
             {
-                // Check if neighbour is already matched
-                bool matched = false;
-                HedgePair matchedPair;
-                for (HedgePair pair : currentMapping)
-                {
-                    matchedPair = pair;
-                    if (pair.first == neighbourId)
-                    {
-                        matched = true;
-                        break;
-                    }
-                }
-                // If it is matched, check if there is an edge between pair.second and candidateId
-                if (matched && !candidateNeighbours.count(matchedPair.second))
+                // Check if neighbour is already matched and if its match is also a neighbour of the candidate
+                if (currentMapping.count(neighbourId) && !candidateNeighbours.count(currentMapping[neighbourId]))
                 {
                     foundMatch = false;
+                    break;
                 }
             }
             if (foundMatch)
             {
                 // Insert match
-                HedgePair newMatch(unmappedId, candidateId);
-                HedgePairSet newMapping(currentMapping);
-                newMapping.insert(newMatch);
+                Mapping newMapping(currentMapping);
+                newMapping[unmappedId] = candidateId;
                 mappings.push(newMapping);
             }
         }
     }
+    return Mapping();
+}
 
-    // Here we should check if we have a mapping or not and convert it
-    if (currentMapping.size() == otherIds.size())
+Hypergraph::Mapping Hypergraph::rewrite(Mapping& matched, Mapping& replacements)
+{
+    // matched contains a mapping from a model subgraph to some ismorphism of it in the overall graph
+    // replacements contains a mapping from the same model subgraph to another (sub)graph
+    Mapping result;
+
+    // Since we know that matched is a one-to-one mapping, we can invert it
+    Mapping matchedInv;
+    for (const auto &pair : matched)
     {
-        //std::cout << "Match found\n";
-        for (HedgePair pair : currentMapping)
+        matchedInv[pair.second] = pair.first;
+    }
+    // Do this also for replacements
+    Mapping replacementsInv;
+    for (const auto &pair : replacements)
+    {
+        replacementsInv[pair.second] = pair.first;
+    }
+
+    // Cycle through all entries of matched
+    for (const auto &pair : matched)
+    {
+        unsigned modelId = pair.first;
+        unsigned originalId = pair.second;
+        unsigned replacementId = 0;
+        if (replacements.count(modelId))
+            replacementId = replacements[modelId];
+
+        // Register the change
+        result[originalId] = replacementId;
+
+        // If the replacementId is not given/is zero, we delete the original hyperedge and proceed
+        if (!replacementId)
         {
-            //std::cout << pair.first << " -> " << pair.second << "\n";
-            result.insert(pair.second);
+            destroy(originalId);
+            continue;
+        }
+
+        // If the replacement hedge provides a label, we change the label of the original
+        if (!get(replacementId)->label().empty())
+        {
+            get(originalId)->updateLabel(get(replacementId)->label());
+        }
+
+        // Now the trickiest part: For all links from/to original and some other original, we have to check if this link also exists between the corresponding replacements
+        // Furthermore, we have to check also if a link between replacements are new!
+        Hyperedges originalPointsTo = to(originalId);
+        Hyperedges replacementPointsTo = to(replacementId);
+        // Check (original -> originalOther) -> (replacement -> replacementOther)
+        for (unsigned originalOtherId : originalPointsTo)
+        {
+            // Check if originalOther has also been matched
+            if (!matchedInv.count(originalOtherId))
+                continue;
+            unsigned matchedOtherId = matchedInv[originalOtherId];
+            // Check if there is a replacement for originalOther
+            if (!replacements.count(matchedOtherId))
+                continue;
+            unsigned replacementOtherId = replacements[matchedOtherId];
+            // Now we have to check if (originalId -> originalOtherId) -> (replacementId -> replacementOtherId) is true
+            if (replacementPointsTo.count(replacementOtherId))
+                continue;
+            // If not, we have to remove (originalId -> originalOtherId)
+            get(originalId)->_to.erase(originalOtherId);
+        }
+        // Check (original -> originalOther) <- (replacement -> replacementOther)
+        for (unsigned replacementOtherId : replacementPointsTo)
+        {
+            // Get the matched id
+            if (!replacementsInv.count(replacementOtherId))
+            {
+                // TODO: If this node can not be found, we have to create it and let original point to it!
+                continue;
+            }
+            unsigned matchedOtherId = replacementsInv[replacementOtherId];
+            // Check if there is a match
+            if (!matched.count(matchedOtherId))
+            {
+                // TODO: It would be a serious error of the matching algorithm if we end up here!
+                continue;
+            }
+            unsigned originalOtherId = matched[matchedOtherId];
+            // Now we have to check if (originalId -> originalOtherId) <- (replacementId -> replacementOtherId) is true
+            if (originalPointsTo.count(originalOtherId))
+                continue;
+            // If not, we have to add (originalId -> originalOtherId)
+            get(originalId)->_to.insert(originalOtherId);
+        }
+        // Do the same with the from set
+        Hyperedges originalPointsFrom = from(originalId);
+        Hyperedges replacementPointsFrom = from(replacementId);
+        // Check (originalOther <- original) -> (replacementOther <- replacement)
+        for (unsigned originalOtherId : originalPointsFrom)
+        {
+            // Check if originalOther has also been matched
+            if (!matchedInv.count(originalOtherId))
+                continue;
+            unsigned matchedOtherId = matchedInv[originalOtherId];
+            // Check if there is a replacement for originalOther
+            if (!replacements.count(matchedOtherId))
+                continue;
+            unsigned replacementOtherId = replacements[matchedOtherId];
+            // Now we have to check if (originalOtherId <- originalId) -> (replacementOtherId <- replacementId) is true
+            if (replacementPointsFrom.count(replacementOtherId))
+                continue;
+            // If not, we have to remove (originalOtherId <- originalId)
+            get(originalId)->_from.erase(originalOtherId);
+        }
+        // Check (originalOther <- original) <- (replacementOther <- replacement)
+        for (unsigned replacementOtherId : replacementPointsFrom)
+        {
+            // Get the matched id
+            if (!replacementsInv.count(replacementOtherId))
+            {
+                // TODO: If this node can not be found, we have to create it and let original point from it!
+                continue;
+            }
+            unsigned matchedOtherId = replacementsInv[replacementOtherId];
+            // Check if there is a match
+            if (!matched.count(matchedOtherId))
+            {
+                // TODO: It would be a serious error of the matching algorithm if we end up here!
+                continue;
+            }
+            unsigned originalOtherId = matched[matchedOtherId];
+            // Now we have to check if (originalOtherId <- originalId) <- (replacementOtherId <- replacementId) is true
+            if (originalPointsFrom.count(originalOtherId))
+                continue;
+            // If not, we have to add (originalOtherId <- originalId)
+            get(originalId)->_from.insert(originalOtherId);
         }
     }
     return result;
 }
-

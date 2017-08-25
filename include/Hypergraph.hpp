@@ -79,7 +79,9 @@ class Hypergraph {
         Hyperedges subtract(const Hyperedges& edgesA, const Hyperedges& edgesB);    // Returns all edges which are in A but not in B
 
         /* Pattern matching */
-        Hyperedges match(Hypergraph& other);                                      //< Try to find an occurrence of other in this graph
+        typedef std::map<unsigned, unsigned> Mapping;                               //< This map stores a one-to-one mapping between hedges (IDs)
+        Mapping match(const Hyperedges& otherIds);                                  //< In-place matching (Subgraph embedded in the same graph)
+        Mapping rewrite(Mapping& matched, Mapping& replacements);       //< In-place rewrite: Given a match and a replacement, the graph will be transformed
 
     protected:
         // Private members for factory

@@ -114,7 +114,9 @@ int main(void)
     std::cout << "> Create another concept graph for inexact pattern matching\n";
     
     Conceptgraph query;
-    query.relate(query.create("Root"),query.create(""),"R");
+    unsigned queryRoot = query.create("Root");
+    unsigned queryWildcard  = query.create("");
+    unsigned queryRel = query.relate(queryRoot,queryWildcard,"R");
     concepts = query.Hypergraph::find();
     for (auto conceptId : concepts)
     {
@@ -131,11 +133,45 @@ int main(void)
     }
     fout.close();
 
-    std::cout << "> Try to find a match of the query graph in the data graph\n";
-    Hypergraph::Hyperedges hedges = universe2.match(query);
-    for (unsigned id : hedges)
+    std::cout << "> Try to find a match of the query graph in the data graph (in-place matching)\n";
+    Hypergraph merged(universe2, query);
+    Hypergraph::Mapping mapping = merged.match(merged.unite(query.find(), query.relations()));
+    for (auto it : mapping)
     {
-        std::cout << "\t" << *universe2.get(id) << std::endl;
+        std::cout << "\t" << *query.get(it.first) << " -> " << *universe2.get(it.second) << std::endl;
+    }
+
+    std::cout << "> Create another concept graph which serves as a replacement for the matched subgraph\n";
+    Conceptgraph replacement;
+    unsigned replRoot = replacement.create("Root");
+    unsigned replWildcard = replacement.create("");
+    unsigned replRel = replacement.relate(replWildcard,replRoot,"R^-1");
+    concepts = replacement.Hypergraph::find();
+    for (auto conceptId : concepts)
+    {
+        std::cout << "\t" << *replacement.get(conceptId) << std::endl;
+    }
+    test.reset();
+    test = static_cast<Hypergraph*>(&replacement);
+    fout.open("replacement.yml");
+    if(fout.good()) {
+        fout << test;
+    } else {
+        std::cout << "FAILED\n";
+    }
+    fout.close();
+
+    std::cout << "> Rewrite\n";
+    Hypergraph merged2(merged, replacement);
+    Hypergraph::Mapping repl;
+    repl[queryRoot] = replRoot;
+    repl[queryWildcard] = replWildcard; 
+    repl[queryRel] = replRel;
+
+    Hypergraph::Mapping result = merged2.rewrite(mapping, repl);
+    for (auto it : result)
+    {
+        std::cout << "\t" << *merged2.get(it.first) << " <- " << *merged2.get(it.second) << std::endl;
     }
 
     std::cout << "*** TESTS DONE ***" << std::endl;
