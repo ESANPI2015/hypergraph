@@ -39,43 +39,43 @@ CommonConceptGraph::CommonConceptGraph(Conceptgraph& A)
     createCommonConcepts();
 }
 
-unsigned CommonConceptGraph::factOf(const Hyperedges& factIds, const Hyperedges& superRelIds)
+Hypergraph::Hyperedges CommonConceptGraph::factOf(const Hyperedges& factIds, const Hyperedges& superRelIds)
 {
     // Is it as simple as this?
-    unsigned id = 0;
+    Hyperedges id;
     Hyperedges fromIds = Hypergraph::intersect(Conceptgraph::relations(), factIds);
     Hyperedges toIds = Hypergraph::intersect(Conceptgraph::relations(), superRelIds);
     if (fromIds.size() && toIds.size())
     {
         id = Conceptgraph::relate(fromIds, toIds, CommonConceptGraph::FactOfId);
-        if (id)
+        if (!id.empty())
         {
             // If we have created a factOf a factOf superrelation :D , we have to link them
-            get(CommonConceptGraph::FactOfId)->from(id);
+            from(subtract(subtract(id, fromIds), toIds), CommonConceptGraph::FactOfId);
         }
     }
     return id;
 }
 
-unsigned CommonConceptGraph::relateFrom(const Hyperedges& fromIds, const Hyperedges& toIds, const unsigned superId)
+Hypergraph::Hyperedges CommonConceptGraph::relateFrom(const Hyperedges& fromIds, const Hyperedges& toIds, const unsigned superId)
 {
     // At first create the relation ...
-    unsigned id = 0;
+    Hyperedges id;
     if (fromIds.size() && toIds.size())
     {
         id = Conceptgraph::relate(fromIds, toIds, superId);
-        if (id)
+        if (!id.empty())
         {
             // ... then make the new relation a factOf the super relation
-            factOf(Hyperedges{id}, Hyperedges{superId});
+            factOf(subtract(subtract(id, fromIds), toIds), Hyperedges{superId});
         }
     }
     return id;
 }
 
-unsigned CommonConceptGraph::subrelationOf(const Hyperedges& subRelIds, const Hyperedges& superRelIds)
+Hypergraph::Hyperedges CommonConceptGraph::subrelationOf(const Hyperedges& subRelIds, const Hyperedges& superRelIds)
 {
-    unsigned id = 0;
+    Hyperedges id;
     Hyperedges fromIds = Hypergraph::intersect(Conceptgraph::relations(), subRelIds);
     Hyperedges toIds = Hypergraph::intersect(Conceptgraph::relations(), superRelIds);
     if (fromIds.size() && toIds.size())
@@ -85,9 +85,9 @@ unsigned CommonConceptGraph::subrelationOf(const Hyperedges& subRelIds, const Hy
     return id;
 }
 
-unsigned CommonConceptGraph::isA(const Hyperedges& subIds, const Hyperedges& superIds)
+Hypergraph::Hyperedges CommonConceptGraph::isA(const Hyperedges& subIds, const Hyperedges& superIds)
 {
-    unsigned id = 0;
+    Hyperedges id;
     Hyperedges fromIds = Hypergraph::intersect(Conceptgraph::find(), subIds);
     Hyperedges toIds = Hypergraph::intersect(Conceptgraph::find(), superIds);
     if (fromIds.size() && toIds.size())
@@ -97,9 +97,9 @@ unsigned CommonConceptGraph::isA(const Hyperedges& subIds, const Hyperedges& sup
     return id;
 }
 
-unsigned CommonConceptGraph::hasA(const Hyperedges& parentIds, const Hyperedges& childIds)
+Hypergraph::Hyperedges CommonConceptGraph::hasA(const Hyperedges& parentIds, const Hyperedges& childIds)
 {
-    unsigned id = 0;
+    Hyperedges id;
     Hyperedges fromIds = Hypergraph::intersect(Conceptgraph::find(), parentIds);
     Hyperedges toIds = Hypergraph::intersect(Conceptgraph::find(), childIds);
     if (fromIds.size() && toIds.size())
@@ -108,10 +108,11 @@ unsigned CommonConceptGraph::hasA(const Hyperedges& parentIds, const Hyperedges&
     }
     return id;
 }
-unsigned CommonConceptGraph::partOf(const Hyperedges& partIds, const Hyperedges& wholeIds)
+
+Hypergraph::Hyperedges CommonConceptGraph::partOf(const Hyperedges& partIds, const Hyperedges& wholeIds)
 {
-    unsigned id = 0;
-    Hyperedges fromIds = Hypergraph::intersect(Conceptgraph::find(), partIds);
+    Hyperedges id;
+    Hyperedges fromIds = Hypergraph::intersect(Hypergraph::unite(Conceptgraph::find(),Conceptgraph::relations()), partIds); // To encode nested subgraphs
     Hyperedges toIds = Hypergraph::intersect(Conceptgraph::find(), wholeIds);
     if (fromIds.size() && toIds.size())
     {
@@ -119,9 +120,10 @@ unsigned CommonConceptGraph::partOf(const Hyperedges& partIds, const Hyperedges&
     }
     return id;
 }
-unsigned CommonConceptGraph::connects(const Hyperedges& connectorIds, const Hyperedges& interfaceIds)
+
+Hypergraph::Hyperedges CommonConceptGraph::connects(const Hyperedges& connectorIds, const Hyperedges& interfaceIds)
 {
-    unsigned id = 0;
+    Hyperedges id;
     Hyperedges fromIds = Hypergraph::intersect(Conceptgraph::find(), connectorIds);
     Hyperedges toIds = Hypergraph::intersect(Conceptgraph::find(), interfaceIds);
     if (fromIds.size() && toIds.size())
@@ -131,12 +133,12 @@ unsigned CommonConceptGraph::connects(const Hyperedges& connectorIds, const Hype
     return id;
 }
 
-unsigned CommonConceptGraph::instanceOf(const Hyperedges& individualIds, const Hyperedges& superIds)
+Hypergraph::Hyperedges CommonConceptGraph::instanceOf(const Hyperedges& individualIds, const Hyperedges& superIds)
 {
     return relateFrom(intersect(Conceptgraph::find(), individualIds), intersect(Conceptgraph::find(), superIds), CommonConceptGraph::InstanceOfId);
 }
 
-unsigned CommonConceptGraph::instantiateFrom(const unsigned superId, const std::string& label)
+Hypergraph::Hyperedges CommonConceptGraph::instantiateFrom(const unsigned superId, const std::string& label)
 {
     std::string theLabel = label;
     if (theLabel.empty())
@@ -144,7 +146,7 @@ unsigned CommonConceptGraph::instantiateFrom(const unsigned superId, const std::
         theLabel = Hypergraph::get(superId)->label();
     }
 
-    unsigned id = Conceptgraph::create(theLabel);
+    Hyperedges id = Conceptgraph::create(theLabel);
     instanceOf(Hyperedges{id}, Hyperedges{superId});
     return id;
 }

@@ -71,17 +71,18 @@ class CommonConceptGraph : public Conceptgraph
         CommonConceptGraph(Conceptgraph& base);
 
         /*Make facts*/
-        unsigned factOf(const Hyperedges& factIds, const Hyperedges& superRelIds);
-        unsigned relateFrom(const Hyperedges& fromIds, const Hyperedges& toIds, const unsigned superId);
+        Hyperedges factOf(const Hyperedges& factIds, const Hyperedges& superRelIds);
+        Hyperedges relateFrom(const Hyperedges& fromIds, const Hyperedges& toIds, const unsigned superId);
 
         /*Constructive functions using predefined relations*/
-        unsigned subrelationOf(const Hyperedges& subRelId, const Hyperedges& superRelId);
-        unsigned isA(const Hyperedges& subId, const Hyperedges& superId);
-        unsigned hasA(const Hyperedges& parentId, const Hyperedges& childId);
-        unsigned partOf(const Hyperedges& partId, const Hyperedges& wholeId);
-        unsigned connects(const Hyperedges& connectorId, const Hyperedges& interfaceId);
-        unsigned instanceOf(const Hyperedges& individualIds, const Hyperedges& superIds);
-        unsigned instantiateFrom(const unsigned superId, const std::string& label="");
+        Hyperedges subrelationOf(const Hyperedges& subRelId, const Hyperedges& superRelId);
+        Hyperedges isA(const Hyperedges& subId, const Hyperedges& superId);
+        Hyperedges hasA(const Hyperedges& parentId, const Hyperedges& childId);
+        Hyperedges partOf(const Hyperedges& partId, const Hyperedges& wholeId);
+        Hyperedges connects(const Hyperedges& connectorId, const Hyperedges& interfaceId);
+        Hyperedges instanceOf(const Hyperedges& individualIds, const Hyperedges& superIds);
+        Hyperedges instantiateFrom(const unsigned superId, const std::string& label="");
+        Hyperedges instantiateFrom(const Hyperedges& superIds, const std::string& label="");
 
         /*Common queries*/
         Hyperedges factsOf(const unsigned superRelId, const std::string& label="");           // non-transitive
@@ -97,7 +98,7 @@ class CommonConceptGraph : public Conceptgraph
         Hyperedges childrenOf(const Hyperedges& ids, const std::string& label="", const TraversalDirection dir=DOWN);     //non-transitive
 
         /*Shortcuts*/
-        unsigned subrelationOf(const unsigned subRelId, const unsigned superRelId)
+        Hyperedges subrelationOf(const unsigned subRelId, const unsigned superRelId)
         {
             return subrelationOf(Hyperedges{subRelId}, Hyperedges{superRelId});
         }
@@ -105,7 +106,7 @@ class CommonConceptGraph : public Conceptgraph
         {
             return subclassesOf(Hyperedges{id}, label, dir);
         }
-        unsigned isA(const unsigned subId, const unsigned superId)
+        Hyperedges isA(const unsigned subId, const unsigned superId)
         {
             return isA(Hyperedges{subId}, Hyperedges{superId});
         }
