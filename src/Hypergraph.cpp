@@ -249,6 +249,14 @@ Hypergraph::Hyperedges Hypergraph::subtract(const Hyperedges& edgesA, const Hype
     return edgesC;
 }
 
+unsigned Hypergraph::first(const Hyperedges& edges)
+{
+    if (edges.size())
+        return *(edges.begin());
+    else
+        return 0;
+}
+
 Hypergraph::Hyperedges Hypergraph::prevNeighboursOf(const unsigned id, const std::string& label)
 {
     Hyperedges result;

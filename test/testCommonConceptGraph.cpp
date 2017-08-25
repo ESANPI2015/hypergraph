@@ -31,7 +31,7 @@ int main(void)
     universe.subrelationOf(universe.relations("love"), universe.relations("like")); // If x loves y, x also likes y but not vice versa
 
     /* Create some persons and cars */
-    universe.instantiateFrom(*(universe.find("Person").begin()), "John"); // TODO: This is suboptimal! Maybe we need a oneOf operator ... or a collapse operator which merges all of them
+    universe.instantiateFrom(universe.first(universe.find("Person")), "John");
     universe.instantiateFrom(personClassId, "Mary");
     universe.instantiateFrom(personClassId, "Alice");
     universe.instantiateFrom(personClassId, "Bob");

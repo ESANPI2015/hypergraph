@@ -77,6 +77,7 @@ class Hypergraph {
         Hyperedges unite(const Hyperedges& edgesA, const Hyperedges& edgesB);       // Unites the two hyperedge sets to a new one
         Hyperedges intersect(const Hyperedges& edgesA, const Hyperedges& edgesB);   // Intersects the two hyperedge sets and returns the result (DLOG)
         Hyperedges subtract(const Hyperedges& edgesA, const Hyperedges& edgesB);    // Returns all edges which are in A but not in B
+        unsigned first(const Hyperedges& edges);                                    //< Return the first of the edge set
 
         /* Pattern matching */
         typedef std::map<unsigned, unsigned> Mapping;                               //< This map stores a one-to-one mapping between hedges (IDs)
