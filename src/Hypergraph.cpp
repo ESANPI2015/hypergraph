@@ -333,7 +333,7 @@ Hypergraph::Mapping Hypergraph::match(const Hyperedges& otherIds)
     for (unsigned otherId : otherIds)
     {
         candidateIds[otherId] = find(get(otherId)->label());
-        candidateIds[otherId].erase(otherId); // Do this to prevent finding the trivial case (itself)
+        candidateIds[otherId].erase(otherId); // Prevent finding the trivial case
         if (!candidateIds[otherId].size())
             return currentMapping;
     }
@@ -350,7 +350,9 @@ Hypergraph::Mapping Hypergraph::match(const Hyperedges& otherIds)
 
         // Check if we can stop the search
         if (currentMapping.size() == otherIds.size())
+        {
             return currentMapping;
+        }
 
         // Otherwise search for a possible new mapping and proceed
         unsigned unmappedId = 0;
@@ -363,18 +365,31 @@ Hypergraph::Mapping Hypergraph::match(const Hyperedges& otherIds)
 
         // Found unmapped hedge
         Hyperedges candidates = candidateIds[unmappedId];
-        Hyperedges neighbourIds = allNeighboursOf(unmappedId); // TODO: Check if we have to split this into nextNeighboursOf and prevNeighboursOf
+        Hyperedges nextNeighbourIds = intersect(nextNeighboursOf(unmappedId), otherIds); // Check ONLY the neighbourhood INSIDE the subgraph
+        Hyperedges prevNeighbourIds = intersect(prevNeighboursOf(unmappedId), otherIds);
         for (unsigned candidateId : candidates)
         {
-            Hyperedges candidateNeighbours = allNeighboursOf(candidateId);
+            Hyperedges nextCandidateNeighbours = nextNeighboursOf(candidateId);
+            Hyperedges prevCandidateNeighbours = prevNeighboursOf(candidateId);
             // Ignore all candidates whose neighbourhood is smaller
-            if (candidateNeighbours.size() < neighbourIds.size())
+            if (nextCandidateNeighbours.size() < nextNeighbourIds.size())
+                continue;
+            if (prevCandidateNeighbours.size() < prevNeighbourIds.size())
                 continue;
             bool foundMatch = true;
-            for (unsigned neighbourId : neighbourIds)
+            for (unsigned nextNeighbourId : nextNeighbourIds)
             {
                 // Check if neighbour is already matched and if its match is also a neighbour of the candidate
-                if (currentMapping.count(neighbourId) && !candidateNeighbours.count(currentMapping[neighbourId]))
+                if (currentMapping.count(nextNeighbourId) && !nextCandidateNeighbours.count(currentMapping[nextNeighbourId]))
+                {
+                    foundMatch = false;
+                    break;
+                }
+            }
+            for (unsigned prevNeighbourId : prevNeighbourIds)
+            {
+                // Check if neighbour is already matched and if its match is also a neighbour of the candidate
+                if (currentMapping.count(prevNeighbourId) && !prevCandidateNeighbours.count(currentMapping[prevNeighbourId]))
                 {
                     foundMatch = false;
                     break;

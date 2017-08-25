@@ -81,7 +81,7 @@ class Hypergraph {
         /* Pattern matching */
         typedef std::map<unsigned, unsigned> Mapping;                               //< This map stores a one-to-one mapping between hedges (IDs)
         Mapping match(const Hyperedges& otherIds);                                  //< In-place matching (Subgraph embedded in the same graph)
-        Mapping rewrite(Mapping& matched, Mapping& replacements);       //< In-place rewrite: Given a match and a replacement, the graph will be transformed
+        Mapping rewrite(Mapping& matched, Mapping& replacements);                   //< In-place rewrite: Given a match and a replacement, the graph will be transformed
 
     protected:
         // Private members for factory
