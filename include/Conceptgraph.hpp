@@ -30,15 +30,15 @@ class Conceptgraph : public Hypergraph
         void     destroy(const unsigned id);                            //< Destroy concept, relation or signature
 
         /* CONCEPTS */
-        bool create(const unsigned id, const std::string& label="");    //< Create a new concept (id, label)
-        unsigned create(const std::string& label);                      //< Create a new concept (hash(label), label)
-        Hyperedges find(const std::string& label="");                   //< Find a concept by label
+        Hyperedges create(const unsigned id, const std::string& label="");  //< Create a new concept (id, label)
+        Hyperedges create(const std::string& label);                        //< Create a new concept (hash(label), label)
+        Hyperedges find(const std::string& label="");                       //< Find a concept by label
 
         /* RELATIONS */
-        bool relate(const unsigned id, const unsigned fromId, const unsigned toId, const std::string& label);            //< Create relation fromId -- id --> toId
-        bool relate(const unsigned id, const Hyperedges& fromIds, const Hyperedges& toIds, const std::string& label);    //< Create N:M relation
-        unsigned relate(const unsigned fromId, const unsigned toId, const std::string& label);                           //< Create relation using hash(concat(labels)) as id
-        unsigned relate(const Hyperedges& fromIds, const Hyperedges& toIds, const std::string& label);
+        Hyperedges relate(const unsigned id, const unsigned fromId, const unsigned toId, const std::string& label);            //< Create relation fromId -- id --> toId
+        Hyperedges relate(const unsigned id, const Hyperedges& fromIds, const Hyperedges& toIds, const std::string& label);    //< Create N:M relation
+        Hyperedges relate(const unsigned fromId, const unsigned toId, const std::string& label);                           //< Create relation using hash(concat(labels)) as id
+        Hyperedges relate(const Hyperedges& fromIds, const Hyperedges& toIds, const std::string& label);
         Hyperedges relations(const std::string& label="");              //< Find relations by label
         //Hyperedges relations(const std::vector<std::string>& labels="");              //< Find relations matching one of the given labels
         
@@ -66,10 +66,10 @@ class Conceptgraph : public Hypergraph
                             const TraversalDirection dir=DOWN);
 
         /* RELATIONS FROM TEMPLATES */
-        bool relate(const unsigned id, const unsigned fromId, const unsigned toId, const unsigned relId);   //< Create a relation using relId as template
-        unsigned relate(const unsigned fromId, const unsigned toId, const unsigned relId);                  //< Create relation using hash(concat(labels)) as id
-        bool relate(const unsigned id, const Hyperedges& fromIds, const Hyperedges& toIds, const unsigned relId);
-        unsigned relate(const Hyperedges& fromIds, const Hyperedges& toIds, const unsigned relId);
+        Hyperedges relate(const unsigned id, const unsigned fromId, const unsigned toId, const unsigned relId);   //< Create a relation using relId as template
+        Hyperedges relate(const unsigned fromId, const unsigned toId, const unsigned relId);                  //< Create relation using hash(concat(labels)) as id
+        Hyperedges relate(const unsigned id, const Hyperedges& fromIds, const Hyperedges& toIds, const unsigned relId);
+        Hyperedges relate(const Hyperedges& fromIds, const Hyperedges& toIds, const unsigned relId);
 };
 
 #endif
