@@ -37,25 +37,25 @@ class Hypergraph {
         Hyperedges find(const std::string& label="");                   // Finds all hyperedges with a certain label
 
         /*Connect edges*/
-        Hyperedges to(const unsigned srcId, const unsigned destId);           // Afterwards srcId will point to destId. But the converse is not true!!!
-        Hyperedges to(const unsigned srcId, const Hyperedges& others);         // Convenience function
-        Hyperedges from(const unsigned srcId, const unsigned destId);         // Afterwards destId will point from srcId. But the converse is not true!!!
-        Hyperedges from(const Hyperedges& others, const unsigned destId);      // Convenience function
-        void disconnect(const unsigned id);                             // Disconnects edge from all other edges (this means finding all edges which reference the given id)
+        Hyperedges to(const unsigned srcId, const unsigned destId);       // Afterwards srcId will point to destId. But the converse is not true!!!
+        Hyperedges to(const unsigned srcId, const Hyperedges& others);    // Convenience function
+        Hyperedges from(const unsigned srcId, const unsigned destId);     // Afterwards destId will point from srcId. But the converse is not true!!!
+        Hyperedges from(const Hyperedges& others, const unsigned destId); // Convenience function
+        void disconnect(const unsigned id);                               // Disconnects edge from all other edges (this means finding all edges which reference the given id)
 
-        /*Queries (LHS() and RHS() operators) */
-        Hyperedges from(const unsigned id, const std::string& label=""); // Returns all hyperedges from which id points (filtered by label)
-        Hyperedges to(const unsigned id, const std::string& label="");   // Returns all hyperedges to which id points (filtered by label)
+        /* */
+        Hyperedges from(const unsigned id, const std::string& label="");     // Returns all hyperedges from which id points (filtered by label)
+        Hyperedges to(const unsigned id, const std::string& label="");       // Returns all hyperedges to which id points (filtered by label)
         Hyperedges from(const Hyperedges& ids, const std::string& label=""); // Nice for chaining
         Hyperedges to(const Hyperedges& ids, const std::string& label="");   // Nice for chaining
 
         /*Adjacency queries*/
         Hyperedges prevNeighboursOf(const unsigned id, const std::string& label=""); // Returns all hyperedges which a) are in id's from set or b) have id in their to set
         Hyperedges nextNeighboursOf(const unsigned id, const std::string& label=""); // Returns all hyperedges which a) are in id's to set or b) have id in their from set
-        Hyperedges allNeighboursOf(const unsigned id, const std::string& label=""); // Returns all hyperedges which a) are in id's to||from sets or b) have id in their to||from set
+        Hyperedges allNeighboursOf(const unsigned id, const std::string& label="");  // Returns all hyperedges which a) are in id's to||from sets or b) have id in their to||from set
         Hyperedges prevNeighboursOf(const Hyperedges& ids, const std::string& label=""); // Nice for chaining 
         Hyperedges nextNeighboursOf(const Hyperedges& ids, const std::string& label=""); // Nice for chaining 
-        Hyperedges allNeighboursOf(const Hyperedges& ids, const std::string& label=""); // Nice for chaining
+        Hyperedges allNeighboursOf(const Hyperedges& ids, const std::string& label="");  // Nice for chaining
 
         /*Traverse connected subgraphs*/
         enum TraversalDirection {

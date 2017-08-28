@@ -88,40 +88,6 @@ bool Hyperedge::isPartOf(Hypergraph &graph)
     return true;
 }
 
-//Hyperedge::Hyperedges Hyperedge::pointingFrom(Hypergraph *graph, const std::string& label)
-//{
-//    Hyperedges result;
-//    // Check if we are part of the graph!!
-//    if (!this->isPartOf(graph))
-//        return result;
-//    // Filter out nodes with some certain label
-//    for (auto edgeId : _from)
-//    {
-//        auto edge = graph->get(edgeId);
-//        // Filters by label if given. It suffices that the edge label contains the given one.
-//        if (label.empty() || (edge->label().find(label) != std::string::npos))
-//            result.insert(edge->id());
-//    }
-//    return result;
-//}
-//
-//Hyperedge::Hyperedges Hyperedge::pointingTo(Hypergraph *graph, const std::string& label)
-//{
-//    Hyperedges result;
-//    // Check if we are part of the graph!!
-//    if (!isPartOf(graph))
-//        return result;
-//    // Filter out nodes with some certain label
-//    for (auto edgeId : _to)
-//    {
-//        auto edge = graph->get(edgeId);
-//        // Filters by label if given. It suffices that the edge label contains the given one.
-//        if (label.empty() || (edge->label().find(label) != std::string::npos))
-//            result.insert(edge->_id);
-//    }
-//    return result;
-//}
-
 std::ostream& operator<< (std::ostream& stream, const Hyperedge& edge)
 {
     stream << "[";
