@@ -25,8 +25,8 @@ int main(void)
     /* Create relation classes */
     universe.relate(universe.find("Person"), universe.find("Car"), "drive");
     universe.relate(universe.find("Person"), universe.find("Person"), "like");
-    Hypergraph::Hyperedges loveRelClassId = universe.relate(universe.find("Person"), universe.find("Person"), "love");
-    loveRelClassId = universe.subtract(loveRelClassId, universe.find("Person"));
+    Hyperedges loveRelClassId = universe.relate(universe.find("Person"), universe.find("Person"), "love");
+    loveRelClassId = subtract(loveRelClassId, universe.find("Person"));
     universe.subrelationOf(universe.relations("love"), universe.relations("like")); // If x loves y, x also likes y but not vice versa
 
     /* Create some persons and cars */
@@ -43,8 +43,8 @@ int main(void)
 
     std::cout << "> Create a query for something driving a car\n";
     /* Create a query */
-    Hypergraph::Hyperedges query = universe.relate(universe.create(""), universe.create("Car"), "drive");
-    Hypergraph::Mapping mapping = universe.match(query);
+    Hyperedges query = universe.relate(universe.create(""), universe.create("Car"), "drive");
+    Mapping mapping = universe.match(query);
     for (const auto &pair : mapping)
     {
         std::cout << *universe.get(pair.first) << " -> " << *universe.get(pair.second) << "\n";

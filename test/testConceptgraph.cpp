@@ -47,7 +47,7 @@ int main(void)
     universe.relate(16, 15, 20, "R");
     universe.relate(17, 15, 21, "R");
     universe.relate(18, 15, 22, "R");
-    universe.relate(19, 15, universe.first(hashedId), "B");
+    universe.relate(19, 15, *(hashedId.begin()), "B");
     universe.relate(24, 6, 15, "R");
 
     std::cout << "> All concepts" << std::endl;
@@ -100,7 +100,7 @@ int main(void)
     }
 
     std::cout << "> Make a traversal returning concepts connected by a certain relation\n";
-    concepts = universe2.traverse(universe.first(universe2.find("Root")), "", "R");
+    concepts = universe2.traverse(*universe2.find("Root").begin(), "", "R");
     for (auto conceptId : concepts)
     {
         std::cout << conceptId << " " << universe2.get(conceptId)->label() << std::endl;
@@ -114,8 +114,8 @@ int main(void)
     std::cout << "> Create another concept graph for inexact pattern matching\n";
     
     Conceptgraph query;
-    Hypergraph::Hyperedges wildcardId;
-    Hypergraph::Hyperedges queryEdges = query.relate(query.create("Root"), (wildcardId = query.create("")), "A");
+    Hyperedges wildcardId;
+    Hyperedges queryEdges = query.relate(query.create("Root"), (wildcardId = query.create("")), "A");
     concepts = query.Hypergraph::find();
     for (auto conceptId : concepts)
     {
@@ -134,7 +134,7 @@ int main(void)
 
     std::cout << "> Try to find a match of the query graph in the data graph (in-place matching)\n";
     Hypergraph merged(universe2, query);
-    Hypergraph::Mapping mapping = merged.match(queryEdges);
+    Mapping mapping = merged.match(queryEdges);
     for (auto it : mapping)
     {
         std::cout << "\t" << *query.get(it.first) << " -> " << *universe2.get(it.second) << std::endl;
@@ -142,7 +142,7 @@ int main(void)
 
     std::cout << "> Create another concept graph which serves as a replacement for the matched subgraph\n";
     Conceptgraph replacement;
-    Hypergraph::Hyperedges replEdges = replacement.relate(replacement.create(""), replacement.create("Root"), "R^-1");
+    Hyperedges replEdges = replacement.relate(replacement.create(""), replacement.create("Root"), "R^-1");
     concepts = replacement.Hypergraph::find();
     for (auto conceptId : concepts)
     {
@@ -160,13 +160,13 @@ int main(void)
 
     std::cout << "> Rewrite\n";
     Hypergraph merged2(merged, replacement);
-    Hypergraph::Mapping repl;
+    Mapping repl;
     // TODO: Not nice!
-    repl[query.first(query.find("Root"))] = replacement.first(replacement.find("Root"));
-    repl[query.first(query.relations("A"))] = replacement.first(replacement.relations("R^-1"));
-    repl[query.first(wildcardId)] = replacement.first(wildcardId);
+    repl[*query.find("Root").begin()] = *replacement.find("Root").begin();
+    repl[*query.relations("A").begin()] = *replacement.relations("R^-1").begin();
+    repl[*wildcardId.begin()] = *wildcardId.begin();
 
-    Hypergraph::Mapping result = merged2.rewrite(mapping, repl);
+    Mapping result = merged2.rewrite(mapping, repl);
     for (auto it : result)
     {
         std::cout << "\t" << *merged2.get(it.first) << " <- " << *merged2.get(it.second) << std::endl;

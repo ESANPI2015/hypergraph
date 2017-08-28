@@ -111,6 +111,10 @@ class CommonConceptGraph : public Conceptgraph
         {
             return isA(Hyperedges{subId}, Hyperedges{superId});
         }
+        Hyperedges isA(const Hyperedges& subIds, const unsigned superId)
+        {
+            return isA(subIds, Hyperedges{superId});
+        }
         Hyperedges childrenOf(const unsigned id, const std::string& label="", const TraversalDirection dir=DOWN)
         {
             return childrenOf(Hyperedges{id}, label, dir);

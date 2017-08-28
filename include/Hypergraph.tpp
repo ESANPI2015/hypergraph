@@ -5,7 +5,7 @@
 #include <queue>
 #include <sstream>
 
-template <typename ResultFilter, typename TraversalFilter> Hypergraph::Hyperedges Hypergraph::traversal(
+template <typename ResultFilter, typename TraversalFilter> Hyperedges Hypergraph::traversal(
     const unsigned rootId,
     ResultFilter f,
     TraversalFilter g,

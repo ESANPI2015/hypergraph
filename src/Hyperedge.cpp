@@ -65,12 +65,12 @@ bool Hyperedge::isPointingFrom(const unsigned id)
     return _from.count(id) ? true : false;
 }
 
-Hyperedge::Hyperedges Hyperedge::pointingFrom() const
+Hyperedges Hyperedge::pointingFrom() const
 {
     return _from;
 }
 
-Hyperedge::Hyperedges Hyperedge::pointingTo() const
+Hyperedges Hyperedge::pointingTo() const
 {
     return _to;
 }
@@ -108,3 +108,40 @@ std::ostream& operator<< (std::ostream& stream, const Hyperedge& edge)
     return stream;
 }
 
+Hyperedges unite(const Hyperedges& a, const Hyperedges& b)
+{
+    Hyperedges result(a);
+    result.insert(b.begin(), b.end());
+    return result;
+}
+
+Hyperedges intersect(const Hyperedges& a, const Hyperedges& b)
+{
+    Hyperedges result;
+    for (auto id : a)
+    {
+        if (b.count(id))
+            result.insert(id);
+    }
+    return result;
+}
+
+Hyperedges subtract(const Hyperedges& a, const Hyperedges& b)
+{
+    Hyperedges result;
+    for (auto id : a)
+    {
+        if (!b.count(id))
+            result.insert(id);
+    }
+    return result;
+}
+
+std::ostream& operator<< (std::ostream& os , const Hyperedges& val)
+{
+    for (auto id : val)
+    {
+        os << id << " ";
+    }
+    return os;
+}

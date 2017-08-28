@@ -1,5 +1,4 @@
 #include "Hypergraph.hpp"
-#include "Hyperedge.hpp"
 
 #include <iostream>
 #include <stack>
@@ -43,7 +42,7 @@ Hypergraph::~Hypergraph()
     // We hold no pointers so we do not need to do anything here
 }
 
-Hypergraph::Hyperedges Hypergraph::create(const unsigned id, const std::string& label)
+Hyperedges Hypergraph::create(const unsigned id, const std::string& label)
 {
     Hyperedge* neu = get(id);
     if (!neu)
@@ -102,7 +101,7 @@ Hyperedge* Hypergraph::get(const unsigned id)
     }
 }
 
-Hypergraph::Hyperedges Hypergraph::find(const std::string& label)
+Hyperedges Hypergraph::find(const std::string& label)
 {
     Hyperedges result;
     for (auto pair : _edges)
@@ -118,7 +117,7 @@ Hypergraph::Hyperedges Hypergraph::find(const std::string& label)
 }
 
 
-Hypergraph::Hyperedges Hypergraph::to(const unsigned srcId, const unsigned destId)
+Hyperedges Hypergraph::to(const unsigned srcId, const unsigned destId)
 {
     auto srcEdge = get(srcId);
     auto destEdge = get(destId);
@@ -128,7 +127,7 @@ Hypergraph::Hyperedges Hypergraph::to(const unsigned srcId, const unsigned destI
     return Hyperedges{srcId, destId};
 }
 
-Hypergraph::Hyperedges Hypergraph::to(const unsigned srcId, const Hyperedges& otherIds)
+Hyperedges Hypergraph::to(const unsigned srcId, const Hyperedges& otherIds)
 {
     auto srcEdge = get(srcId);
     if (!srcEdge)
@@ -144,7 +143,7 @@ Hypergraph::Hyperedges Hypergraph::to(const unsigned srcId, const Hyperedges& ot
     return unite(Hyperedges{srcId}, otherIds);
 }
 
-Hypergraph::Hyperedges Hypergraph::from(const unsigned srcId, const unsigned destId)
+Hyperedges Hypergraph::from(const unsigned srcId, const unsigned destId)
 {
     auto srcEdge = get(srcId);
     auto destEdge = get(destId);
@@ -154,7 +153,7 @@ Hypergraph::Hyperedges Hypergraph::from(const unsigned srcId, const unsigned des
     return Hyperedges{srcId, destId};
 }
 
-Hypergraph::Hyperedges Hypergraph::from(const Hyperedges& otherIds, const unsigned destId)
+Hyperedges Hypergraph::from(const Hyperedges& otherIds, const unsigned destId)
 {
     auto destEdge = get(destId);
     if (!destEdge)
@@ -170,7 +169,7 @@ Hypergraph::Hyperedges Hypergraph::from(const Hyperedges& otherIds, const unsign
     return unite(Hyperedges{destId}, otherIds);
 }
 
-Hypergraph::Hyperedges Hypergraph::from(const unsigned id, const std::string& label)
+Hyperedges Hypergraph::from(const unsigned id, const std::string& label)
 {
     Hyperedges result;
     Hyperedges fromIds = get(id)->pointingFrom();
@@ -182,7 +181,7 @@ Hypergraph::Hyperedges Hypergraph::from(const unsigned id, const std::string& la
     return result;
 }
 
-Hypergraph::Hyperedges Hypergraph::to(const unsigned id, const std::string& label)
+Hyperedges Hypergraph::to(const unsigned id, const std::string& label)
 {
     Hyperedges result;
     Hyperedges toIds = get(id)->pointingTo();
@@ -194,7 +193,7 @@ Hypergraph::Hyperedges Hypergraph::to(const unsigned id, const std::string& labe
     return result;
 }
 
-Hypergraph::Hyperedges Hypergraph::from(const Hyperedges& ids, const std::string& label)
+Hyperedges Hypergraph::from(const Hyperedges& ids, const std::string& label)
 {
     Hyperedges result;
     for (auto id : ids)
@@ -205,7 +204,7 @@ Hypergraph::Hyperedges Hypergraph::from(const Hyperedges& ids, const std::string
     return result;
 }
 
-Hypergraph::Hyperedges Hypergraph::to(const Hyperedges& ids, const std::string& label)
+Hyperedges Hypergraph::to(const Hyperedges& ids, const std::string& label)
 {
     Hyperedges result;
     for (auto id : ids)
@@ -216,48 +215,7 @@ Hypergraph::Hyperedges Hypergraph::to(const Hyperedges& ids, const std::string& 
     return result;
 }
 
-Hypergraph::Hyperedges Hypergraph::unite(const Hyperedges& edgesA, const Hyperedges& edgesB)
-{
-    Hyperedges result(edgesA);
-    result.insert(edgesB.begin(), edgesB.end());
-    return result;
-}
-
-Hypergraph::Hyperedges Hypergraph::intersect(const Hyperedges& edgesA, const Hyperedges& edgesB)
-{
-    Hyperedges edgesC;
-    for (auto id : edgesA)
-    {
-        if (edgesB.count(id))
-        {
-            edgesC.insert(id);
-        }
-    }
-    return edgesC;
-}
-
-Hypergraph::Hyperedges Hypergraph::subtract(const Hyperedges& edgesA, const Hyperedges& edgesB)
-{
-    Hyperedges edgesC;
-    for (auto id : edgesA)
-    {
-        if (!edgesB.count(id))
-        {
-            edgesC.insert(id);
-        }
-    }
-    return edgesC;
-}
-
-unsigned Hypergraph::first(const Hyperedges& edges)
-{
-    if (edges.size())
-        return *(edges.begin());
-    else
-        return 0;
-}
-
-Hypergraph::Hyperedges Hypergraph::prevNeighboursOf(const unsigned id, const std::string& label)
+Hyperedges Hypergraph::prevNeighboursOf(const unsigned id, const std::string& label)
 {
     Hyperedges result;
     result = from(id,label);
@@ -274,7 +232,7 @@ Hypergraph::Hyperedges Hypergraph::prevNeighboursOf(const unsigned id, const std
     return result;
 }
 
-Hypergraph::Hyperedges Hypergraph::prevNeighboursOf(const Hyperedges& ids, const std::string& label)
+Hyperedges Hypergraph::prevNeighboursOf(const Hyperedges& ids, const std::string& label)
 {
     Hyperedges result;
     for (unsigned id : ids)
@@ -285,7 +243,7 @@ Hypergraph::Hyperedges Hypergraph::prevNeighboursOf(const Hyperedges& ids, const
     return result;
 }
 
-Hypergraph::Hyperedges Hypergraph::nextNeighboursOf(const unsigned id, const std::string& label)
+Hyperedges Hypergraph::nextNeighboursOf(const unsigned id, const std::string& label)
 {
     Hyperedges result;
     result = to(id,label);
@@ -302,7 +260,7 @@ Hypergraph::Hyperedges Hypergraph::nextNeighboursOf(const unsigned id, const std
     return result;
 }
 
-Hypergraph::Hyperedges Hypergraph::nextNeighboursOf(const Hyperedges& ids, const std::string& label)
+Hyperedges Hypergraph::nextNeighboursOf(const Hyperedges& ids, const std::string& label)
 {
     Hyperedges result;
     for (unsigned id : ids)
@@ -313,14 +271,14 @@ Hypergraph::Hyperedges Hypergraph::nextNeighboursOf(const Hyperedges& ids, const
     return result;
 }
 
-Hypergraph::Hyperedges Hypergraph::allNeighboursOf(const unsigned id, const std::string& label)
+Hyperedges Hypergraph::allNeighboursOf(const unsigned id, const std::string& label)
 {
     Hyperedges result;
     result = unite(prevNeighboursOf(id,label), nextNeighboursOf(id,label));
     return result;
 }
 
-Hypergraph::Hyperedges Hypergraph::allNeighboursOf(const Hyperedges& ids, const std::string& label)
+Hyperedges Hypergraph::allNeighboursOf(const Hyperedges& ids, const std::string& label)
 {
     Hyperedges result;
     for (unsigned id : ids)
@@ -331,7 +289,7 @@ Hypergraph::Hyperedges Hypergraph::allNeighboursOf(const Hyperedges& ids, const 
     return result;
 }
 
-Hypergraph::Mapping Hypergraph::match(const Hyperedges& otherIds)
+Mapping Hypergraph::match(const Hyperedges& otherIds)
 {
     // This algorithm is according to Ullmann
     // and has been implemented following "An In-depth Comparison of Subgraph Isomorphism Algorithms in Graph Databases"
@@ -415,7 +373,7 @@ Hypergraph::Mapping Hypergraph::match(const Hyperedges& otherIds)
     return Mapping();
 }
 
-Hypergraph::Mapping Hypergraph::rewrite(Mapping& matched, Mapping& replacements)
+Mapping Hypergraph::rewrite(Mapping& matched, Mapping& replacements)
 {
     // matched contains a mapping from a model subgraph to some ismorphism of it in the overall graph
     // replacements contains a mapping from the same model subgraph to another (sub)graph

@@ -3,9 +3,7 @@
 
 #include <map>
 #include <set>
-
-// Forward declarations
-class Hyperedge;
+#include "Hyperedge.hpp"
 
 /*
     The hypergraph class serves as a factory and repository for hyperedges
@@ -19,10 +17,10 @@ class Hyperedge;
     We want to enforce unique ids, so ids will not be assigned automatically but it can be checked if it is available
 */
 
+typedef std::map<unsigned, unsigned> Mapping; //< This map stores a one-to-one mapping between hedges (IDs)
+
 class Hypergraph {
     public:
-        typedef std::set<unsigned> Hyperedges;
-
         Hypergraph();
         Hypergraph(Hypergraph& A, Hypergraph& B);           // creates a new hypergraph out of two given ones
         ~Hypergraph();
@@ -73,14 +71,7 @@ class Hypergraph {
             const TraversalDirection dir = DOWN
         );
 
-        /* Merge operations on hyperedge sets */
-        Hyperedges unite(const Hyperedges& edgesA, const Hyperedges& edgesB);       // Unites the two hyperedge sets to a new one
-        Hyperedges intersect(const Hyperedges& edgesA, const Hyperedges& edgesB);   // Intersects the two hyperedge sets and returns the result (DLOG)
-        Hyperedges subtract(const Hyperedges& edgesA, const Hyperedges& edgesB);    // Returns all edges which are in A but not in B
-        unsigned first(const Hyperedges& edges);                                    //< Return the first of the edge set
-
         /* Pattern matching */
-        typedef std::map<unsigned, unsigned> Mapping;                               //< This map stores a one-to-one mapping between hedges (IDs)
         Mapping match(const Hyperedges& otherIds);                                  //< In-place matching (Subgraph embedded in the same graph)
         Mapping rewrite(Mapping& matched, Mapping& replacements);                   //< In-place rewrite: Given a match and a replacement, the graph will be transformed
 

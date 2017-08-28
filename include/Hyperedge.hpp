@@ -14,13 +14,17 @@ class Hypergraph;
 * NOTE: Only ids are stored ... pointers are avoided as much as possible
 */
 
+typedef std::set<unsigned> Hyperedges;
+Hyperedges unite(const Hyperedges& a, const Hyperedges& b);       // Unites the two hyperedge sets to a new one
+Hyperedges intersect(const Hyperedges& a, const Hyperedges& b);   // Intersects the two hyperedge sets and returns the result (DLOG)
+Hyperedges subtract(const Hyperedges& a, const Hyperedges& b);    // Returns all edges which are in A but not in B
+std::ostream& operator<< (std::ostream& os , const Hyperedges& val);
+
 class Hyperedge
 {
     friend class Hypergraph;
 
     public:
-        typedef std::set<unsigned> Hyperedges;
-
         /*Constructor*/
         Hyperedge(const unsigned id=0, const std::string& label=""); // NOTE: We need a default constructor with 0 arguments to use STL containers
 
