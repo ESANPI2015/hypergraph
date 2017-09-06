@@ -325,3 +325,46 @@ Hyperedges CommonConceptGraph::childrenOf(const Hyperedges& ids, const std::stri
     }
     return result;
 }
+
+Hyperedges CommonConceptGraph::endpointsOf(const Hyperedges& ids, const std::string& label, const TraversalDirection dir)
+{
+    Hyperedges result;
+    // Get all subrelationsOf CONNECTS
+    Hyperedges subRels = subrelationsOf(CommonConceptGraph::ConnectsId);
+    // Get all factsOf these subrelations
+    Hyperedges facts = factsOf(subRels);
+
+    switch (dir)
+    {
+        case DOWN:
+        {
+            // Get all relationsFrom ids
+            Hyperedges relsFromConnectors = Conceptgraph::relationsFrom(ids);
+            // Contains all (id <-- factFromSubRelOfHasA --> X) relations
+            Hyperedges relevantRels = intersect(relsFromConnectors, facts);
+            // Get all these X matching the label
+            result = Hypergraph::to(relevantRels, label);
+        }
+        break;
+        case BOTH:
+        {
+            // Get all relationsFrom ids
+            Hyperedges relsFromConnectors = Conceptgraph::relationsFrom(ids);
+            // Contains all (id <-- factFromSubRelOfHasA --> X) relations
+            Hyperedges relevantRels = intersect(relsFromConnectors, facts);
+            // Get all these X matching the label
+            result = Hypergraph::to(relevantRels, label);
+        }
+        case UP:
+        {
+            // Get all relationsTo id
+            Hyperedges relsToConnectors = Conceptgraph::relationsTo(ids);
+            // Contains all (X <-- factFromSubRelOfHasA --> id) relations
+            Hyperedges relevantRels = intersect(relsToConnectors, facts);
+            // Get all these X matching the label
+            result = Hypergraph::from(relevantRels, label);
+        }
+        break;
+    }
+    return result;
+}
