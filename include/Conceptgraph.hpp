@@ -16,6 +16,11 @@
 *
 * In order to enforce unique IDs, automatic ID assignment is not performed!
 *
+* NOTE:
+* The introduction of the two URELEMENTS is a shortcut for the following, more exact terminology:
+* X <- IS-RELATION
+* Y <- IS-CONCEPT <- FACT-OF -> IS-CONCEPT* <- IS-RELATION
+*
 */
 
 class Conceptgraph : public Hypergraph
