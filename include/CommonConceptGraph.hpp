@@ -86,15 +86,16 @@ class CommonConceptGraph : public Conceptgraph
         Hyperedges instantiateFrom(const Hyperedges& superIds, const std::string& label="");
 
         /*Common queries*/
-        Hyperedges factsOf(const unsigned superRelId, const std::string& label="");           // non-transitive
-        Hyperedges factsOf(const Hyperedges& superRelIds, const std::string& label="");       // non-transitive
-        Hyperedges subrelationsOf(const unsigned superRelId, const std::string& label="");    //transitive
+        Hyperedges factsOf(const unsigned superRelId, const std::string& label="", const TraversalDirection dir=UP);           // non-transitive
+        Hyperedges factsOf(const Hyperedges& superRelIds, const std::string& label="", const TraversalDirection dir=UP);       // non-transitive
+        Hyperedges subrelationsOf(const unsigned superRelId, const std::string& label="", const TraversalDirection dir=UP);    //transitive
 
         /*Other common queries using subrelationsOf!*/
         /*NOTE: The traversal direction tells if the basic relation is to be followed in its direction(DOWN) or against it(UP)*/
         Hyperedges transitiveClosure(const unsigned rootId, const unsigned relId, const std::string& label="", const TraversalDirection dir=DOWN);
         Hyperedges subclassesOf(const Hyperedges& ids, const std::string& label="", const TraversalDirection dir=UP);      //transitive
         Hyperedges partsOf(const Hyperedges& ids, const std::string& label="", const TraversalDirection dir=UP);           //transitive
+        Hyperedges descendantsOf(const Hyperedges& ancestorIds, const std::string& label="", const TraversalDirection dir=DOWN); //transitive
         Hyperedges instancesOf(const Hyperedges& ids, const std::string& label="", const TraversalDirection dir=UP);       //non-transitive
         Hyperedges childrenOf(const Hyperedges& ids, const std::string& label="", const TraversalDirection dir=DOWN);     //non-transitive
         Hyperedges endpointsOf(const Hyperedges& ids, const std::string& label="", const TraversalDirection dir=DOWN);    //non-transitive
