@@ -82,8 +82,12 @@ class CommonConceptGraph : public Conceptgraph
         Hyperedges partOf(const Hyperedges& partId, const Hyperedges& wholeId);
         Hyperedges connects(const Hyperedges& connectorId, const Hyperedges& interfaceId);
         Hyperedges instanceOf(const Hyperedges& individualIds, const Hyperedges& superIds);
-        Hyperedges instantiateFrom(const unsigned superId, const std::string& label="");
+
+        /*Constructive functions creating new concepts*/
+        Hyperedges instantiateFrom(const unsigned superId, const std::string& label=""); // create label <-- INSTANCE-OF --> superId
         Hyperedges instantiateFrom(const Hyperedges& superIds, const std::string& label="");
+        Hyperedges instantiateAnother(const Hyperedges& otherIds, const std::string& label=""); // create another instance from the superclasses of others
+        Hyperedges instantiateDeepFrom(const Hyperedges& otherIds, const std::string& label=""); // create an instance also cloning children and parts
 
         /*Common queries*/
         Hyperedges factsOf(const unsigned superRelId, const std::string& label="", const TraversalDirection dir=UP);           // non-transitive

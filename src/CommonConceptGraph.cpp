@@ -171,6 +171,84 @@ Hyperedges CommonConceptGraph::instantiateFrom(const Hyperedges& superIds, const
     return result;
 }
 
+Hyperedges CommonConceptGraph::instantiateAnother(const Hyperedges& otherIds, const std::string& label)
+{
+    Hyperedges result;
+    for (unsigned otherId : otherIds)
+    {
+        // Get superclass of other
+        Hyperedges superclasses = instancesOf(otherId,"",TraversalDirection::DOWN);
+        // Instantiate from superclass of other
+        result = unite(result, instantiateFrom(superclasses, label));
+    }
+    return result;
+}
+
+Hyperedges CommonConceptGraph::instantiateDeepFrom(const Hyperedges& superIds, const std::string& label)
+{
+    Hyperedges result;
+    std::map< unsigned, Hyperedges > original2new;
+    // Deep instantiation:
+    // This means, that we have to get the following for every x
+    for (unsigned superId : superIds)
+    {
+        // FIXME: WE CAN DO BETTER!!!! ACTUALLY WE CAN JUST MAKE A TRAVERSE BY JOINING THE LABELS OF PARTS-OF AND DESCENDANTS-OF !!!
+        // I <- (PD)+ U (DP)+
+        // This set I contains all parts of x, their descendants and so forth
+        // It also contains the opposite search of the descendants of x, their parts and so forth
+        Hyperedges subgraph;
+        {
+            // TODO: Check if the following actually performs BOTH SEARCHES at once by allowing superId to be in parts!!!
+            bool searchParts = false;
+            Hyperedges parts, descendants;
+            parts = partsOf(Hyperedges{superId});
+            subgraph = unite(subgraph, parts);
+            do {
+                if (searchParts)
+                {
+                    parts = subtract(partsOf(descendants), descendants);
+                    subgraph = unite(subgraph, parts);
+                    searchParts = false;
+                } else {
+                    descendants = subtract(descendantsOf(parts), parts);
+                    subgraph = unite(subgraph, descendants);
+                    searchParts = true;
+                }
+            } while (parts.size() || descendants.size());
+        }
+        // Instantiate from superId
+        original2new[superId] = instantiateFrom(superId, label);
+        result = unite(result, original2new[superId]);
+        // All i in I have to be instantiated from their superclasses resulting in a mapping from I to some O
+        std::map< unsigned, Hyperedges > original2new;
+        for (unsigned originalId : subgraph)
+        {
+            // Skip superId
+            if (originalId == superId)
+                continue;
+            original2new[originalId] = instantiateAnother(Hyperedges{originalId}, get(originalId)->label());
+        }
+        // Finally, for each (i1,i2) in I: If i1 related-by-R-to i2, then o1 related-by-R'-to o2
+        for (unsigned originalId : subgraph)
+        {
+            Hyperedges relsFrom = relationsFrom(originalId); // originalId <- X
+            for (unsigned otherOriginalId : subgraph)
+            {
+                Hyperedges relsTo = relationsTo(otherOriginalId); // Y -> otherOriginalId
+                Hyperedges commonRels = intersect(relsFrom, relsTo);
+                for (unsigned commonRelId : commonRels)
+                {
+                    // Get the superRels
+                    Hyperedges superRels = factsOf(commonRelId, "", TraversalDirection::DOWN);
+                    // Create new facts from these superRels
+                    original2new[commonRelId] = relateFrom(original2new[originalId], original2new[otherOriginalId], superRels);
+                }
+            }
+        }
+    }
+    return result;
+}
+
 Hyperedges CommonConceptGraph::factsOf(const unsigned superRelId, const std::string& label, const TraversalDirection dir)
 {
     Hyperedges result;
