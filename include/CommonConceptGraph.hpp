@@ -74,6 +74,7 @@ class CommonConceptGraph : public Conceptgraph
         Hyperedges factOf(const Hyperedges& factIds, const Hyperedges& superRelIds);
         Hyperedges relateFrom(const Hyperedges& fromIds, const Hyperedges& toIds, const unsigned superId);
         Hyperedges relateFrom(const Hyperedges& fromIds, const Hyperedges& toIds, const Hyperedges& superIds);
+        //Hyperedges relateAnother(const Hyperedges& fromIds, const Hyperedges& toIds, const Hyperedges& otherIds);
 
         /*Constructive functions using predefined relations*/
         Hyperedges subrelationOf(const Hyperedges& subRelId, const Hyperedges& superRelId);
