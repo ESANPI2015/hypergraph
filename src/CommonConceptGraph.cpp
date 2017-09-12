@@ -83,6 +83,19 @@ Hyperedges CommonConceptGraph::relateFrom(const Hyperedges& fromIds, const Hyper
     return result;
 }
 
+Hyperedges CommonConceptGraph::relateAnother(const Hyperedges& fromIds, const Hyperedges& toIds, const Hyperedges& otherIds)
+{
+    Hyperedges result;
+    for (unsigned otherId : otherIds)
+    {
+        // Get the superRels
+        Hyperedges superRels = factsOf(otherId, "", TraversalDirection::DOWN);
+        // Create new facts from these superRels
+        result = unite(result, relateFrom(fromIds, toIds, superRels));
+    }
+    return result;
+}
+
 Hyperedges CommonConceptGraph::subrelationOf(const Hyperedges& subRelIds, const Hyperedges& superRelIds)
 {
     Hyperedges id;
@@ -238,10 +251,8 @@ Hyperedges CommonConceptGraph::instantiateDeepFrom(const Hyperedges& superIds, c
                 Hyperedges commonRels = intersect(relsFrom, relsTo);
                 for (unsigned commonRelId : commonRels)
                 {
-                    // Get the superRels
-                    Hyperedges superRels = factsOf(commonRelId, "", TraversalDirection::DOWN);
                     // Create new facts from these superRels
-                    original2new[commonRelId] = relateFrom(original2new[originalId], original2new[otherOriginalId], superRels);
+                    original2new[commonRelId] = relateAnother(original2new[originalId], original2new[otherOriginalId], Hyperedges{commonRelId});
                 }
             }
         }
