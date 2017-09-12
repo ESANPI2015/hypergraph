@@ -187,7 +187,6 @@ Hyperedges CommonConceptGraph::instantiateAnother(const Hyperedges& otherIds, co
 Hyperedges CommonConceptGraph::instantiateDeepFrom(const Hyperedges& superIds, const std::string& label)
 {
     Hyperedges result;
-    std::map< unsigned, Hyperedges > original2new;
     // Deep instantiation:
     // This means, that we have to get the following for every x
     for (unsigned superId : superIds)
@@ -197,6 +196,7 @@ Hyperedges CommonConceptGraph::instantiateDeepFrom(const Hyperedges& superIds, c
         // This set I contains all parts of x, their descendants and so forth
         // It also contains the opposite search of the descendants of x, their parts and so forth
         Hyperedges subgraph;
+        std::map< unsigned, Hyperedges > original2new;
         {
             // TODO: Check if the following actually performs BOTH SEARCHES at once by allowing superId to be in parts!!!
             bool searchParts = false;
@@ -216,11 +216,11 @@ Hyperedges CommonConceptGraph::instantiateDeepFrom(const Hyperedges& superIds, c
                 }
             } while (parts.size() || descendants.size());
         }
+        //std::cout << "Subgraph: " << subgraph << "\n";
         // Instantiate from superId
         original2new[superId] = instantiateFrom(superId, label);
         result = unite(result, original2new[superId]);
         // All i in I have to be instantiated from their superclasses resulting in a mapping from I to some O
-        std::map< unsigned, Hyperedges > original2new;
         for (unsigned originalId : subgraph)
         {
             // Skip superId
