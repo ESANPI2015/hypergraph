@@ -44,11 +44,11 @@ int main(void)
     std::cout << "> Create a query for a person loving a person\n";
     /* Create a query */
     auto personA = universe.create("");
-    //auto personB = universe.create("");
+    auto personB = universe.create("");
     Hyperedges query;
     query = unite(query, universe.instanceOf(personA, universe.find("Person")));
-    //query = unite(query, universe.instanceOf(personB, universe.find("Person")));
-    //query = unite(query, universe.relate(personA, personB, "love"));
+    query = unite(query, universe.instanceOf(personB, universe.find("Person")));
+    query = unite(query, universe.relate(personA, personB, "love"));
     std::cout << query << std::endl;
     Mapping mapping = universe.match(query);
     for (const auto &pair : mapping)
