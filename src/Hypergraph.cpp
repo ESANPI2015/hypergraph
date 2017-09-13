@@ -289,7 +289,7 @@ Hyperedges Hypergraph::allNeighboursOf(const Hyperedges& ids, const std::string&
     return result;
 }
 
-Mapping Hypergraph::match(const Hyperedges& otherIds)
+Mapping Hypergraph::match(const Hyperedges& otherIds, const std::vector< Mapping >& previousMatches)
 {
     // This algorithm is according to Ullmann
     // and has been implemented following "An In-depth Comparison of Subgraph Isomorphism Algorithms in Graph Databases"
@@ -298,8 +298,8 @@ Mapping Hypergraph::match(const Hyperedges& otherIds)
     std::map< unsigned, Hyperedges > candidateIds;
     for (unsigned otherId : otherIds)
     {
+        // NOTE: Do not prevent the trivial case here!!!
         candidateIds[otherId] = find(get(otherId)->label());
-        candidateIds[otherId].erase(otherId); // Prevent finding the trivial case
         if (!candidateIds[otherId].size())
             return currentMapping;
     }
@@ -314,9 +314,78 @@ Mapping Hypergraph::match(const Hyperedges& otherIds)
         currentMapping = mappings.top();
         mappings.pop();
 
+        // For a correct mapping we have to check if all from and to sets are correct (similar to the check in rewrite)
+        bool valid = true;
+        for (const auto& pair : currentMapping)
+        {
+            Hyperedges templatePointsTo(intersect(to(pair.first), otherIds));
+            Hyperedges templatePointsFrom(intersect(from(pair.first), otherIds));
+            Hyperedges matchPointsTo(to(pair.second));
+            Hyperedges matchPointsFrom(from(pair.second));
+            for (unsigned templateId : templatePointsTo)
+            {
+                if (!currentMapping.count(templateId))
+                    continue;
+                unsigned matchId = currentMapping[templateId];
+                if (!matchPointsTo.count(matchId))
+                {
+                    valid = false;
+                    break;
+                }
+            }
+            if (!valid)
+                break;
+            for (unsigned templateId : templatePointsFrom)
+            {
+                if (!currentMapping.count(templateId))
+                    continue;
+                unsigned matchId = currentMapping[templateId];
+                if (!matchPointsFrom.count(matchId))
+                {
+                    valid = false;
+                    break;
+                }
+            }
+            if (!valid)
+                break;
+        }
+        if (!valid)
+            continue;
+
         // Check if we can stop the search
         if (currentMapping.size() == otherIds.size())
         {
+            // Check if currentMapping is different from all previous matches in at least one association
+            bool newMatch = true;
+            for (Mapping prev : previousMatches)
+            {
+                // Assume equality
+                bool equal = true;
+                for (const auto& pair : prev)
+                {
+                    // Check if currentMapping contains the same first part of the pair. If not it is for sure different
+                    if (!currentMapping.count(pair.first))
+                    {
+                        equal = false;
+                        break;
+                    }
+                    // Check if currentMapping has a different mapping than previous one. If it has they are different
+                    if (currentMapping[pair.first] != pair.second)
+                    {
+                        equal = false;
+                        break;
+                    }
+                }
+                // If equal, break
+                if (equal)
+                {
+                    newMatch = false;
+                    break;
+                }
+            }
+            // If it is a true new match, we can proceed
+            if (!newMatch)
+                continue; // but otherwise we continue
             return currentMapping;
         }
 
@@ -331,12 +400,12 @@ Mapping Hypergraph::match(const Hyperedges& otherIds)
 
         // Found unmapped hedge
         Hyperedges candidates = candidateIds[unmappedId];
-        Hyperedges nextNeighbourIds = intersect(nextNeighboursOf(unmappedId), otherIds); // Check ONLY the neighbourhood INSIDE the subgraph
-        Hyperedges prevNeighbourIds = intersect(prevNeighboursOf(unmappedId), otherIds);
+        Hyperedges nextNeighbourIds = intersect(to(unmappedId), otherIds); // Check ONLY the neighbourhood INSIDE the subgraph
+        Hyperedges prevNeighbourIds = intersect(from(unmappedId), otherIds);
         for (unsigned candidateId : candidates)
         {
-            Hyperedges nextCandidateNeighbours = nextNeighboursOf(candidateId);
-            Hyperedges prevCandidateNeighbours = prevNeighboursOf(candidateId);
+            Hyperedges nextCandidateNeighbours = to(candidateId);
+            Hyperedges prevCandidateNeighbours = from(candidateId);
             // Ignore all candidates whose neighbourhood is smaller
             if (nextCandidateNeighbours.size() < nextNeighbourIds.size())
                 continue;

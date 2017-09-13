@@ -1,6 +1,7 @@
 #ifndef _HYPERGRAPH_HPP
 #define _HYPERGRAPH_HPP
 
+#include <vector>
 #include <map>
 #include <set>
 #include "Hyperedge.hpp"
@@ -72,7 +73,9 @@ class Hypergraph {
         );
 
         /* Pattern matching */
-        Mapping match(const Hyperedges& otherIds);                                  //< In-place matching (Subgraph embedded in the same graph)
+        Mapping match(const Hyperedges& otherIds,                                   //< In-place matching (Subgraph embedded in the same graph)
+                      const std::vector< Mapping >& previousMatches = std::vector< Mapping >() // These previous matches will not be found again!
+                     );
         Mapping rewrite(Mapping& matched, Mapping& replacements);                   //< In-place rewrite: Given a match and a replacement, the graph will be transformed
 
     protected:

@@ -41,13 +41,31 @@ int main(void)
     /* Relate some people */
     universe.relateFrom(universe.instancesOf(universe.find("Person"), "Mary"), universe.instancesOf(universe.find("Person"), "John"), loveRelClassId);
 
-    std::cout << "> Create a query for something driving a car\n";
+    std::cout << "> Create a query for a person loving a person\n";
     /* Create a query */
-    Hyperedges query = universe.relate(universe.create(""), universe.create("Car"), "drive");
+    auto personA = universe.create("");
+    //auto personB = universe.create("");
+    Hyperedges query;
+    query = unite(query, universe.instanceOf(personA, universe.find("Person")));
+    //query = unite(query, universe.instanceOf(personB, universe.find("Person")));
+    //query = unite(query, universe.relate(personA, personB, "love"));
+    std::cout << query << std::endl;
     Mapping mapping = universe.match(query);
     for (const auto &pair : mapping)
     {
         std::cout << *universe.get(pair.first) << " -> " << *universe.get(pair.second) << "\n";
+    }
+
+    std::cout << "> Find all matches for something loving something\n";
+    std::vector< Mapping > previous;
+    while ((mapping = universe.match(query, previous)).size())
+    {
+        std::cout << "\n";
+        for (const auto &pair : mapping)
+        {
+            std::cout << *universe.get(pair.first) << " -> " << *universe.get(pair.second) << "\n";
+        }
+        previous.push_back(mapping);
     }
 
     test = static_cast<Hypergraph*>(&universe);
