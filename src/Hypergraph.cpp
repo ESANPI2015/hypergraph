@@ -298,6 +298,16 @@ std::ostream& operator<< (std::ostream& os , const Mapping& val)
     return os;
 }
 
+Mapping fromHyperedges(const Hyperedges& a)
+{
+    Mapping result;
+    for (unsigned id : a)
+    {
+        result[id] = id;
+    }
+    return result;
+}
+
 bool equal(const Mapping& a, const Mapping& b)
 {
     // For two mappings to be equal, they

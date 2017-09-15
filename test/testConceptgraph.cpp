@@ -134,10 +134,11 @@ int main(void)
 
     std::cout << "> Try to find a match of the query graph in the data graph (in-place matching)\n";
     Hypergraph merged(universe2, query);
-    Mapping mapping = merged.match(queryEdges);
+    Mapping trivial = fromHyperedges(queryEdges);
+    Mapping mapping = merged.match(queryEdges, std::vector< Mapping >{trivial});
     for (auto it : mapping)
     {
-        std::cout << "\t" << *query.get(it.first) << " -> " << *universe2.get(it.second) << std::endl;
+        std::cout << "\t" << *(merged.get(it.first)) << " -> " << *(merged.get(it.second)) << std::endl;
     }
 
     std::cout << "> Create another concept graph which serves as a replacement for the matched subgraph\n";
@@ -161,7 +162,6 @@ int main(void)
     std::cout << "> Rewrite\n";
     Hypergraph merged2(merged, replacement);
     Mapping repl;
-    // TODO: Not nice!
     repl[*query.find("Root").begin()] = *replacement.find("Root").begin();
     repl[*query.relations("A").begin()] = *replacement.relations("R^-1").begin();
     repl[*wildcardId.begin()] = *wildcardId.begin();
@@ -170,6 +170,19 @@ int main(void)
     for (auto it : result)
     {
         std::cout << "\t" << *merged2.get(it.first) << " <- " << *merged2.get(it.second) << std::endl;
+    }
+
+    std::cout << "> All concepts" << std::endl;
+    Conceptgraph fin(merged2);
+    concepts = fin.find();
+    for (auto conceptId : concepts)
+    {
+        std::cout << conceptId << " " << fin.get(conceptId)->label() << std::endl;
+        auto relations = fin.relationsOf(conceptId);
+        for (auto relId : relations)
+        {
+            std::cout << "\t" << relId << " " << fin.get(relId)->label() << std::endl;
+        }
     }
 
     std::cout << "*** TESTS DONE ***" << std::endl;

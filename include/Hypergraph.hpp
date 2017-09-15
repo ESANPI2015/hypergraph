@@ -21,6 +21,7 @@
 typedef std::map<unsigned, unsigned> Mapping;   //< This map stores a one-to-one mapping between hedges (IDs)
 bool equal(const Mapping& a, const Mapping& b); //< Check if two mappings are equal or not
 Mapping invert(const Mapping& m);               //< Returns the inverse mapping
+Mapping fromHyperedges(const Hyperedges& a);    //< Constructs a identity mapping between the elements of a
 std::ostream& operator<< (std::ostream& os , const Mapping& val);
 
 class Hypergraph {
