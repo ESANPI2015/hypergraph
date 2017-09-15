@@ -5,6 +5,9 @@ The only entity here is the hyperedge; nodes could be modeled as 0-hyperedges bu
 The hyperedges are directed, that means that they have a set of other hyperedges FROM which they point and another set TO which they point.
 A graph in this sense is now just a collection of linked hyperedges.
 Some notation: (N,M)-Hyperedge means, that it points from N hyperedges to M other hyperedges
+Note that the directed hyperedges can represent NxM normal, directed edges.
+A possible extension would be to model hyperedges as being directed and oriented;
+that means that they encode an ordered N-tuple of M-cardinal sets.
 
 ## State
 
@@ -20,7 +23,10 @@ Some notation: (N,M)-Hyperedge means, that it points from N hyperedges to M othe
     - Topology through CONNECTS
 * Transitive closure over the common relations through traversal
 * Some basic queries and operations implemented
+* Pattern matching algorithm according to Ullmann (find some and find another match)
+* Rewrite algorithm with automatic node deletion and label transformation
+* Easy chaining of queries possible because of signature harmonisation and overloaded ops
 
 ## TODO
 
-* To be able to model and check constraints a basic pattern matching/graph rewriting algorithm should be implemented
+* Rewrite algorithm does not yet create new nodes
