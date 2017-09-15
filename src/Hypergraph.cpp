@@ -289,6 +289,35 @@ Hyperedges Hypergraph::allNeighboursOf(const Hyperedges& ids, const std::string&
     return result;
 }
 
+std::ostream& operator<< (std::ostream& os , const Mapping& val)
+{
+    for (const auto &pair : val)
+    {
+        os << "(" << pair.first << " -> " << pair.second << ") ";
+    }
+    return os;
+}
+
+bool equal(const Mapping& a, const Mapping& b)
+{
+    // For two mappings to be equal, they
+    // a) have to have the same size
+    if (a.size() != b.size())
+        return false;
+    // b) for each pair in a:
+    for (const auto& pair : a)
+    {
+        Mapping::const_iterator otherPairIt(b.find(pair.first));
+        // b1) a.first in b?
+        if (otherPairIt == b.end())
+            return false;
+        // b2) a.second == b[a.first]?
+        if (otherPairIt->second != pair.second)
+            return false;
+    }
+    return true;
+}
+
 Mapping Hypergraph::match(const Hyperedges& otherIds, const std::vector< Mapping >& previousMatches)
 {
     // This algorithm is according to Ullmann
@@ -359,25 +388,7 @@ Mapping Hypergraph::match(const Hyperedges& otherIds, const std::vector< Mapping
             bool newMatch = true;
             for (Mapping prev : previousMatches)
             {
-                // Assume equality
-                bool equal = true;
-                for (const auto& pair : prev)
-                {
-                    // Check if currentMapping contains the same first part of the pair. If not it is for sure different
-                    if (!currentMapping.count(pair.first))
-                    {
-                        equal = false;
-                        break;
-                    }
-                    // Check if currentMapping has a different mapping than previous one. If it has they are different
-                    if (currentMapping[pair.first] != pair.second)
-                    {
-                        equal = false;
-                        break;
-                    }
-                }
-                // If equal, break
-                if (equal)
+                if (equal(currentMapping, prev))
                 {
                     newMatch = false;
                     break;
@@ -399,6 +410,7 @@ Mapping Hypergraph::match(const Hyperedges& otherIds, const std::vector< Mapping
         }
 
         // Found unmapped hedge
+        // NOTE: This is actually what makes this method an Ullmann algorithm
         Hyperedges candidates = candidateIds[unmappedId];
         Hyperedges nextNeighbourIds = intersect(to(unmappedId), otherIds); // Check ONLY the neighbourhood INSIDE the subgraph
         Hyperedges prevNeighbourIds = intersect(from(unmappedId), otherIds);
@@ -442,24 +454,25 @@ Mapping Hypergraph::match(const Hyperedges& otherIds, const std::vector< Mapping
     return Mapping();
 }
 
+Mapping invert(const Mapping& m)
+{
+    Mapping result;
+    for (const auto &pair : m)
+    {
+        result[pair.second] = pair.first;
+    }
+    return result;
+}
+
 Mapping Hypergraph::rewrite(Mapping& matched, Mapping& replacements)
 {
     // matched contains a mapping from a model subgraph to some ismorphism of it in the overall graph
     // replacements contains a mapping from the same model subgraph to another (sub)graph
     Mapping result;
-
     // Since we know that matched is a one-to-one mapping, we can invert it
-    Mapping matchedInv;
-    for (const auto &pair : matched)
-    {
-        matchedInv[pair.second] = pair.first;
-    }
+    Mapping matchedInv(invert(matched));
     // Do this also for replacements
-    Mapping replacementsInv;
-    for (const auto &pair : replacements)
-    {
-        replacementsInv[pair.second] = pair.first;
-    }
+    Mapping replacementsInv(invert(replacements));
 
     // Cycle through all entries of matched
     for (const auto &pair : matched)

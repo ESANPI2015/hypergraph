@@ -18,7 +18,10 @@
     We want to enforce unique ids, so ids will not be assigned automatically but it can be checked if it is available
 */
 
-typedef std::map<unsigned, unsigned> Mapping; //< This map stores a one-to-one mapping between hedges (IDs)
+typedef std::map<unsigned, unsigned> Mapping;   //< This map stores a one-to-one mapping between hedges (IDs)
+bool equal(const Mapping& a, const Mapping& b); //< Check if two mappings are equal or not
+Mapping invert(const Mapping& m);               //< Returns the inverse mapping
+std::ostream& operator<< (std::ostream& os , const Mapping& val);
 
 class Hypergraph {
     public:

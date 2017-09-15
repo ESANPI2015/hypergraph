@@ -40,15 +40,16 @@ int main(void)
 
     /* Relate some people */
     universe.relateFrom(universe.instancesOf(universe.find("Person"), "Mary"), universe.instancesOf(universe.find("Person"), "John"), loveRelClassId);
+    universe.relateFrom(universe.instancesOf(universe.find("Person"), "Alice"), universe.instancesOf(universe.find("Person"), "John"), loveRelClassId);
 
-    std::cout << "> Create a query for a person loving a person\n";
+    std::cout << "> Create a query for a person loving another person\n";
     /* Create a query */
     auto personA = universe.create("");
     auto personB = universe.create("");
     Hyperedges query;
     query = unite(query, universe.instanceOf(personA, universe.find("Person")));
     query = unite(query, universe.instanceOf(personB, universe.find("Person")));
-    query = unite(query, universe.relate(personA, personB, "love"));
+    query = unite(query, universe.relateFrom(personA, personB, loveRelClassId));
     std::cout << query << std::endl;
     Mapping mapping = universe.match(query);
     for (const auto &pair : mapping)
@@ -56,7 +57,7 @@ int main(void)
         std::cout << *universe.get(pair.first) << " -> " << *universe.get(pair.second) << "\n";
     }
 
-    std::cout << "> Find all matches for something loving something\n";
+    std::cout << "> Find all matches for some person loving another person\n";
     std::vector< Mapping > previous;
     while ((mapping = universe.match(query, previous)).size())
     {
