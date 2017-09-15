@@ -139,9 +139,11 @@ Hyperedges subtract(const Hyperedges& a, const Hyperedges& b)
 
 std::ostream& operator<< (std::ostream& os , const Hyperedges& val)
 {
+    os << "{ ";
     for (auto id : val)
     {
         os << id << " ";
     }
+    os << "} ";
     return os;
 }

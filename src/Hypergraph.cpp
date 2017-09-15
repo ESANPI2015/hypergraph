@@ -291,10 +291,12 @@ Hyperedges Hypergraph::allNeighboursOf(const Hyperedges& ids, const std::string&
 
 std::ostream& operator<< (std::ostream& os , const Mapping& val)
 {
+    os << "{ ";
     for (const auto &pair : val)
     {
-        os << "(" << pair.first << " -> " << pair.second << ") ";
+        os << "(" << pair.first << " , " << pair.second << ") ";
     }
+    os << "} ";
     return os;
 }
 
