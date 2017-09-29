@@ -11,6 +11,20 @@ int main(void)
 
     Conceptgraph universe;
 
+    std::cout << "> Store empty concept graph using YAML" << std::endl;
+
+    YAML::Node test;
+    test = static_cast<Hypergraph*>(&universe);
+
+    std::ofstream fout;
+    fout.open("emptyCG.yml");
+    if(fout.good()) {
+        fout << test;
+    } else {
+        std::cout << "FAILED\n";
+    }
+    fout.close();
+
     std::cout << "> Create concept" << std::endl;
     universe.create(3, "First concept");
 
@@ -59,10 +73,9 @@ int main(void)
 
     std::cout << "> Store concept graph using YAML" << std::endl;
 
-    YAML::Node test;
+    test.reset();
     test = static_cast<Hypergraph*>(&universe);
 
-    std::ofstream fout;
     fout.open("universe.yml");
     if(fout.good()) {
         fout << test;

@@ -13,6 +13,16 @@ int main(void)
 
     CommonConceptGraph universe;
 
+    std::cout << "> Store empty common concept graph\n";
+    test = static_cast<Hypergraph*>(&universe);
+    fout.open("emptyCCG.yml");
+    if(fout.good()) {
+        fout << test;
+    } else {
+        std::cout << "FAILED\n";
+    }
+    fout.close();
+
     std::cout << "> Create a common concept graph\n";
 
     /* Create classes */
@@ -69,6 +79,7 @@ int main(void)
         previous.push_back(mapping);
     }
 
+    test.reset();
     test = static_cast<Hypergraph*>(&universe);
     fout.open("commonUniverse.yml");
     if(fout.good()) {
