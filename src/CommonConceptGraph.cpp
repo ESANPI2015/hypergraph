@@ -12,15 +12,15 @@ const unsigned CommonConceptGraph::InstanceOfId = 9;
 void CommonConceptGraph::createCommonConcepts()
 {
     /* Common relations over relations*/
-    Conceptgraph::relate(CommonConceptGraph::FactOfId, Conceptgraph::RelationId, Conceptgraph::RelationId, "FACT-OF");
-    Conceptgraph::relate(CommonConceptGraph::SubrelOfId, Conceptgraph::RelationId, Conceptgraph::RelationId, "SUBREL-OF");
+    Conceptgraph::relate(CommonConceptGraph::FactOfId, Conceptgraph::IsRelationId, Conceptgraph::IsRelationId, "FACT-OF");
+    Conceptgraph::relate(CommonConceptGraph::SubrelOfId, Conceptgraph::IsRelationId, Conceptgraph::IsRelationId, "SUBREL-OF");
 
     /* Common relations over concepts*/
-    Conceptgraph::relate(CommonConceptGraph::IsAId, Conceptgraph::ConceptId, Conceptgraph::ConceptId, "IS-A");
-    Conceptgraph::relate(CommonConceptGraph::HasAId, Conceptgraph::ConceptId, Conceptgraph::ConceptId, "HAS-A");
-    Conceptgraph::relate(CommonConceptGraph::PartOfId, Conceptgraph::ConceptId, Conceptgraph::ConceptId, "PART-OF");
-    Conceptgraph::relate(CommonConceptGraph::ConnectsId, Conceptgraph::ConceptId, Conceptgraph::ConceptId, "CONNECTS");
-    Conceptgraph::relate(CommonConceptGraph::InstanceOfId, Conceptgraph::ConceptId, Conceptgraph::ConceptId, "INSTANCE-OF");
+    Conceptgraph::relate(CommonConceptGraph::IsAId, Conceptgraph::IsConceptId, Conceptgraph::IsConceptId, "IS-A");
+    Conceptgraph::relate(CommonConceptGraph::HasAId, Conceptgraph::IsConceptId, Conceptgraph::IsConceptId, "HAS-A");
+    Conceptgraph::relate(CommonConceptGraph::PartOfId, Conceptgraph::IsConceptId, Conceptgraph::IsConceptId, "PART-OF");
+    Conceptgraph::relate(CommonConceptGraph::ConnectsId, Conceptgraph::IsConceptId, Conceptgraph::IsConceptId, "CONNECTS");
+    Conceptgraph::relate(CommonConceptGraph::InstanceOfId, Conceptgraph::IsConceptId, Conceptgraph::IsConceptId, "INSTANCE-OF");
 
     // Make factOf point from and to itself
     get(CommonConceptGraph::FactOfId)->from(CommonConceptGraph::FactOfId);

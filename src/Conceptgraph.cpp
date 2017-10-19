@@ -6,31 +6,31 @@
 #include <sstream>
 #include <algorithm>
 
-const unsigned Conceptgraph::ConceptId = 1;
-const unsigned Conceptgraph::RelationId = 2;
+const unsigned Conceptgraph::IsConceptId = 1;
+const unsigned Conceptgraph::IsRelationId = 2;
 
 Conceptgraph::Conceptgraph()
 : Hypergraph()
 {
     // Create the URHEDGES (if they exist, nothing will happen :))
-    Hypergraph::create(Conceptgraph::ConceptId, "CONCEPT");
-    Hypergraph::create(Conceptgraph::RelationId, "RELATION");
+    Hypergraph::create(Conceptgraph::IsConceptId, "IS-CONCEPT");
+    Hypergraph::create(Conceptgraph::IsRelationId, "IS-RELATION");
 }
 
 Conceptgraph::Conceptgraph(Hypergraph& A)
 : Hypergraph(A)
 {
     // Create the URHEDGES (if they exist, nothing will happen :))
-    Hypergraph::create(Conceptgraph::ConceptId, "CONCEPT");
-    Hypergraph::create(Conceptgraph::RelationId, "RELATION");
+    Hypergraph::create(Conceptgraph::IsConceptId, "IS-CONCEPT");
+    Hypergraph::create(Conceptgraph::IsRelationId, "IS-RELATION");
 }
 
 Hyperedges Conceptgraph::create(const unsigned id, const std::string& label)
 {
     if (!Hypergraph::create(id, label).empty())
     {
-        Hypergraph::create(Conceptgraph::ConceptId, "CONCEPT");
-        Hypergraph::to(Conceptgraph::ConceptId, id); // This cannot fail
+        Hypergraph::create(Conceptgraph::IsConceptId, "IS-CONCEPT");
+        Hypergraph::from(id, Conceptgraph::IsConceptId); // This cannot fail
         return Hyperedges{id};
     }
     return Hyperedges();
@@ -47,7 +47,7 @@ Hyperedges Conceptgraph::find(const std::string& label)
 {
     // Find edges which have the right label and are part of the concepts set
     Hyperedges resultIds;
-    Hyperedges candidateIds = Hypergraph::get(Conceptgraph::ConceptId)->pointingTo();
+    Hyperedges candidateIds = Hypergraph::get(Conceptgraph::IsConceptId)->pointingFrom();
     for (auto candidateId : candidateIds)
     {
         if (label.empty() || (Hypergraph::get(candidateId)->label() == label))
@@ -62,7 +62,7 @@ Hyperedges Conceptgraph::relations(const std::string& label)
 {
     // Find edges which have the right label and are part of the relations set
     Hyperedges resultIds;
-    Hyperedges candidateIds = Hypergraph::get(Conceptgraph::RelationId)->pointingTo();
+    Hyperedges candidateIds = Hypergraph::get(Conceptgraph::IsRelationId)->pointingFrom();
     for (auto candidateId : candidateIds)
     {
         if (label.empty() || (Hypergraph::get(candidateId)->label() == label))
@@ -75,11 +75,11 @@ Hyperedges Conceptgraph::relations(const std::string& label)
 
 Hyperedges Conceptgraph::relate(const unsigned id, const unsigned fromId, const unsigned toId, const std::string& label)
 {
-    // Creating relations means creating a (RELATION -> X) pair
+    // Creating relations means creating a (X <- IS-RELATION) pair
     if (Hypergraph::create(id, label).empty())
         return Hyperedges();
-    Hypergraph::create(Conceptgraph::RelationId, "RELATION");
-    Hypergraph::to(Conceptgraph::RelationId, id);
+    Hypergraph::create(Conceptgraph::IsRelationId, "IS-RELATION");
+    Hypergraph::from(id, Conceptgraph::IsRelationId);
 
     // Furthermore, we have to connect the relation
     // NOTE: relations can also relate relations not only concepts!!!
@@ -96,11 +96,11 @@ Hyperedges Conceptgraph::relate(const unsigned id, const unsigned fromId, const 
 
 Hyperedges Conceptgraph::relate(const unsigned id, const Hyperedges& fromIds, const Hyperedges& toIds, const std::string& label)
 {
-    // Creating relations means creating a (RELATION -> X) pair
+    // Creating relations means creating a (X <- IS-RELATION) pair
     if (Hypergraph::create(id, label).empty())
         return Hyperedges();
-    Hypergraph::create(Conceptgraph::RelationId, "RELATION");
-    Hypergraph::to(Conceptgraph::RelationId, id);
+    Hypergraph::create(Conceptgraph::IsRelationId, "IS-RELATION");
+    Hypergraph::from(id, Conceptgraph::IsRelationId);
 
     // Furthermore, we have to connect the relation
     // NOTE: relations can also relate relations not only concepts!!!
@@ -151,7 +151,7 @@ Hyperedges Conceptgraph::relate(const Hyperedges& fromIds, const Hyperedges& toI
 
 void     Conceptgraph::destroy(const unsigned id)
 {
-    if (Hypergraph::get(Conceptgraph::ConceptId)->isPointingTo(id))
+    if (Hypergraph::get(Conceptgraph::IsConceptId)->isPointingFrom(id))
     {
         // For a concept, we have to get rid of ALL associated relations
         auto relationIds = relationsOf(id);
@@ -169,7 +169,7 @@ Hyperedges Conceptgraph::relationsFrom(const unsigned id, const std::string& lab
 {
     Hyperedges resultIds;
     // Find edges which have the right label and are part of the relation set
-    Hyperedges candidateIds = Hypergraph::get(Conceptgraph::RelationId)->pointingTo();
+    Hyperedges candidateIds = Hypergraph::get(Conceptgraph::IsRelationId)->pointingFrom();
     for (auto candidateId : candidateIds)
     {
         auto rel = Hypergraph::get(candidateId);
@@ -194,7 +194,7 @@ Hyperedges Conceptgraph::relationsTo(const unsigned id, const std::string& label
 {
     Hyperedges resultIds;
     // Find edges which have the right label and are part of the relation set
-    Hyperedges candidateIds = Hypergraph::get(Conceptgraph::RelationId)->pointingTo();
+    Hyperedges candidateIds = Hypergraph::get(Conceptgraph::IsRelationId)->pointingFrom();
     for (auto candidateId : candidateIds)
     {
         auto rel = Hypergraph::get(candidateId);

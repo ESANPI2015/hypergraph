@@ -18,16 +18,20 @@
 *
 * NOTE:
 * The introduction of the two URELEMENTS is a shortcut for the following, more exact terminology:
-* X <- IS-RELATION
-* Y <- IS-CONCEPT <- FACT-OF -> IS-CONCEPT* <- IS-RELATION
+* X <- IS-RELATION <- FACT-OF -> IS-RELATION*
+* Y <- IS-CONCEPT <- FACT-OF -> IS-CONCEPT* <- IS-RELATION <- ...
+*
+* For now, we use the following to encode concepts and relations:
+* X <- IS-RELATION to encode relations
+* Y <- IS-CONCEPT to encode concepts
 *
 */
 
 class Conceptgraph : public Hypergraph
 {
     public:
-        static const unsigned ConceptId;                                //< ID for identifying concept encoding hedge
-        static const unsigned RelationId;                               //< ID for identifying relation encoding hedge
+        static const unsigned IsConceptId;                                //< ID for identifying concept encoding hedge
+        static const unsigned IsRelationId;                               //< ID for identifying relation encoding hedge
 
         /* Constructors/Destructors */
         Conceptgraph();
@@ -46,7 +50,7 @@ class Conceptgraph : public Hypergraph
         Hyperedges relate(const Hyperedges& fromIds, const Hyperedges& toIds, const std::string& label);
         Hyperedges relations(const std::string& label="");              //< Find relations by label
         //Hyperedges relations(const std::vector<std::string>& labels="");              //< Find relations matching one of the given labels
-        
+
         /* QUERIES */
         Hyperedges relationsFrom(const unsigned id, const std::string& label="");   //< Find all occurences of (id <-- label)
         Hyperedges relationsFrom(const Hyperedges& ids, const std::string& label="");
