@@ -63,7 +63,7 @@ namespace YAML {
                 {
                     Node current = *it;
                     // Get id and label from file
-                    unsigned id = current["id"].as<unsigned>();
+                    UniqueId id = current["id"].as<UniqueId>();
                     std::string label = current["label"].as<std::string>();
 
                     // Create the edge
@@ -81,17 +81,17 @@ namespace YAML {
                 {
                     Node current = *it;
                     // Get id and label from file
-                    unsigned id = current["id"].as<unsigned>();
+                    UniqueId id = current["id"].as<UniqueId>();
                     std::string label = current["label"].as<std::string>();
 
                     // Find the edges we are pointing to
                     if (current["pointingTo"])
                     {
                         // Point from id to otherIds
-                        std::vector<unsigned> otherIds = current["pointingTo"].as< std::vector<unsigned> >();
+                        std::vector<UniqueId> otherIds = current["pointingTo"].as< std::vector<UniqueId> >();
                         for (auto otherId : otherIds)
                         {
-                            if (rhs->to(id, otherId).empty())
+                            if (rhs->to(Hyperedges{id}, Hyperedges{otherId}).empty())
                             {
                                 std::cout << "YAML::decode(Hypergraph): " << id << " -> " << otherId << " failed\n";
                                 return false;
@@ -103,10 +103,10 @@ namespace YAML {
                     if (current["pointingFrom"])
                     {
                         // Point from id to otherIds
-                        std::vector<unsigned> otherIds = current["pointingFrom"].as< std::vector<unsigned> >();
+                        std::vector<UniqueId> otherIds = current["pointingFrom"].as< std::vector<UniqueId> >();
                         for (auto otherId : otherIds)
                         {
-                            if (rhs->from(otherId, id).empty())
+                            if (rhs->from(Hyperedges{otherId}, Hyperedges{id}).empty())
                             {
                                 std::cout << "YAML::decode(Hypergraph): " << id << " <- " << otherId << " failed\n";
                                 return false;

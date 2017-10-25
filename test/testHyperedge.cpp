@@ -13,13 +13,13 @@ int main(void)
     Hypergraph testGraph;
 
     std::cout << "> Create edge" << std::endl;
-    assert(testGraph.create(1, "First edge").empty() == false);
+    assert(testGraph.create("1", "First edge").empty() == false);
 
     std::cout << "> Create edge with desired id" << std::endl;
-    assert(testGraph.create(23, "Edge with id 23").empty() == false);
+    assert(testGraph.create("23", "Edge with id 23").empty() == false);
 
     std::cout << "> Create edge" << std::endl;
-    assert(testGraph.create(2, "Second edge").empty() == false);
+    assert(testGraph.create("2", "Second edge").empty() == false);
 
     std::cout << "> All edges" << std::endl;
     auto edges = testGraph.find();
@@ -29,16 +29,16 @@ int main(void)
     }
 
     std::cout << "> Connect edge 1 -> 2" << std::endl;
-    assert(testGraph.to(1,2).size() == 2);
+    assert(testGraph.to(Hyperedges{"1"},Hyperedges{"2"}).size() == 2);
     std::cout << "> Connect edges 2 -> 23" << std::endl;
-    assert(testGraph.to(2,23).size() == 2);
+    assert(testGraph.to(Hyperedges{"2"},Hyperedges{"23"}).size() == 2);
     std::cout << "> Connect edges 23 -> 24 (should fail)" << std::endl;
-    assert(testGraph.to(23,24).size() == 0);
+    assert(testGraph.to(Hyperedges{"23"},Hyperedges{"24"}).size() == 0);
     std::cout << "> Connect edge 23 <- 1" << std::endl;
-    assert(testGraph.from(23,1).size() == 2);
+    assert(testGraph.from(Hyperedges{"23"},Hyperedges{"1"}).size() == 2);
     std::cout << "> Make a traversal starting at 1" << std::endl;
     testGraph.traversal(
-            1,
+            "1",
             [](Hyperedge *x){ std::cout << *x << std::endl; return true; },
             [](Hyperedge *x, Hyperedge *y){ return true; }
          );

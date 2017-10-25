@@ -26,7 +26,7 @@ int main(void)
     fout.close();
 
     std::cout << "> Create concept" << std::endl;
-    universe.create(3, "First concept");
+    universe.create("3", "First concept");
 
     std::cout << "> All concepts" << std::endl;
     auto concepts = universe.find();
@@ -36,33 +36,33 @@ int main(void)
     }
 
     std::cout << "> Create another concept and check it" << std::endl;
-    universe.create(4, "Second concept");
-    assert(universe.find("Second concept").count(4) > 0);
+    universe.create("4", "Second concept");
+    assert(universe.find("Second concept").count("4") > 0);
 
     std::cout << "> Relate the first and the second concept\n";
-    universe.relate(5, 3, 4, "relatedTo");
+    universe.relate("5", Hyperedges{"3"}, Hyperedges{"4"}, "relatedTo");
 
     std::cout << "> Create a tree of concepts related by a common relation\n";
-    universe.create(6, "Root");
-    universe.create(11,"I");
-    universe.create(12,"You");
-    universe.create(13,"It"); 
-    universe.create(14,"Huh?");
-    universe.create(15, "Plural");
-    universe.create(20, "We"); 
-    universe.create(21, "You");
-    universe.create(22, "They");
+    universe.create("6", "Root");
+    universe.create("11","I");
+    universe.create("12","You");
+    universe.create("13","It"); 
+    universe.create("14","Huh?");
+    universe.create("15", "Plural");
+    universe.create("20", "We"); 
+    universe.create("21", "You");
+    universe.create("22", "They");
     auto hashedId = universe.create("Doh?");
 
-    universe.relate(7,  6, 11, "R");
-    universe.relate(8,  6, 12, "R");
-    universe.relate(9,  6, 13, "R");
-    universe.relate(10, 6, 14, "A");
-    universe.relate(16, 15, 20, "R");
-    universe.relate(17, 15, 21, "R");
-    universe.relate(18, 15, 22, "R");
-    universe.relate(19, 15, *(hashedId.begin()), "B");
-    universe.relate(24, 6, 15, "R");
+    universe.relate("7",  Hyperedges{"6"}, Hyperedges{"11"}, "R");
+    universe.relate("8",  Hyperedges{"6"}, Hyperedges{"12"}, "R");
+    universe.relate("9",  Hyperedges{"6"}, Hyperedges{"13"}, "R");
+    universe.relate("10", Hyperedges{"6"}, Hyperedges{"14"}, "A");
+    universe.relate("16", Hyperedges{"15"}, Hyperedges{"20"}, "R");
+    universe.relate("17", Hyperedges{"15"}, Hyperedges{"21"}, "R");
+    universe.relate("18", Hyperedges{"15"}, Hyperedges{"22"}, "R");
+    universe.relate("19", Hyperedges{"15"}, hashedId, "B");
+    universe.relate("24", Hyperedges{"6"}, Hyperedges{"15"}, "R");
 
     std::cout << "> All concepts" << std::endl;
     concepts = universe.find();
@@ -105,7 +105,7 @@ int main(void)
     for (auto conceptId : concepts)
     {
         std::cout << conceptId << " " << universe2.get(conceptId)->label() << std::endl;
-        auto relations = universe2.relationsOf(conceptId);
+        auto relations = universe2.relationsOf(Hyperedges{conceptId});
         for (auto relId : relations)
         {
             std::cout << "\t" << relId << " " << universe2.get(relId)->label() << std::endl;
@@ -117,7 +117,7 @@ int main(void)
     for (auto conceptId : concepts)
     {
         std::cout << conceptId << " " << universe2.get(conceptId)->label() << std::endl;
-        auto relations = universe2.relationsOf(conceptId);
+        auto relations = universe2.relationsOf(Hyperedges{conceptId});
         for (auto relId : relations)
         {
             std::cout << "\t" << relId << " " << universe2.get(relId)->label() << std::endl;
@@ -128,7 +128,7 @@ int main(void)
     
     Conceptgraph query;
     Hyperedges wildcardId;
-    Hyperedges queryEdges = query.relate(query.create("Root"), (wildcardId = query.create("")), "A");
+    Hyperedges queryEdges = query.relate(query.create("Root"), (wildcardId = query.create("*","")), "A");
     concepts = query.Hypergraph::find();
     for (auto conceptId : concepts)
     {
@@ -156,7 +156,7 @@ int main(void)
 
     std::cout << "> Create another concept graph which serves as a replacement for the matched subgraph\n";
     Conceptgraph replacement;
-    Hyperedges replEdges = replacement.relate(replacement.create(""), replacement.create("Root"), "R^-1");
+    Hyperedges replEdges = replacement.relate(replacement.create("**",""), replacement.create("Root"), "R^-1");
     concepts = replacement.Hypergraph::find();
     for (auto conceptId : concepts)
     {
@@ -177,7 +177,7 @@ int main(void)
     Mapping repl;
     repl[*query.find("Root").begin()] = *replacement.find("Root").begin();
     repl[*query.relations("A").begin()] = *replacement.relations("R^-1").begin();
-    repl[*wildcardId.begin()] = *wildcardId.begin();
+    repl["*"] = "**";
 
     Mapping result = merged2.rewrite(mapping, repl);
     for (auto it : result)
@@ -191,7 +191,7 @@ int main(void)
     for (auto conceptId : concepts)
     {
         std::cout << conceptId << " " << fin.get(conceptId)->label() << std::endl;
-        auto relations = fin.relationsOf(conceptId);
+        auto relations = fin.relationsOf(Hyperedges{conceptId});
         for (auto relId : relations)
         {
             std::cout << "\t" << relId << " " << fin.get(relId)->label() << std::endl;

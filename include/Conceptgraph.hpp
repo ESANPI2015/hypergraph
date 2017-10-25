@@ -30,55 +30,45 @@
 class Conceptgraph : public Hypergraph
 {
     public:
-        static const unsigned IsConceptId;                                //< ID for identifying concept encoding hedge
-        static const unsigned IsRelationId;                               //< ID for identifying relation encoding hedge
+        static const UniqueId IsConceptId;                                //< ID for identifying concept encoding hedge
+        static const UniqueId IsRelationId;                               //< ID for identifying relation encoding hedge
 
         /* Constructors/Destructors */
         Conceptgraph();
         Conceptgraph(Hypergraph& A);
-        void     destroy(const unsigned id);                            //< Destroy concept, relation or signature
+        void     destroy(const UniqueId id);                            //< Destroy concept, relation or signature
 
         /* CONCEPTS */
-        Hyperedges create(const unsigned id, const std::string& label="");  //< Create a new concept (id, label)
-        Hyperedges create(const std::string& label);                        //< Create a new concept (hash(label), label)
+        Hyperedges create(const UniqueId id, const std::string& label);     //< Create a new concept (id, label)
+        Hyperedges create(const std::string& label);                        //< Create a new concept using label as basis for UID. If exists will add an occurrence counter
         Hyperedges find(const std::string& label="");                       //< Find a concept by label
 
         /* RELATIONS */
-        Hyperedges relate(const unsigned id, const unsigned fromId, const unsigned toId, const std::string& label);            //< Create relation fromId -- id --> toId
-        Hyperedges relate(const unsigned id, const Hyperedges& fromIds, const Hyperedges& toIds, const std::string& label);    //< Create N:M relation
-        Hyperedges relate(const unsigned fromId, const unsigned toId, const std::string& label);                           //< Create relation using hash(concat(labels)) as id
-        Hyperedges relate(const Hyperedges& fromIds, const Hyperedges& toIds, const std::string& label);
+        Hyperedges relate(const UniqueId id, const Hyperedges& fromIds, const Hyperedges& toIds, const std::string& label); //< Create N:M relation
+        Hyperedges relate(const Hyperedges& fromIds, const Hyperedges& toIds, const std::string& label);                    //< Create N:M relation using label as UID
         Hyperedges relations(const std::string& label="");              //< Find relations by label
         //Hyperedges relations(const std::vector<std::string>& labels="");              //< Find relations matching one of the given labels
 
+        /* RELATIONS FROM A TEMPLATE */
+        Hyperedges relateFrom(const UniqueId id, const Hyperedges& fromIds, const Hyperedges& toIds, const UniqueId relId);
+        Hyperedges relateFrom(const Hyperedges& fromIds, const Hyperedges& toIds, const UniqueId relId);
+
         /* QUERIES */
-        Hyperedges relationsFrom(const unsigned id, const std::string& label="");   //< Find all occurences of (id <-- label)
         Hyperedges relationsFrom(const Hyperedges& ids, const std::string& label="");
-        Hyperedges relationsTo(const unsigned id, const std::string& label="");     //< Find all occurences of (label --> id)
         Hyperedges relationsTo(const Hyperedges& ids, const std::string& label="");
-        Hyperedges relationsOf(const unsigned id, const std::string& label="")      //< Find all occurences of (label --> id) || (id <-- label)
-        {
-            return unite(relationsFrom(id,label), relationsTo(id,label));
-        }
         Hyperedges relationsOf(const Hyperedges& ids, const std::string& label="")
         {
             return unite(relationsFrom(ids,label), relationsTo(ids,label));
         }
         /* TRAVERSALS */
-        Hyperedges traverse(const unsigned rootId,                                  //< Traverse the (sub)graph starting at rootId
+        Hyperedges traverse(const UniqueId rootId,                                  //< Traverse the (sub)graph starting at rootId
                             const std::string& visitLabel="",                       //< filter visited relations OR concepts by this label
                             const std::string& relationLabel="",                    //< follow relations matching this label
                             const TraversalDirection dir=DOWN);
-        Hyperedges traverse(const unsigned rootId,                                  //< Traverse the (sub)graph starting at rootId
+        Hyperedges traverse(const UniqueId rootId,                                  //< Traverse the (sub)graph starting at rootId
                             const std::vector<std::string>& visitLabels,            //< visited relations OR concepts matching one of these labels will be in the results
                             const std::vector<std::string>& relationLabels,         //< follow relations matching one of these labels
                             const TraversalDirection dir=DOWN);
-
-        /* RELATIONS FROM TEMPLATES */
-        Hyperedges relate(const unsigned id, const unsigned fromId, const unsigned toId, const unsigned relId);   //< Create a relation using relId as template
-        Hyperedges relate(const unsigned fromId, const unsigned toId, const unsigned relId);                  //< Create relation using hash(concat(labels)) as id
-        Hyperedges relate(const unsigned id, const Hyperedges& fromIds, const Hyperedges& toIds, const unsigned relId);
-        Hyperedges relate(const Hyperedges& fromIds, const Hyperedges& toIds, const unsigned relId);
 };
 
 #endif

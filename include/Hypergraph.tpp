@@ -6,7 +6,7 @@
 #include <sstream>
 
 template <typename ResultFilter, typename TraversalFilter> Hyperedges Hypergraph::traversal(
-    const unsigned rootId,
+    const UniqueId rootId,
     ResultFilter f,
     TraversalFilter g,
     const Hypergraph::TraversalDirection dir
@@ -14,7 +14,7 @@ template <typename ResultFilter, typename TraversalFilter> Hyperedges Hypergraph
 {
     Hyperedges result;
     Hyperedges visited;
-    std::queue< unsigned > edges;
+    std::queue< UniqueId > edges;
 
     edges.push(rootId);
 
@@ -41,13 +41,13 @@ template <typename ResultFilter, typename TraversalFilter> Hyperedges Hypergraph
         switch (dir)
         {
             case DOWN:
-                unknowns = nextNeighboursOf(edge->id());
+                unknowns = nextNeighboursOf(Hyperedges{edge->id()});
                 break;
             case UP:
-                unknowns = prevNeighboursOf(edge->id());
+                unknowns = prevNeighboursOf(Hyperedges{edge->id()});
                 break;
             case BOTH:
-                unknowns = allNeighboursOf(edge->id());
+                unknowns = allNeighboursOf(Hyperedges{edge->id()});
                 break;
             default:
                 result.clear();

@@ -40,7 +40,7 @@ int main(void)
     universe.subrelationOf(universe.relations("love"), universe.relations("like")); // If x loves y, x also likes y but not vice versa
 
     /* Create some persons and cars */
-    universe.instantiateFrom(universe.find("Person"), "John");
+    std::cout << universe.instantiateFrom(universe.find("Person"), "John") << "\n";
     universe.instantiateFrom(universe.find("Person"), "Mary");
     universe.instantiateFrom(universe.find("Person"), "Alice");
     universe.instantiateFrom(universe.find("Person"), "Bob");
@@ -49,13 +49,16 @@ int main(void)
     universe.instantiateFrom(universe.find("Car"), "Fiat Punto");
 
     /* Relate some people */
-    universe.relateFrom(universe.instancesOf(universe.find("Person"), "Mary"), universe.instancesOf(universe.find("Person"), "John"), loveRelClassId);
+    std::cout << universe.find("Person") << "\n";
+    std::cout << universe.instancesOf(universe.find("Person"), "Mary") << "\n";
+    std::cout << universe.instancesOf(universe.find("Person"), "John") << "\n";
+    std::cout << universe.relateFrom(universe.instancesOf(universe.find("Person"), "Mary"), universe.instancesOf(universe.find("Person"), "John"), loveRelClassId) << "\n";
     universe.relateFrom(universe.instancesOf(universe.find("Person"), "Alice"), universe.instancesOf(universe.find("Person"), "John"), loveRelClassId);
 
     std::cout << "> Create a query for a person loving another person\n";
     /* Create a query */
-    auto personA = universe.create("");
-    auto personB = universe.create("");
+    auto personA = universe.create("*","");
+    auto personB = universe.create("**","");
     Hyperedges query;
     query = unite(query, universe.instanceOf(personA, universe.find("Person")));
     query = unite(query, universe.instanceOf(personB, universe.find("Person")));

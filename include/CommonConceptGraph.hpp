@@ -53,16 +53,15 @@ class CommonConceptGraph : public Conceptgraph
 {
     public:
         /*As stated above this HEDGE will point FROM all RELATIONS which encode FACT-OF relations. It also points FROM AND TO itself!!!*/
-        static const unsigned FactOfId;
+        static const UniqueId FactOfId;
         /*This relation cannot be subclassed by itself!*/
-        static const unsigned SubrelOfId;
-
+        static const UniqueId SubrelOfId;
         /*Other predefined relations*/
-        static const unsigned IsAId;
-        static const unsigned HasAId;
-        static const unsigned PartOfId;
-        static const unsigned ConnectsId;
-        static const unsigned InstanceOfId;
+        static const UniqueId IsAId;
+        static const UniqueId HasAId;
+        static const UniqueId PartOfId;
+        static const UniqueId ConnectsId;
+        static const UniqueId InstanceOfId;
 
         void createCommonConcepts();
 
@@ -72,7 +71,7 @@ class CommonConceptGraph : public Conceptgraph
 
         /*Make facts*/
         Hyperedges factOf(const Hyperedges& factIds, const Hyperedges& superRelIds);
-        Hyperedges relateFrom(const Hyperedges& fromIds, const Hyperedges& toIds, const unsigned superId);
+        Hyperedges relateFrom(const Hyperedges& fromIds, const Hyperedges& toIds, const UniqueId superId);
         Hyperedges relateFrom(const Hyperedges& fromIds, const Hyperedges& toIds, const Hyperedges& superIds);
         Hyperedges relateAnother(const Hyperedges& fromIds, const Hyperedges& toIds, const Hyperedges& otherIds); // Creates another fact of the same superclass than otherId(s)
 
@@ -85,19 +84,19 @@ class CommonConceptGraph : public Conceptgraph
         Hyperedges instanceOf(const Hyperedges& individualIds, const Hyperedges& superIds);
 
         /*Constructive functions creating new concepts*/
-        Hyperedges instantiateFrom(const unsigned superId, const std::string& label=""); // create label <-- INSTANCE-OF --> superId
+        Hyperedges instantiateFrom(const UniqueId superId, const std::string& label=""); // create label <-- INSTANCE-OF --> superId
         Hyperedges instantiateFrom(const Hyperedges& superIds, const std::string& label="");
         Hyperedges instantiateAnother(const Hyperedges& otherIds, const std::string& label=""); // create another instance from the superclasses of others
         Hyperedges instantiateDeepFrom(const Hyperedges& otherIds, const std::string& label=""); // create an instance also cloning children and parts
 
         /*Common queries*/
-        Hyperedges factsOf(const unsigned superRelId, const std::string& label="", const TraversalDirection dir=UP);           // non-transitive
+        Hyperedges factsOf(const UniqueId superRelId, const std::string& label="", const TraversalDirection dir=UP);           // non-transitive
         Hyperedges factsOf(const Hyperedges& superRelIds, const std::string& label="", const TraversalDirection dir=UP);       // non-transitive
-        Hyperedges subrelationsOf(const unsigned superRelId, const std::string& label="", const TraversalDirection dir=UP);    //transitive
+        Hyperedges subrelationsOf(const UniqueId superRelId, const std::string& label="", const TraversalDirection dir=UP);    //transitive
 
         /*Other common queries using subrelationsOf!*/
         /*NOTE: The traversal direction tells if the basic relation is to be followed in its direction(DOWN) or against it(UP)*/
-        Hyperedges transitiveClosure(const unsigned rootId, const unsigned relId, const std::string& label="", const TraversalDirection dir=DOWN);
+        Hyperedges transitiveClosure(const UniqueId rootId, const UniqueId relId, const std::string& label="", const TraversalDirection dir=DOWN);
         Hyperedges subclassesOf(const Hyperedges& ids, const std::string& label="", const TraversalDirection dir=UP);      //transitive
         Hyperedges partsOf(const Hyperedges& ids, const std::string& label="", const TraversalDirection dir=UP);           //transitive
         Hyperedges descendantsOf(const Hyperedges& ancestorIds, const std::string& label="", const TraversalDirection dir=DOWN); //transitive
@@ -106,27 +105,27 @@ class CommonConceptGraph : public Conceptgraph
         Hyperedges endpointsOf(const Hyperedges& ids, const std::string& label="", const TraversalDirection dir=DOWN);    //non-transitive
 
         /*Shortcuts*/
-        Hyperedges subrelationOf(const unsigned subRelId, const unsigned superRelId)
+        Hyperedges subrelationOf(const UniqueId subRelId, const UniqueId superRelId)
         {
             return subrelationOf(Hyperedges{subRelId}, Hyperedges{superRelId});
         }
-        Hyperedges subclassesOf(const unsigned id, const std::string& label="", const TraversalDirection dir=UP)
+        Hyperedges subclassesOf(const UniqueId id, const std::string& label="", const TraversalDirection dir=UP)
         {
             return subclassesOf(Hyperedges{id}, label, dir);
         }
-        Hyperedges isA(const unsigned subId, const unsigned superId)
+        Hyperedges isA(const UniqueId subId, const UniqueId superId)
         {
             return isA(Hyperedges{subId}, Hyperedges{superId});
         }
-        Hyperedges isA(const Hyperedges& subIds, const unsigned superId)
+        Hyperedges isA(const Hyperedges& subIds, const UniqueId superId)
         {
             return isA(subIds, Hyperedges{superId});
         }
-        Hyperedges childrenOf(const unsigned id, const std::string& label="", const TraversalDirection dir=DOWN)
+        Hyperedges childrenOf(const UniqueId id, const std::string& label="", const TraversalDirection dir=DOWN)
         {
             return childrenOf(Hyperedges{id}, label, dir);
         }
-        Hyperedges instancesOf(const unsigned id, const std::string& label="", const TraversalDirection dir=UP)
+        Hyperedges instancesOf(const UniqueId id, const std::string& label="", const TraversalDirection dir=UP)
         {
             return instancesOf(Hyperedges{id}, label, dir);
         }

@@ -9,7 +9,7 @@
 #include <stdexcept>
 
 // PRIVATE CONSTRUCTORS
-Hyperedge::Hyperedge(const unsigned id, const std::string& label)
+Hyperedge::Hyperedge(const UniqueId id, const std::string& label)
 : _id(id),
   _label(label)
 {
@@ -25,17 +25,17 @@ void Hyperedge::updateLabel(const std::string& label)
     _label = label;
 }
 
-void Hyperedge::from(const unsigned id)
+void Hyperedge::from(const UniqueId id)
 {
     _from.insert(id);
 }
 
-void Hyperedge::to(const unsigned id)
+void Hyperedge::to(const UniqueId id)
 {
     _to.insert(id);
 }
 
-unsigned Hyperedge::id() const
+UniqueId Hyperedge::id() const
 {
     return _id;
 }
@@ -55,12 +55,12 @@ unsigned Hyperedge::outdegree() const
     return _to.size();
 }
 
-bool Hyperedge::isPointingTo(const unsigned id)
+bool Hyperedge::isPointingTo(const UniqueId id)
 {
     return _to.count(id) ? true : false;
 }
 
-bool Hyperedge::isPointingFrom(const unsigned id)
+bool Hyperedge::isPointingFrom(const UniqueId id)
 {
     return _from.count(id) ? true : false;
 }
