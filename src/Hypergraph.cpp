@@ -273,17 +273,18 @@ bool equal(const Mapping& a, const Mapping& b)
     return true;
 }
 
-Mapping Hypergraph::match(const Hyperedges& otherIds, const std::vector< Mapping >& previousMatches)
+Mapping Hypergraph::match(Hypergraph& other, const std::vector< Mapping >& previousMatches)
 {
     // This algorithm is according to Ullmann
     // and has been implemented following "An In-depth Comparison of Subgraph Isomorphism Algorithms in Graph Databases"
     // First step: For each vertex in subgraph, we find other suitable candidates
     Mapping currentMapping;
     std::map< UniqueId, Hyperedges > candidateIds;
+    Hyperedges otherIds = other.find();
     for (UniqueId otherId : otherIds)
     {
         // NOTE: Do not prevent the trivial case here!!!
-        candidateIds[otherId] = find(get(otherId)->label());
+        candidateIds[otherId] = find(other.get(otherId)->label());
         if (!candidateIds[otherId].size())
             return currentMapping;
     }
@@ -302,8 +303,8 @@ Mapping Hypergraph::match(const Hyperedges& otherIds, const std::vector< Mapping
         bool valid = true;
         for (const auto& pair : currentMapping)
         {
-            Hyperedges templatePointsTo(intersect(to(Hyperedges{pair.first}), otherIds));
-            Hyperedges templatePointsFrom(intersect(from(Hyperedges{pair.first}), otherIds));
+            Hyperedges templatePointsTo(other.to(Hyperedges{pair.first}));
+            Hyperedges templatePointsFrom(other.from(Hyperedges{pair.first}));
             Hyperedges matchPointsTo(to(Hyperedges{pair.second}));
             Hyperedges matchPointsFrom(from(Hyperedges{pair.second}));
             for (UniqueId templateId : templatePointsTo)
@@ -367,8 +368,8 @@ Mapping Hypergraph::match(const Hyperedges& otherIds, const std::vector< Mapping
         // Found unmapped hedge
         // NOTE: This is actually what makes this method an Ullmann algorithm
         Hyperedges candidates = candidateIds[unmappedId];
-        Hyperedges nextNeighbourIds = intersect(to(Hyperedges{unmappedId}), otherIds); // Check ONLY the neighbourhood INSIDE the subgraph
-        Hyperedges prevNeighbourIds = intersect(from(Hyperedges{unmappedId}), otherIds);
+        Hyperedges nextNeighbourIds = other.to(Hyperedges{unmappedId}); // Check ONLY the neighbourhood INSIDE the subgraph
+        Hyperedges prevNeighbourIds = other.from(Hyperedges{unmappedId});
         for (UniqueId candidateId : candidates)
         {
             Hyperedges nextCandidateNeighbours = to(Hyperedges{candidateId});
@@ -419,64 +420,61 @@ Mapping invert(const Mapping& m)
     return result;
 }
 
-Mapping Hypergraph::rewrite(Mapping& matched, Mapping& replacements)
+Mapping join(const Mapping& a, const Mapping& b)
 {
     Mapping result;
-    // matched contains a mapping from a query (sub)graph QG -> a subgraph isomorphism SGI in a data graph DG
-    // This mapping is a one-to-one mapping
-    Mapping matchedInv(invert(matched));
-    // replacements is mapping from the same query (sub)graph QG & 0 -> another (sub)graph RG & 0
-    // It is a one-to-one mapping as well, BUT we allow also the following cases!
-    // 0 -> X: A new node has to be created & connected in DG
-    // Y -> 0: A former node in DG has to be destroyed
-    Mapping replacementsInv(invert(replacements));
+    for (const auto &pair : a)
+    {
+        // Find occurrence in b
+        Mapping::const_iterator otherPairIt(b.find(pair.first));
+        if (otherPairIt == b.end())
+            continue;
+        // If found make map with a.second -> b.second
+        result[pair.second] = otherPairIt->second;
+    }
+    return result;
+}
 
-    // In the first version of this algorithm we cycled through the matches ...
-    // However to handle the above cases, we have to cycle through the replacements!
+Mapping Hypergraph::rewrite(Hypergraph& other, const Mapping& replacements)
+{
+    Mapping result;
+    // Apply explicit replacements
     for (const auto &pair : replacements)
     {
         // Get some important UIDs
-        UniqueId queryId(pair.first);
+        UniqueId originalId(pair.first);
         UniqueId replacementId(pair.second);
-
-        // Find originalId
-        UniqueId originalId;
-        if (matched.count(queryId))
-            originalId = matched[queryId];
 
         // 0 -> X case: create a new node and store its UID in originalId
         if (originalId.empty() && !replacementId.empty())
         {
             unsigned occurrence = 1;
             originalId = replacementId;
-            while (create(originalId, get(replacementId)->label()).empty())
+            while (create(originalId, other.get(replacementId)->label()).empty())
                 originalId = replacementId + std::to_string(occurrence++);
         } 
-        // Register the change
-        result[originalId] = replacementId;
         // Y -> 0 case: A former node in DG has to be destroyed
         if (!originalId.empty() && replacementId.empty())
         {
             destroy(originalId);
             continue;
         }
-        // 0 -> 0 case: continue
-        if (originalId.empty() && replacementId.empty())
+        // Y -> X case: Update label (if given)
+        if (!originalId.empty() && !replacementId.empty())
         {
-            continue;
+            // If the replacement hedge provides a label, we change the label of the original
+            std::string replacementLabel(other.get(replacementId)->label());
+            if (!replacementLabel.empty())
+            {
+                get(originalId)->updateLabel(replacementLabel);
+            }
         }
-
-        // If the replacement hedge provides a label, we change the label of the original
-        std::string replacementLabel(get(replacementId)->label());
-        if (!replacementLabel.empty())
-        {
-            get(originalId)->updateLabel(replacementLabel);
-        }
+        result[originalId] = replacementId;
     }
 
+    // TODO: Can we really do this invert?
     Mapping resultInv(invert(result));
-
-    // After haveing created or destroyed nodes and updated labels, we now have to possibly rewire nodes
+    // Wire the nodes
     for (const auto& pair : result)
     {
         // Get UIDs
@@ -491,9 +489,9 @@ Mapping Hypergraph::rewrite(Mapping& matched, Mapping& replacements)
 
         // Get some needed connection info
         Hyperedges originalPointsTo = to(Hyperedges{originalId});
-        Hyperedges replacementPointsTo = to(Hyperedges{replacementId});
+        Hyperedges replacementPointsTo = other.to(Hyperedges{replacementId});
         Hyperedges originalPointsFrom = from(Hyperedges{originalId});
-        Hyperedges replacementPointsFrom = from(Hyperedges{replacementId});
+        Hyperedges replacementPointsFrom = other.from(Hyperedges{replacementId});
 
         // Make sure that links from/to originals are replaced by links from/to correspnding replacements
         // Check (original -> originalOther) -> (replacement -> replacementOther)
@@ -552,3 +550,4 @@ Mapping Hypergraph::rewrite(Mapping& matched, Mapping& replacements)
     }
     return result;
 }
+

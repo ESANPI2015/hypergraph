@@ -125,10 +125,8 @@ int main(void)
     }
 
     std::cout << "> Create another concept graph for inexact pattern matching\n";
-    
     Conceptgraph query;
-    Hyperedges wildcardId;
-    Hyperedges queryEdges = query.relate(query.create("Root"), (wildcardId = query.create("*","")), "A");
+    query.relate(query.create("Root"), query.create("*",""), "A");
     concepts = query.Hypergraph::find();
     for (auto conceptId : concepts)
     {
@@ -145,18 +143,16 @@ int main(void)
     }
     fout.close();
 
-    std::cout << "> Try to find a match of the query graph in the data graph (in-place matching)\n";
-    Hypergraph merged(universe2, query);
-    Mapping trivial = fromHyperedges(queryEdges);
-    Mapping mapping = merged.match(queryEdges, std::vector< Mapping >{trivial});
+    std::cout << "> Try to find a match of the query graph in the data graph\n";
+    Mapping mapping = universe2.match(query);
     for (auto it : mapping)
     {
-        std::cout << "\t" << *(merged.get(it.first)) << " -> " << *(merged.get(it.second)) << std::endl;
+        std::cout << "\t" << *(query.get(it.first)) << " -> " << *(universe2.get(it.second)) << std::endl;
     }
 
     std::cout << "> Create another concept graph which serves as a replacement for the matched subgraph\n";
     Conceptgraph replacement;
-    Hyperedges replEdges = replacement.relate(replacement.create("**",""), replacement.create("Root"), "R^-1");
+    replacement.relate(replacement.create("**",""), replacement.create("Root"), "R^-1");
     concepts = replacement.Hypergraph::find();
     for (auto conceptId : concepts)
     {
@@ -172,21 +168,25 @@ int main(void)
     }
     fout.close();
 
-    std::cout << "> Rewrite\n";
-    Hypergraph merged2(merged, replacement);
-    Mapping repl;
-    repl[*query.find("Root").begin()] = *replacement.find("Root").begin();
-    repl[*query.relations("A").begin()] = *replacement.relations("R^-1").begin();
+    std::cout << "> Define the mapping between query and replacement\n";
+    Mapping repl;// = fromHyperedges(query.Hypergraph::find());
+    repl["Root"] = "Root";
     repl["*"] = "**";
+    repl["A"] = "R^-1";
 
-    Mapping result = merged2.rewrite(mapping, repl);
+    std::cout << repl << std::endl;
+    repl = join(mapping, repl);
+    std::cout << repl << std::endl;
+
+    std::cout << "> Rewrite\n";
+    Mapping result = universe2.rewrite(replacement, repl);
     for (auto it : result)
     {
-        std::cout << "\t" << *merged2.get(it.first) << " <- " << *merged2.get(it.second) << std::endl;
+        std::cout << "\t" << *universe2.get(it.first) << " <- " << *replacement.get(it.second) << std::endl;
     }
 
     std::cout << "> All concepts" << std::endl;
-    Conceptgraph fin(merged2);
+    Conceptgraph fin(universe2);
     concepts = fin.find();
     for (auto conceptId : concepts)
     {

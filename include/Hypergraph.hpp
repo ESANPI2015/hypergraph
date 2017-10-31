@@ -22,6 +22,7 @@ typedef std::map<UniqueId, UniqueId> Mapping;   //< This map stores a one-to-one
 bool equal(const Mapping& a, const Mapping& b); //< Check if two mappings are equal or not
 Mapping invert(const Mapping& m);               //< Returns the inverse mapping
 Mapping fromHyperedges(const Hyperedges& a);    //< Constructs a identity mapping between the elements of a
+Mapping join(const Mapping& a, const Mapping& b); //< Constructs from two mappings the inner join: a:X->Y, b:X->Z --> result: Y->Z
 std::ostream& operator<< (std::ostream& os , const Mapping& val);
 
 class Hypergraph {
@@ -70,10 +71,11 @@ class Hypergraph {
         );
 
         /* Pattern matching */
-        Mapping match(const Hyperedges& otherIds,                                   //< In-place matching (Subgraph embedded in the same graph)
+        Mapping match(Hypergraph& other,                                                       //< Find embedding of other graph in this graph
                       const std::vector< Mapping >& previousMatches = std::vector< Mapping >() // These previous matches will not be found again!
                      );
-        Mapping rewrite(Mapping& matched, Mapping& replacements);                   //< In-place rewrite: Given a match and a replacement, the graph will be transformed
+        /* Graph rewriting*/
+        Mapping rewrite(Hypergraph& other, const Mapping& replacements); // Takes another graph and updates/creates or deletes hedges accordingly
 
     protected:
         // Private members for factory

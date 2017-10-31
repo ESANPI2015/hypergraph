@@ -57,30 +57,39 @@ int main(void)
 
     std::cout << "> Create a query for a person loving another person\n";
     /* Create a query */
-    auto personA = universe.create("*","");
-    auto personB = universe.create("**","");
-    Hyperedges query;
-    query = unite(query, universe.instanceOf(personA, universe.find("Person")));
-    query = unite(query, universe.instanceOf(personB, universe.find("Person")));
-    query = unite(query, universe.relateFrom(personA, personB, loveRelClassId));
-    std::cout << query << std::endl;
-    Mapping mapping = universe.match(query);
+    CommonConceptGraph queryGraph;
+    auto personA = queryGraph.create("*","");
+    auto personB = queryGraph.create("**","");
+    queryGraph.create("Person");
+    queryGraph.instanceOf(personA, queryGraph.find("Person"));
+    queryGraph.instanceOf(personB, queryGraph.find("Person"));
+    queryGraph.relate(queryGraph.find("Person"), queryGraph.find("Person"), "love");
+    queryGraph.relateFrom(personA, personB, queryGraph.relations("love"));
+    /* Find query in unsiverse*/
+    Mapping mapping = universe.match(queryGraph);
     for (const auto &pair : mapping)
     {
-        std::cout << *universe.get(pair.first) << " -> " << *universe.get(pair.second) << "\n";
+        std::cout << *queryGraph.get(pair.first) << " -> " << *universe.get(pair.second) << "\n";
     }
 
     std::cout << "> Find all matches for some person loving another person\n";
     std::vector< Mapping > previous;
-    while ((mapping = universe.match(query, previous)).size())
+    while ((mapping = universe.match(queryGraph, previous)).size())
     {
         std::cout << "\n";
         for (const auto &pair : mapping)
         {
-            std::cout << *universe.get(pair.first) << " -> " << *universe.get(pair.second) << "\n";
+            std::cout << *queryGraph.get(pair.first) << " -> " << *universe.get(pair.second) << "\n";
         }
         previous.push_back(mapping);
     }
+
+    std::cout << "> Create a replacement for a person loving another person\n";
+    CommonConceptGraph replacementGraph(queryGraph);
+    replacementGraph.relate(replacementGraph.find("Person"), replacementGraph.find("Person"), "like");
+    replacementGraph.relateFrom(personA, personB, replacementGraph.relations("like"));
+    // TODO: The replacement graph is now the query graph PLUS some additional nodes! These have to be added although they are not in the replacement Mapping
+    // This has to be added somehow to the rewrite algorithm
 
     test.reset();
     test = static_cast<Hypergraph*>(&universe);
