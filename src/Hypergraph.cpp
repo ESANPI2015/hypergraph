@@ -447,7 +447,10 @@ Mapping Hypergraph::rewrite(Mapping& matched, Mapping& replacements)
         // 0 -> X case: create a new node and store its UID in originalId
         if (originalId.empty() && !replacementId.empty())
         {
-            originalId = *(create(get(replacementId)->label()).begin());
+            unsigned occurrence = 1;
+            originalId = replacementId;
+            while (create(originalId, get(replacementId)->label()).empty())
+                originalId = replacementId + std::to_string(occurrence++);
         } 
         // Register the change
         result[originalId] = replacementId;
