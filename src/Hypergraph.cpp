@@ -421,54 +421,85 @@ Mapping invert(const Mapping& m)
 
 Mapping Hypergraph::rewrite(Mapping& matched, Mapping& replacements)
 {
-    // matched contains a mapping from a model subgraph to some ismorphism of it in the overall graph
-    // replacements contains a mapping from the same model subgraph to another (sub)graph
     Mapping result;
-    // Since we know that matched is a one-to-one mapping, we can invert it
+    // matched contains a mapping from a query (sub)graph QG -> a subgraph isomorphism SGI in a data graph DG
+    // This mapping is a one-to-one mapping
     Mapping matchedInv(invert(matched));
-    // Do this also for replacements
+    // replacements is mapping from the same query (sub)graph QG & 0 -> another (sub)graph RG & 0
+    // It is a one-to-one mapping as well, BUT we allow also the following cases!
+    // 0 -> X: A new node has to be created & connected in DG
+    // Y -> 0: A former node in DG has to be destroyed
     Mapping replacementsInv(invert(replacements));
 
-    // Cycle through all entries of matched
-    for (const auto &pair : matched)
+    // In the first version of this algorithm we cycled through the matches ...
+    // However to handle the above cases, we have to cycle through the replacements!
+    for (const auto &pair : replacements)
     {
-        UniqueId modelId = pair.first;
-        UniqueId originalId = pair.second;
-        UniqueId replacementId;
-        if (replacements.count(modelId))
-            replacementId = replacements[modelId];
+        // Get some important UIDs
+        UniqueId queryId(pair.first);
+        UniqueId replacementId(pair.second);
 
+        // Find originalId
+        UniqueId originalId;
+        if (matched.count(queryId))
+            originalId = matched[queryId];
+
+        // 0 -> X case: create a new node and store its UID in originalId
+        if (originalId.empty() && !replacementId.empty())
+        {
+            originalId = *(create(get(replacementId)->label()).begin());
+        } 
         // Register the change
         result[originalId] = replacementId;
-
-        // If the replacementId is not given/is zero, we delete the original hyperedge and proceed
-        if (replacementId.empty())
+        // Y -> 0 case: A former node in DG has to be destroyed
+        if (!originalId.empty() && replacementId.empty())
         {
             destroy(originalId);
             continue;
         }
-
-        // If the replacement hedge provides a label, we change the label of the original
-        if (!get(replacementId)->label().empty())
+        // 0 -> 0 case: continue
+        if (originalId.empty() && replacementId.empty())
         {
-            get(originalId)->updateLabel(get(replacementId)->label());
+            continue;
         }
 
-        // Now the trickiest part: For all links from/to original and some other original, we have to check if this link also exists between the corresponding replacements
-        // Furthermore, we have to check also if a link between replacements are new!
+        // If the replacement hedge provides a label, we change the label of the original
+        std::string replacementLabel(get(replacementId)->label());
+        if (!replacementLabel.empty())
+        {
+            get(originalId)->updateLabel(replacementLabel);
+        }
+    }
+
+    Mapping resultInv(invert(result));
+
+    // After haveing created or destroyed nodes and updated labels, we now have to possibly rewire nodes
+    for (const auto& pair : result)
+    {
+        // Get UIDs
+        UniqueId originalId(pair.first);
+        UniqueId replacementId(pair.second);
+
+        // If one of the UIDs is empty, just continue
+        if (originalId.empty())
+            continue;
+        if (replacementId.empty())
+            continue;
+
+        // Get some needed connection info
         Hyperedges originalPointsTo = to(Hyperedges{originalId});
         Hyperedges replacementPointsTo = to(Hyperedges{replacementId});
+        Hyperedges originalPointsFrom = from(Hyperedges{originalId});
+        Hyperedges replacementPointsFrom = from(Hyperedges{replacementId});
+
+        // Make sure that links from/to originals are replaced by links from/to correspnding replacements
         // Check (original -> originalOther) -> (replacement -> replacementOther)
         for (UniqueId originalOtherId : originalPointsTo)
         {
-            // Check if originalOther has also been matched
-            if (!matchedInv.count(originalOtherId))
+            // Find the corresponding replacement for originalOtherId
+            if (!result.count(originalOtherId))
                 continue;
-            UniqueId matchedOtherId = matchedInv[originalOtherId];
-            // Check if there is a replacement for originalOther
-            if (!replacements.count(matchedOtherId))
-                continue;
-            UniqueId replacementOtherId = replacements[matchedOtherId];
+            UniqueId replacementOtherId = result[originalOtherId];
             // Now we have to check if (originalId -> originalOtherId) -> (replacementId -> replacementOtherId) is true
             if (replacementPointsTo.count(replacementOtherId))
                 continue;
@@ -478,67 +509,41 @@ Mapping Hypergraph::rewrite(Mapping& matched, Mapping& replacements)
         // Check (original -> originalOther) <- (replacement -> replacementOther)
         for (UniqueId replacementOtherId : replacementPointsTo)
         {
-            // Get the matched id
-            if (!replacementsInv.count(replacementOtherId))
-            {
-                // TODO: If this node can not be found, we have to create it and let original point to it!
+            // Find the corresponding original for replacementOtherId
+            if (!resultInv.count(replacementOtherId))
                 continue;
-            }
-            UniqueId matchedOtherId = replacementsInv[replacementOtherId];
-            // Check if there is a match
-            if (!matched.count(matchedOtherId))
-            {
-                // TODO: It would be a serious error of the matching algorithm if we end up here!
-                continue;
-            }
-            UniqueId originalOtherId = matched[matchedOtherId];
+            UniqueId originalOtherId = resultInv[replacementOtherId];
             // Now we have to check if (originalId -> originalOtherId) <- (replacementId -> replacementOtherId) is true
-            if (originalPointsTo.count(originalOtherId))
+            if (originalOtherId.empty() || originalPointsTo.count(originalOtherId))
                 continue;
             // If not, we have to add (originalId -> originalOtherId)
             get(originalId)->_to.insert(originalOtherId);
         }
-        // Do the same with the from set
-        Hyperedges originalPointsFrom = from(Hyperedges{originalId});
-        Hyperedges replacementPointsFrom = from(Hyperedges{replacementId});
-        // Check (originalOther <- original) -> (replacementOther <- replacement)
+        // We did it for the TO links, now we also have to do it for the FROM links
+        // Check (original -> originalOther) -> (replacement -> replacementOther)
         for (UniqueId originalOtherId : originalPointsFrom)
         {
-            // Check if originalOther has also been matched
-            if (!matchedInv.count(originalOtherId))
+            // Find the corresponding replacement for originalOtherId
+            if (!result.count(originalOtherId))
                 continue;
-            UniqueId matchedOtherId = matchedInv[originalOtherId];
-            // Check if there is a replacement for originalOther
-            if (!replacements.count(matchedOtherId))
-                continue;
-            UniqueId replacementOtherId = replacements[matchedOtherId];
-            // Now we have to check if (originalOtherId <- originalId) -> (replacementOtherId <- replacementId) is true
+            UniqueId replacementOtherId = result[originalOtherId];
+            // Now we have to check if (originalId -> originalOtherId) -> (replacementId -> replacementOtherId) is true
             if (replacementPointsFrom.count(replacementOtherId))
                 continue;
-            // If not, we have to remove (originalOtherId <- originalId)
+            // If not, we have to remove (originalId -> originalOtherId)
             get(originalId)->_from.erase(originalOtherId);
         }
-        // Check (originalOther <- original) <- (replacementOther <- replacement)
+        // Check (original -> originalOther) <- (replacement -> replacementOther)
         for (UniqueId replacementOtherId : replacementPointsFrom)
         {
-            // Get the matched id
-            if (!replacementsInv.count(replacementOtherId))
-            {
-                // TODO: If this node can not be found, we have to create it and let original point from it!
+            // Find the corresponding original for replacementOtherId
+            if (!resultInv.count(replacementOtherId))
                 continue;
-            }
-            UniqueId matchedOtherId = replacementsInv[replacementOtherId];
-            // Check if there is a match
-            if (!matched.count(matchedOtherId))
-            {
-                // TODO: It would be a serious error of the matching algorithm if we end up here!
+            UniqueId originalOtherId = resultInv[replacementOtherId];
+            // Now we have to check if (originalId -> originalOtherId) <- (replacementId -> replacementOtherId) is true
+            if (originalOtherId.empty() || originalPointsFrom.count(originalOtherId))
                 continue;
-            }
-            UniqueId originalOtherId = matched[matchedOtherId];
-            // Now we have to check if (originalOtherId <- originalId) <- (replacementOtherId <- replacementId) is true
-            if (originalPointsFrom.count(originalOtherId))
-                continue;
-            // If not, we have to add (originalOtherId <- originalId)
+            // If not, we have to add (originalId -> originalOtherId)
             get(originalId)->_from.insert(originalOtherId);
         }
     }
