@@ -1,5 +1,5 @@
 #include "CommonConceptGraph.hpp"
-//#include <iostream>
+#include <iostream>
 
 const UniqueId CommonConceptGraph::FactOfId = "CommonConceptGraph::FactOf";
 const UniqueId CommonConceptGraph::SubrelOfId = "CommonConceptGraph::SubrelOf";
@@ -204,6 +204,48 @@ Hyperedges CommonConceptGraph::instantiateDeepFrom(const Hyperedges& superIds, c
     // This means, that we have to get the following for every x
     for (UniqueId superId : superIds)
     {
+        // First we collect all the children
+        Hyperedges toInstantiate = childrenOf(superId);
+        std::map< UniqueId, Hyperedges > original2new;
+        // Instantiate from superId
+        original2new[superId] = instantiateFrom(superId, label);
+        result = unite(result, original2new[superId]);
+        // All i in I have to be instantiated from their superclasses resulting in a mapping from I to some O
+        for (UniqueId originalId : toInstantiate)
+        {
+            // Skip superId
+            if (originalId == superId)
+                continue;
+            original2new[originalId] = instantiateAnother(Hyperedges{originalId}, get(originalId)->label());
+        }
+        // Include the superId into the set of concepts to be wired
+        Hyperedges toWire = unite(toInstantiate, Hyperedges{superId});
+        // Finally, for each (i1,i2) in I: If i1 related-by-R-to i2, then o1 related-by-R'-to o2
+        for (UniqueId originalId : toWire)
+        {
+            Hyperedges relsFrom = relationsFrom(Hyperedges{originalId}); // originalId <- X
+            for (UniqueId otherOriginalId : toWire)
+            {
+                Hyperedges relsTo = relationsTo(Hyperedges{otherOriginalId}); // Y -> otherOriginalId
+                Hyperedges commonRels = intersect(relsFrom, relsTo);
+                for (UniqueId commonRelId : commonRels)
+                {
+                    // Create new facts from these superRels
+                    original2new[commonRelId] = relateAnother(original2new[originalId], original2new[otherOriginalId], Hyperedges{commonRelId});
+                }
+            }
+        }
+    }
+    return result;
+}
+
+Hyperedges CommonConceptGraph::instantiateSuperDeepFrom(const Hyperedges& superIds, const std::string& label)
+{
+    Hyperedges result;
+    // Super Deep instantiation:
+    // This means, that we have to get the following for every x
+    for (UniqueId superId : superIds)
+    {
         // FIXME: WE CAN DO BETTER!!!! ACTUALLY WE CAN JUST MAKE A TRAVERSE BY JOINING THE LABELS OF PARTS-OF AND DESCENDANTS-OF !!!
         // I <- (PD)+ U (DP)+
         // This set I contains all parts of x, their descendants and so forth
@@ -395,6 +437,49 @@ Hyperedges CommonConceptGraph::instancesOf(const Hyperedges& ids, const std::str
             Hyperedges relsToSupers = Conceptgraph::relationsTo(ids);
             // Contains all (X <-- factFromSubRelOfInstanceOf --> id) relations
             Hyperedges relevantRels = intersect(relsToSupers, facts);
+            // Get all these X matching the label
+            result = unite(result, Hypergraph::from(relevantRels, label));
+        }
+        break;
+    }
+    return result;
+}
+
+Hyperedges CommonConceptGraph::componentsOf(const Hyperedges& ids, const std::string& label, const TraversalDirection dir)
+{
+    Hyperedges result;
+    // Get all subrelationsOf partOf
+    Hyperedges subRels = subrelationsOf(CommonConceptGraph::PartOfId);
+    // Get all factsOf these subrelations
+    Hyperedges facts = factsOf(subRels);
+
+    switch (dir)
+    {
+        case DOWN:
+        {
+            // Get all relationsFrom id
+            Hyperedges relsFromParts = Conceptgraph::relationsFrom(ids);
+            // Contains all (id <-- factFromSubRelOfPartOf --> X) relations
+            Hyperedges relevantRels = intersect(relsFromParts, facts);
+            // Get all these X matching the label
+            result = unite(result, Hypergraph::to(relevantRels, label));
+        }
+        break;
+        case BOTH:
+        {
+            // Get all relationsFrom id
+            Hyperedges relsFromParts = Conceptgraph::relationsFrom(ids);
+            // Contains all (id <-- factFromSubRelOfPartOf --> X) relations
+            Hyperedges relevantRels = intersect(relsFromParts, facts);
+            // Get all these X matching the label
+            result = unite(result, Hypergraph::to(relevantRels, label));
+        }
+        case UP:
+        {
+            // Get all relationsTo id
+            Hyperedges relsToWholes = Conceptgraph::relationsTo(ids);
+            // Contains all (X <-- factFromSubRelOfPartOf --> id) relations
+            Hyperedges relevantRels = intersect(relsToWholes, facts);
             // Get all these X matching the label
             result = unite(result, Hypergraph::from(relevantRels, label));
         }
