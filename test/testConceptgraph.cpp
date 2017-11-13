@@ -144,7 +144,8 @@ int main(void)
     fout.close();
 
     std::cout << "> Try to find a match of the query graph in the data graph\n";
-    Mapping mapping = universe2.match(query);
+    std::stack< Mapping > searchSpace;
+    Mapping mapping = universe2.match(query, searchSpace);
     for (auto it : mapping)
     {
         std::cout << "\t" << *(query.get(it.first)) << " -> " << *(universe2.get(it.second)) << std::endl;

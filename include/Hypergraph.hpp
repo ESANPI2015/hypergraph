@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <stack>
 #include "Hyperedge.hpp"
 
 /*
@@ -72,7 +73,7 @@ class Hypergraph {
 
         /* Pattern matching */
         Mapping match(Hypergraph& other,                                                       //< Find embedding of other graph in this graph
-                      const std::vector< Mapping >& previousMatches = std::vector< Mapping >() // These previous matches will not be found again!
+                      std::stack< Mapping >& searchSpace                                       //< Uses this to use/store the state of the search
                      );
         /* Graph rewriting*/
         Mapping rewrite(Hypergraph& other, const Mapping& replacements); // Takes another graph and updates/creates or deletes hedges accordingly

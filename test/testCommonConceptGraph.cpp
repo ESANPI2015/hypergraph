@@ -66,22 +66,22 @@ int main(void)
     queryGraph.relate(queryGraph.find("Person"), queryGraph.find("Person"), "love");
     queryGraph.relateFrom(personA, personB, queryGraph.relations("love"));
     /* Find query in unsiverse*/
-    Mapping mapping = universe.match(queryGraph);
+    std::stack< Mapping > searchSpace;
+    Mapping mapping = universe.match(queryGraph, searchSpace);
     for (const auto &pair : mapping)
     {
         std::cout << *queryGraph.get(pair.first) << " -> " << *universe.get(pair.second) << "\n";
     }
 
     std::cout << "> Find all matches for some person loving another person\n";
-    std::vector< Mapping > previous;
-    while ((mapping = universe.match(queryGraph, previous)).size())
+    searchSpace = std::stack< Mapping >();
+    while ((mapping = universe.match(queryGraph, searchSpace)).size())
     {
         std::cout << "\n";
         for (const auto &pair : mapping)
         {
             std::cout << *queryGraph.get(pair.first) << " -> " << *universe.get(pair.second) << "\n";
         }
-        previous.push_back(mapping);
     }
 
     std::cout << "> Create a replacement for a person loving another person\n";

@@ -1,7 +1,6 @@
 #include "Hypergraph.hpp"
 
 #include <iostream>
-#include <stack>
 
 Hypergraph::Hypergraph()
 {
@@ -273,7 +272,7 @@ bool equal(const Mapping& a, const Mapping& b)
     return true;
 }
 
-Mapping Hypergraph::match(Hypergraph& other, const std::vector< Mapping >& previousMatches)
+Mapping Hypergraph::match(Hypergraph& other, std::stack< Mapping >& searchSpace)
 {
     // This algorithm is according to Ullmann
     // and has been implemented following "An In-depth Comparison of Subgraph Isomorphism Algorithms in Graph Databases"
@@ -291,13 +290,13 @@ Mapping Hypergraph::match(Hypergraph& other, const std::vector< Mapping >& previ
 
     // Second step: Find possible mapping(s)
     // We need a stack of mappings to prevent recursion
-    std::stack< Mapping > mappings;
-    mappings.push(Mapping());
-    while (!mappings.empty())
+    if (searchSpace.empty())
+        searchSpace.push(Mapping());
+    while (!searchSpace.empty())
     {
         // Get top of stack
-        currentMapping = mappings.top();
-        mappings.pop();
+        currentMapping = searchSpace.top();
+        searchSpace.pop();
 
         // For a correct mapping we have to check if all from and to sets are correct (similar to the check in rewrite)
         bool valid = true;
@@ -341,18 +340,18 @@ Mapping Hypergraph::match(Hypergraph& other, const std::vector< Mapping >& previ
         if (currentMapping.size() == otherIds.size())
         {
             // Check if currentMapping is different from all previous matches in at least one association
-            bool newMatch = true;
-            for (Mapping prev : previousMatches)
-            {
-                if (equal(currentMapping, prev))
-                {
-                    newMatch = false;
-                    break;
-                }
-            }
-            // If it is a true new match, we can proceed
-            if (!newMatch)
-                continue; // but otherwise we continue
+            //bool newMatch = true;
+            //for (Mapping prev : previousMatches)
+            //{
+            //    if (equal(currentMapping, prev))
+            //    {
+            //        newMatch = false;
+            //        break;
+            //    }
+            //}
+            //// If it is a true new match, we can proceed
+            //if (!newMatch)
+            //    continue; // but otherwise we continue
             return currentMapping;
         }
 
@@ -403,7 +402,7 @@ Mapping Hypergraph::match(Hypergraph& other, const std::vector< Mapping >& previ
                 // Insert match
                 Mapping newMapping(currentMapping);
                 newMapping[unmappedId] = candidateId;
-                mappings.push(newMapping);
+                searchSpace.push(newMapping);
             }
         }
     }
