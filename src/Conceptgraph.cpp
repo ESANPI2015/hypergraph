@@ -12,24 +12,30 @@ const UniqueId Conceptgraph::IsRelationId = "Conceptgraph::IsRelationId";
 Conceptgraph::Conceptgraph()
 : Hypergraph()
 {
-    // Create the URHEDGES (if they exist, nothing will happen :))
-    Hypergraph::create(Conceptgraph::IsConceptId, "IS-CONCEPT");
-    Hypergraph::create(Conceptgraph::IsRelationId, "IS-RELATION");
+    createFundamentals();
 }
 
 Conceptgraph::Conceptgraph(Hypergraph& A)
 : Hypergraph(A)
 {
+    createFundamentals();
+}
+
+void Conceptgraph::createFundamentals()
+{
     // Create the URHEDGES (if they exist, nothing will happen :))
+    // The following is the fundametal model:
+    // C <- IS-CONCEPT <- IS-RELATION
+    //               R <-----|
     Hypergraph::create(Conceptgraph::IsConceptId, "IS-CONCEPT");
     Hypergraph::create(Conceptgraph::IsRelationId, "IS-RELATION");
+    Hypergraph::from(Hyperedges{Conceptgraph::IsConceptId}, Hyperedges{Conceptgraph::IsRelationId});
 }
 
 Hyperedges Conceptgraph::create(const UniqueId id, const std::string& label)
 {
     if (!Hypergraph::create(id, label).empty())
     {
-        Hypergraph::create(Conceptgraph::IsConceptId, "IS-CONCEPT");
         Hypergraph::from(Hyperedges{id}, Hyperedges{Conceptgraph::IsConceptId}); // This cannot fail
         return Hyperedges{id};
     }
@@ -84,7 +90,6 @@ Hyperedges Conceptgraph::relate(const UniqueId id, const Hyperedges& fromIds, co
     // Creating relations means creating a (X <- IS-RELATION) pair
     if (Hypergraph::create(id, label).empty())
         return Hyperedges();
-    Hypergraph::create(Conceptgraph::IsRelationId, "IS-RELATION");
     Hypergraph::from(Hyperedges{id}, Hyperedges{Conceptgraph::IsRelationId});
 
     // Furthermore, we have to connect the relation

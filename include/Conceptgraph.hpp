@@ -25,6 +25,8 @@
 * X <- IS-RELATION to encode relations
 * Y <- IS-CONCEPT to encode concepts
 *
+* The IS-CONCEPT relation is pointed by the IS-RELATION meta-relation.
+*
 */
 
 class Conceptgraph : public Hypergraph
@@ -36,7 +38,8 @@ class Conceptgraph : public Hypergraph
         /* Constructors/Destructors */
         Conceptgraph();
         Conceptgraph(Hypergraph& A);
-        void     destroy(const UniqueId id);                            //< Destroy concept, relation or signature
+        void createFundamentals();                                  //< Creates the fundamental Hyperedges IS-RELATION and IS-CONCEPT
+        void destroy(const UniqueId id);                            //< Destroy concept, relation or signature
 
         /* CONCEPTS */
         Hyperedges create(const UniqueId id, const std::string& label);     //< Create a new concept (id, label)
