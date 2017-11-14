@@ -204,8 +204,8 @@ Hyperedges CommonConceptGraph::instantiateDeepFrom(const Hyperedges& superIds, c
     // This means, that we have to get the following for every x
     for (UniqueId superId : superIds)
     {
-        // First we collect all the children
-        Hyperedges toInstantiate = childrenOf(superId);
+        // First we collect all the children of us as well as the children of the superclasses! (INHERITANCE!)
+        Hyperedges toInstantiate = childrenOf(subclassesOf(superId,"",DOWN));
         std::map< UniqueId, Hyperedges > original2new;
         // Instantiate from superId
         original2new[superId] = instantiateFrom(superId, label);
@@ -252,6 +252,7 @@ Hyperedges CommonConceptGraph::instantiateSuperDeepFrom(const Hyperedges& superI
         // It also contains the opposite search of the descendants of x, their parts and so forth
         Hyperedges subgraph;
         std::map< UniqueId, Hyperedges > original2new;
+        // TODO: Actually, we have to do, what instantiateDeepFrom does as well ... incorporate all superclasses into the search as well!!!
         {
             // TODO: Check if the following actually performs BOTH SEARCHES at once by allowing superId to be in parts!!!
             bool searchParts = false;
