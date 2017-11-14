@@ -136,8 +136,8 @@ void     Conceptgraph::destroy(const UniqueId id)
 {
     if (Hypergraph::get(Conceptgraph::IsConceptId)->isPointingFrom(id))
     {
-        // For a concept, we have to get rid of ALL associated relations
-        auto relationIds = relationsOf(Hyperedges{id});
+        // For a concept, we have to get rid of ALL associated relations (EXCEPT the urrelation)
+        auto relationIds = subtract(relationsOf(Hyperedges{id}), Hyperedges{Conceptgraph::IsConceptId});
         for (auto relId : relationIds)
         {
             Hypergraph::destroy(relId);
