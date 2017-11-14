@@ -204,34 +204,29 @@ Hyperedges CommonConceptGraph::instantiateDeepFrom(const Hyperedges& superIds, c
     // This means, that we have to get the following for every x
     for (UniqueId superId : superIds)
     {
-        // First we collect all the children of us as well as the children of the superclasses! (INHERITANCE!)
-        Hyperedges toInstantiate = childrenOf(subclassesOf(superId,"",DOWN));
         std::map< UniqueId, Hyperedges > original2new;
-        // Instantiate from superId
+        // Instantiate the new individual
         original2new[superId] = instantiateFrom(superId, label);
         result = unite(result, original2new[superId]);
-        // All i in I have to be instantiated from their superclasses resulting in a mapping from I to some O
-        for (UniqueId originalId : toInstantiate)
+        // Get all superclasses as well!
+        Hyperedges superclassIds = subclassesOf(superId, "", DOWN);
+        // For each of them
+        for (UniqueId superDuperId : superclassIds)
         {
-            // Skip superId
-            if (originalId == superId)
-                continue;
-            original2new[originalId] = instantiateAnother(Hyperedges{originalId}, get(originalId)->label());
-        }
-        // Include the superId into the set of concepts to be wired
-        Hyperedges toWire = unite(toInstantiate, Hyperedges{superId});
-        // Finally, for each (i1,i2) in I: If i1 related-by-R-to i2, then o1 related-by-R'-to o2
-        for (UniqueId originalId : toWire)
-        {
-            Hyperedges relsFrom = relationsFrom(Hyperedges{originalId}); // originalId <- X
-            for (UniqueId otherOriginalId : toWire)
+            // Get their children
+            Hyperedges superChildren = childrenOf(superDuperId);
+            Hyperedges relsFromParent = relationsFrom(Hyperedges{superDuperId});
+            for (UniqueId originalId : superChildren)
             {
-                Hyperedges relsTo = relationsTo(Hyperedges{otherOriginalId}); // Y -> otherOriginalId
-                Hyperedges commonRels = intersect(relsFrom, relsTo);
+                // And instantiate them
+                original2new[originalId] = instantiateAnother(Hyperedges{originalId}, get(originalId)->label());
+                // Clone also all relations R which point from superDuperId to originalId
+                Hyperedges relsTo = relationsTo(Hyperedges{originalId});
+                Hyperedges commonRels = intersect(relsFromParent, relsTo);
                 for (UniqueId commonRelId : commonRels)
                 {
-                    // Create new facts from these superRels
-                    original2new[commonRelId] = relateAnother(original2new[originalId], original2new[otherOriginalId], Hyperedges{commonRelId});
+                    // Create new facts from these common relations
+                    original2new[commonRelId] = relateAnother(original2new[superId], original2new[originalId], Hyperedges{commonRelId});
                 }
             }
         }
