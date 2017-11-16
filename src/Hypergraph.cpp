@@ -442,15 +442,14 @@ Mapping join(const Mapping& a, const Mapping& b)
 /*
 * This algorithm is a single pushout (SPO) graph transformation algorithm
 */
-Hypergraph Hypergraph::rewrite(Hypergraph& lhs, Hypergraph& rhs, const Mapping& partialMap)
+Hypergraph Hypergraph::rewrite(Hypergraph& lhs, Hypergraph& rhs, const Mapping& partialMap, std::stack< Mapping >& searchSpace)
 {
     Hypergraph result;
     Mapping original2new;
     Mapping replacement2new;
 
     // First step: Find a match of lhs in this graph
-    std::stack< Mapping > sp;
-    Mapping m(match(lhs, sp));
+    Mapping m(match(lhs, searchSpace));
     // No match? Return empty graph
     if (!m.size())
         return result;

@@ -179,8 +179,9 @@ int main(void)
         std::cout << "\t" << *(query.get(it.first)) << " -> " << *(replacement.get(it.second)) << std::endl;
     }
 
-    std::cout << "> Rewrite\n";
-    Hypergraph rewritten = universe2.rewrite(query, replacement, repl);
+    std::cout << "> Rewrite (using previous search space)\n";
+    searchSpace.push(mapping);
+    Hypergraph rewritten = universe2.rewrite(query, replacement, repl, searchSpace);
     std::cout << rewritten.find() << std::endl;
 
     std::cout << "> All concepts" << std::endl;

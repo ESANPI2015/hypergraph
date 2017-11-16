@@ -106,7 +106,8 @@ int main (int argc, char **argv)
     std::cout << partial << std::endl;
 
     // Rewrite
-    Hypergraph simplified(ccgraph.rewrite(lhs,rhs,partial));
+    std::stack< Mapping > sp;
+    Hypergraph simplified(ccgraph.rewrite(lhs,rhs,partial,sp));
     if (!simplified.size())
     {
         std::cout << "No simplification possible\n";

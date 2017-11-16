@@ -79,7 +79,11 @@ class Hypergraph {
 
         /* Graph rewriting: single pushout */
         // NOTE: Partial Map means, that hedges in lhs do not need to be mapped to hedges in rhs
-        Hypergraph rewrite(Hypergraph& lhs, Hypergraph& rhs, const Mapping& partialMap);
+        Hypergraph rewrite(Hypergraph& lhs,                     //< The left hand side graph to be matched to the data graph
+                           Hypergraph& rhs,                     //< The right hand side to replace the matched subgraph with
+                           const Mapping& partialMap,           //< A partial map from the lhs to the rhs (TODO: currently N:1, should become N:M)
+                           std::stack< Mapping >& searchSpace   //< The search space of the matching phase for reusage
+                          );
 
     protected:
         // Private members for factory
