@@ -63,6 +63,11 @@ target_link_libraries(testCommonConceptGraph hypergraph)
 install(TARGETS testCommonConceptGraph
 RUNTIME DESTINATION bin)
 
+add_executable(simplify tools/simplify.cpp)
+target_link_libraries(simplify hypergraph)
+install(TARGETS simplify
+RUNTIME DESTINATION bin)
+
 # pkg-config, to be installed:
 configure_file(${PROJECT_NAME}.pc.in ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.pc @ONLY)
 install(FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.pc DESTINATION lib/pkgconfig)
