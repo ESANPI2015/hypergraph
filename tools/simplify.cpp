@@ -9,6 +9,7 @@
 
 static struct option long_options[] = {
     {"help", no_argument, 0, 'h'},
+    {"all", no_argument, 0, 'a'},
     {0,0,0,0}
 };
 
@@ -19,6 +20,7 @@ void usage (const char *myName)
     std::cout << myName << " <yaml-file-in> <yam-file-out>\n\n";
     std::cout << "Options:\n";
     std::cout << "--help\t" << "Show usage\n";
+    std::cout << "--all\t" << "Process all matches\n";
     std::cout << "\nExample:\n";
     std::cout << myName << " original.yml simplified.yml\n";
 }
@@ -30,6 +32,7 @@ int main (int argc, char **argv)
 
     // Parse command line
     int c;
+    bool processAll = false;
     while (1)
     {
         int option_index = 0;
@@ -39,6 +42,9 @@ int main (int argc, char **argv)
 
         switch (c)
         {
+            case 'a':
+                processAll = true;
+                break;
             case 'h':
             case '?':
                 break;
@@ -108,6 +114,16 @@ int main (int argc, char **argv)
     // Rewrite
     std::stack< Mapping > sp;
     Hypergraph simplified(ccgraph.rewrite(lhs,rhs,partial,sp));
+    while (processAll)
+    {
+        Hypergraph simplified2 = simplified.rewrite(lhs,rhs,partial,sp);
+        if (simplified2.size())
+        {
+            simplified = simplified2;
+        } else {
+            break;
+        }
+    }
     if (!simplified.size())
     {
         std::cout << "No simplification possible\n";
