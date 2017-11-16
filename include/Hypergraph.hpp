@@ -47,6 +47,7 @@ class Hypergraph {
         void disconnect(const UniqueId id);                                  // Disconnects edge from all other edges (this means finding all edges which reference the given id)
 
         /*Queries*/
+        unsigned size() { return _edges.size(); };
         Hyperedges from(const Hyperedges& ids, const std::string& label=""); // Returns all hyperedges from which each id in ids points, filtered by label
         Hyperedges to(const Hyperedges& ids, const std::string& label="");   // Returns all hyperedges to which each id in ids points, filtered by label
 

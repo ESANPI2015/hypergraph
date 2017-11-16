@@ -72,14 +72,14 @@ int main (int argc, char **argv)
     Hyperedges factOf2 = subtract(lhs.factOf(Hyperedges{"SecondFact"}, Hyperedges{"SomeRelation"}), Hyperedges{"SecondFact", "SomeRelation"});
     std::cout << lhs.Hypergraph::find() << std::endl;
     // Store graph
-    doc = static_cast<Hypergraph*>(&lhs);
-    fout.open("lhs.yml");
-    if(fout.good()) {
-        fout << doc;
-    } else {
-        std::cout << "FAILED\n";
-    }
-    fout.close();
+    //doc = static_cast<Hypergraph*>(&lhs);
+    //fout.open("lhs.yml");
+    //if(fout.good()) {
+    //    fout << doc;
+    //} else {
+    //    std::cout << "FAILED\n";
+    //}
+    //fout.close();
 
     // Create right hand side
     CommonConceptGraph rhs;
@@ -89,15 +89,15 @@ int main (int argc, char **argv)
     Hyperedges factOf3 = subtract(rhs.factOf(Hyperedges{"FirstFact", "SecondFact"}, Hyperedges{"SomeRelation"}), Hyperedges{"FirstFact", "SecondFact", "SomeRelation"});
     std::cout << rhs.Hypergraph::find() << std::endl;
     // Store graph
-    doc.reset();
-    doc = static_cast<Hypergraph*>(&rhs);
-    fout.open("rhs.yml");
-    if(fout.good()) {
-        fout << doc;
-    } else {
-        std::cout << "FAILED\n";
-    }
-    fout.close();
+    //doc.reset();
+    //doc = static_cast<Hypergraph*>(&rhs);
+    //fout.open("rhs.yml");
+    //if(fout.good()) {
+    //    fout << doc;
+    //} else {
+    //    std::cout << "FAILED\n";
+    //}
+    //fout.close();
 
     // Create partial homomorphism
     Mapping partial(fromHyperedges(lhs.Hypergraph::find()));
@@ -107,7 +107,11 @@ int main (int argc, char **argv)
 
     // Rewrite
     Hypergraph simplified(ccgraph.rewrite(lhs,rhs,partial));
-    //Hypergraph simplified(ccgraph);
+    if (!simplified.size())
+    {
+        std::cout << "No simplification possible\n";
+        return 1;
+    }
 
     // Store graph
     doc.reset();
