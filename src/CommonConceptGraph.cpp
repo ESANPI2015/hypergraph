@@ -51,7 +51,7 @@ Hyperedges CommonConceptGraph::factOf(const Hyperedges& factIds, const Hyperedge
         if (!id.empty())
         {
             // If we have created a factOf a factOf superrelation :D , we have to link them
-            from(subtract(subtract(id, fromIds), toIds), CommonConceptGraph::FactOfId);
+            Hypergraph::from(subtract(subtract(id, fromIds), toIds), Hyperedges{CommonConceptGraph::FactOfId});
         }
     }
     return id;
