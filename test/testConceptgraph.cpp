@@ -104,11 +104,11 @@ int main(void)
     concepts = universe2.find();
     for (auto conceptId : concepts)
     {
-        std::cout << conceptId << " " << universe2.get(conceptId)->label() << std::endl;
+        std::cout << *universe2.get(conceptId) << std::endl;
         auto relations = universe2.relationsOf(Hyperedges{conceptId});
         for (auto relId : relations)
         {
-            std::cout << "\t" << relId << " " << universe2.get(relId)->label() << std::endl;
+            std::cout << "\t" << *universe2.get(relId) << std::endl;
         }
     }
 
@@ -153,7 +153,7 @@ int main(void)
 
     std::cout << "> Create another concept graph which serves as a replacement for the matched subgraph\n";
     Conceptgraph replacement;
-    replacement.relate(replacement.create("**",""), replacement.create("Root"), "R^-1");
+    replacement.relate(replacement.create("**",""), replacement.create("Root"), "A^-1");
     concepts = replacement.Hypergraph::find();
     for (auto conceptId : concepts)
     {
@@ -170,32 +170,29 @@ int main(void)
     fout.close();
 
     std::cout << "> Define the mapping between query and replacement\n";
-    Mapping repl;// = fromHyperedges(query.Hypergraph::find());
+    Mapping repl(fromHyperedges(query.Hypergraph::find()));
     repl["Root"] = "Root";
     repl["*"] = "**";
-    repl["A"] = "R^-1";
-
-    std::cout << repl << std::endl;
-    repl = join(mapping, repl);
-    std::cout << repl << std::endl;
-
-    std::cout << "> Rewrite\n";
-    Mapping result = universe2.rewrite(replacement, repl);
-    for (auto it : result)
+    repl["A"] = "A^-1";
+    for (auto it : repl)
     {
-        std::cout << "\t" << *universe2.get(it.first) << " <- " << *replacement.get(it.second) << std::endl;
+        std::cout << "\t" << *(query.get(it.first)) << " -> " << *(replacement.get(it.second)) << std::endl;
     }
 
+    std::cout << "> Rewrite\n";
+    Hypergraph rewritten = universe2.rewrite(query, replacement, repl);
+    std::cout << rewritten.find() << std::endl;
+
     std::cout << "> All concepts" << std::endl;
-    Conceptgraph fin(universe2);
+    Conceptgraph fin(rewritten);
     concepts = fin.find();
     for (auto conceptId : concepts)
     {
-        std::cout << conceptId << " " << fin.get(conceptId)->label() << std::endl;
+        std::cout << *fin.get(conceptId) << std::endl;
         auto relations = fin.relationsOf(Hyperedges{conceptId});
         for (auto relId : relations)
         {
-            std::cout << "\t" << relId << " " << fin.get(relId)->label() << std::endl;
+            std::cout << "\t" << *fin.get(relId) << std::endl;
         }
     }
 

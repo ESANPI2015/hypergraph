@@ -75,8 +75,10 @@ class Hypergraph {
         Mapping match(Hypergraph& other,                                                       //< Find embedding of other graph in this graph
                       std::stack< Mapping >& searchSpace                                       //< Uses this to use/store the state of the search
                      );
-        /* Graph rewriting*/
-        Mapping rewrite(Hypergraph& other, const Mapping& replacements); // Takes another graph and updates/creates or deletes hedges accordingly
+
+        /* Graph rewriting: single pushout */
+        // NOTE: Partial Map means, that hedges in lhs do not need to be mapped to hedges in rhs
+        Hypergraph rewrite(Hypergraph& lhs, Hypergraph& rhs, const Mapping& partialMap);
 
     protected:
         // Private members for factory
