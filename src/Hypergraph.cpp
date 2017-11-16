@@ -277,7 +277,6 @@ Mapping Hypergraph::match(Hypergraph& other, std::stack< Mapping >& searchSpace)
     // This algorithm is according to Ullmann
     // and has been implemented following "An In-depth Comparison of Subgraph Isomorphism Algorithms in Graph Databases"
     // First step: For each vertex in subgraph, we find other suitable candidates
-    Mapping currentMapping;
     std::map< UniqueId, Hyperedges > candidateIds;
     Hyperedges otherIds = other.find();
     for (UniqueId otherId : otherIds)
@@ -299,7 +298,7 @@ Mapping Hypergraph::match(Hypergraph& other, std::stack< Mapping >& searchSpace)
         }
         // Check if solution possible
         if (!filteredByLabelAndDegree.size())
-            return currentMapping;
+            return Mapping();
         candidateIds[otherId] = filteredByLabelAndDegree;
     }
 
@@ -310,7 +309,7 @@ Mapping Hypergraph::match(Hypergraph& other, std::stack< Mapping >& searchSpace)
     while (!searchSpace.empty())
     {
         // Get top of stack
-        currentMapping = searchSpace.top();
+        Mapping currentMapping = searchSpace.top();
         searchSpace.pop();
 
         // For a correct mapping we have to check if all from and to sets are correct (similar to the check in rewrite)
@@ -368,11 +367,15 @@ Mapping Hypergraph::match(Hypergraph& other, std::stack< Mapping >& searchSpace)
 
         // Found unmapped hedge
         // NOTE: This is actually what makes this method an Ullmann algorithm
+        Mapping currentMappingInv(invert(currentMapping));
         Hyperedges candidates = candidateIds[unmappedId];
         Hyperedges nextNeighbourIds = other.to(Hyperedges{unmappedId}); // Check ONLY the neighbourhood INSIDE the subgraph
         Hyperedges prevNeighbourIds = other.from(Hyperedges{unmappedId});
         for (UniqueId candidateId : candidates)
         {
+            // If we want a bijective matching, we have to make sure that candidates are not mapped multiple times!!!
+            if (currentMappingInv.count(candidateId))
+                continue;
             Hyperedges nextCandidateNeighbours = to(Hyperedges{candidateId});
             Hyperedges prevCandidateNeighbours = from(Hyperedges{candidateId});
             // Ignore all candidates whose neighbourhood is smaller
