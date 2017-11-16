@@ -282,10 +282,25 @@ Mapping Hypergraph::match(Hypergraph& other, std::stack< Mapping >& searchSpace)
     Hyperedges otherIds = other.find();
     for (UniqueId otherId : otherIds)
     {
+        // Filter by label
         // NOTE: Do not prevent the trivial case here!!!
-        candidateIds[otherId] = find(other.get(otherId)->label());
-        if (!candidateIds[otherId].size())
+        Hyperedges filteredByLabel = find(other.get(otherId)->label());
+        // Filter by degree
+        // Check in and out degrees here as well!! If candidate has LESS in or out degree it can not be a candidate
+        unsigned otherIndegree = other.get(otherId)->indegree();
+        unsigned otherOutdegree = other.get(otherId)->outdegree();
+        Hyperedges filteredByLabelAndDegree(filteredByLabel);
+        for (UniqueId candidateId : filteredByLabel)
+        {
+            if (get(candidateId)->indegree() < otherIndegree)
+                filteredByLabelAndDegree.erase(candidateId);
+            if (get(candidateId)->outdegree() < otherOutdegree)
+                filteredByLabelAndDegree.erase(candidateId);
+        }
+        // Check if solution possible
+        if (!filteredByLabelAndDegree.size())
             return currentMapping;
+        candidateIds[otherId] = filteredByLabelAndDegree;
     }
 
     // Second step: Find possible mapping(s)
@@ -339,19 +354,6 @@ Mapping Hypergraph::match(Hypergraph& other, std::stack< Mapping >& searchSpace)
         // Check if we can stop the search
         if (currentMapping.size() == otherIds.size())
         {
-            // Check if currentMapping is different from all previous matches in at least one association
-            //bool newMatch = true;
-            //for (Mapping prev : previousMatches)
-            //{
-            //    if (equal(currentMapping, prev))
-            //    {
-            //        newMatch = false;
-            //        break;
-            //    }
-            //}
-            //// If it is a true new match, we can proceed
-            //if (!newMatch)
-            //    continue; // but otherwise we continue
             return currentMapping;
         }
 
