@@ -349,20 +349,20 @@ Mapping Hypergraph::match(Hypergraph& other, std::stack< Mapping >& searchSpace)
         // NOTE: This is actually what makes this method an Ullmann algorithm
         Mapping currentMappingInv(invert(currentMapping));
         Hyperedges candidates(candidateIds[unmappedId]);
-        Hyperedges nextNeighbourIds(other.to(Hyperedges{unmappedId}));
-        Hyperedges prevNeighbourIds(other.from(Hyperedges{unmappedId}));
         for (UniqueId candidateId : candidates)
         {
             // If we want a bijective matching, we have to make sure that candidates are not mapped multiple times!!!
             if (currentMappingInv.count(candidateId))
                 continue;
 
-            // NOTE: Degree has alerady been checked above!
+            // TODO: Other pruning strategies?
+
+            // NOTE: Degree has alerady been checked in initial candidate filtering
             // Construct the new match
             Mapping newMapping(currentMapping);
             newMapping[unmappedId] = candidateId;
 
-            // Check for validity
+            // Check for validity (QUICKSI style)
             // For a correct mapping we have to check if all from and to sets are correct (similar to the check in rewrite)
             bool valid = true;
             for (const auto& pair : newMapping)
