@@ -312,103 +312,97 @@ Mapping Hypergraph::match(Hypergraph& other, std::stack< Mapping >& searchSpace)
         Mapping currentMapping = searchSpace.top();
         searchSpace.pop();
 
-        // For a correct mapping we have to check if all from and to sets are correct (similar to the check in rewrite)
-        bool valid = true;
-        for (const auto& pair : currentMapping)
-        {
-            Hyperedges templatePointsTo(other.to(Hyperedges{pair.first}));
-            Hyperedges templatePointsFrom(other.from(Hyperedges{pair.first}));
-            Hyperedges matchPointsTo(to(Hyperedges{pair.second}));
-            Hyperedges matchPointsFrom(from(Hyperedges{pair.second}));
-            for (UniqueId templateId : templatePointsTo)
-            {
-                if (!currentMapping.count(templateId))
-                    continue;
-                UniqueId matchId = currentMapping[templateId];
-                if (!matchPointsTo.count(matchId))
-                {
-                    valid = false;
-                    break;
-                }
-            }
-            if (!valid)
-                break;
-            for (UniqueId templateId : templatePointsFrom)
-            {
-                if (!currentMapping.count(templateId))
-                    continue;
-                UniqueId matchId = currentMapping[templateId];
-                if (!matchPointsFrom.count(matchId))
-                {
-                    valid = false;
-                    break;
-                }
-            }
-            if (!valid)
-                break;
-        }
-        if (!valid)
-            continue;
-
         // Check if we can stop the search
         if (currentMapping.size() == otherIds.size())
         {
             return currentMapping;
         }
 
-        // Otherwise search for a possible new mapping and proceed
+        // VF2 selection
+        unsigned maxOverlap = 0;
         UniqueId unmappedId;
         for (UniqueId otherId : otherIds)
         {
-            unmappedId = otherId;
-            if (!currentMapping.count(otherId))
-                break;
+            // Skip already matched ones
+            if (currentMapping.count(otherId))
+                continue;
+            // Retrieve the neighbourhoods
+            Hyperedges nextNeighbourIds = other.to(Hyperedges{otherId});
+            Hyperedges prevNeighbourIds = other.from(Hyperedges{otherId});
+            Hyperedges neighbourhood(unite(nextNeighbourIds, prevNeighbourIds));
+            // Analyse neighbourhood wrt. overlap to already mapped vertices
+            unsigned overlap = 1;
+            for (UniqueId neighbourId : neighbourhood)
+            {
+                if (currentMapping.count(neighbourId))
+                    overlap++;
+            }
+            // Select the one with the largest neighbourhood to already mapped hedges
+            if (overlap > maxOverlap)
+            {
+                unmappedId = otherId;
+                maxOverlap = overlap;
+            }
         }
 
         // Found unmapped hedge
         // NOTE: This is actually what makes this method an Ullmann algorithm
         Mapping currentMappingInv(invert(currentMapping));
-        Hyperedges candidates = candidateIds[unmappedId];
-        Hyperedges nextNeighbourIds = other.to(Hyperedges{unmappedId}); // Check ONLY the neighbourhood INSIDE the subgraph
-        Hyperedges prevNeighbourIds = other.from(Hyperedges{unmappedId});
+        Hyperedges candidates(candidateIds[unmappedId]);
+        Hyperedges nextNeighbourIds(other.to(Hyperedges{unmappedId}));
+        Hyperedges prevNeighbourIds(other.from(Hyperedges{unmappedId}));
         for (UniqueId candidateId : candidates)
         {
             // If we want a bijective matching, we have to make sure that candidates are not mapped multiple times!!!
             if (currentMappingInv.count(candidateId))
                 continue;
-            Hyperedges nextCandidateNeighbours = to(Hyperedges{candidateId});
-            Hyperedges prevCandidateNeighbours = from(Hyperedges{candidateId});
-            // Ignore all candidates whose neighbourhood is smaller
-            if (nextCandidateNeighbours.size() < nextNeighbourIds.size())
-                continue;
-            if (prevCandidateNeighbours.size() < prevNeighbourIds.size())
-                continue;
-            bool foundMatch = true;
-            for (UniqueId nextNeighbourId : nextNeighbourIds)
+
+            // NOTE: Degree has alerady been checked above!
+            // Construct the new match
+            Mapping newMapping(currentMapping);
+            newMapping[unmappedId] = candidateId;
+
+            // Check for validity
+            // For a correct mapping we have to check if all from and to sets are correct (similar to the check in rewrite)
+            bool valid = true;
+            for (const auto& pair : newMapping)
             {
-                // Check if neighbour is already matched and if its match is also a neighbour of the candidate
-                if (currentMapping.count(nextNeighbourId) && !nextCandidateNeighbours.count(currentMapping[nextNeighbourId]))
+                Hyperedges templatePointsTo(other.to(Hyperedges{pair.first}));
+                Hyperedges templatePointsFrom(other.from(Hyperedges{pair.first}));
+                Hyperedges matchPointsTo(to(Hyperedges{pair.second}));
+                Hyperedges matchPointsFrom(from(Hyperedges{pair.second}));
+                for (UniqueId templateId : templatePointsTo)
                 {
-                    foundMatch = false;
-                    break;
+                    if (!newMapping.count(templateId))
+                        continue;
+                    UniqueId matchId(newMapping[templateId]);
+                    if (!matchPointsTo.count(matchId))
+                    {
+                        valid = false;
+                        break;
+                    }
                 }
-            }
-            for (UniqueId prevNeighbourId : prevNeighbourIds)
-            {
-                // Check if neighbour is already matched and if its match is also a neighbour of the candidate
-                if (currentMapping.count(prevNeighbourId) && !prevCandidateNeighbours.count(currentMapping[prevNeighbourId]))
+                if (!valid)
+                    break;
+                for (UniqueId templateId : templatePointsFrom)
                 {
-                    foundMatch = false;
-                    break;
+                    if (!newMapping.count(templateId))
+                        continue;
+                    UniqueId matchId(newMapping[templateId]);
+                    if (!matchPointsFrom.count(matchId))
+                    {
+                        valid = false;
+                        break;
+                    }
                 }
+                if (!valid)
+                    break;
             }
-            if (foundMatch)
-            {
-                // Insert match
-                Mapping newMapping(currentMapping);
-                newMapping[unmappedId] = candidateId;
-                searchSpace.push(newMapping);
-            }
+            if (!valid)
+                continue;
+
+            // Insert valid mapping
+            searchSpace.push(newMapping);
         }
     }
     return Mapping();
