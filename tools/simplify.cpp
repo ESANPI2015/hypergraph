@@ -6,6 +6,7 @@
 #include <sstream>
 #include <cassert>
 #include <getopt.h>
+#include <chrono>
 
 static struct option long_options[] = {
     {"help", no_argument, 0, 'h'},
@@ -94,6 +95,7 @@ int main (int argc, char **argv)
 
     // Rewrite
     std::stack< Mapping > sp;
+    std::chrono::high_resolution_clock::time_point start(std::chrono::high_resolution_clock::now());
     Hypergraph simplified(ccgraph.rewrite(lhs,rhs,partial,sp));
     if (!simplified.size())
     {
@@ -112,7 +114,9 @@ int main (int argc, char **argv)
             break;
         }
     }
-    std::cout << "Done\n";
+    std::chrono::high_resolution_clock::time_point end(std::chrono::high_resolution_clock::now());
+    std::cout << "Done.\n";
+    std::cout << "Time elapsed [us]: " << std::chrono::duration_cast<std::chrono::microseconds>(end-start).count() << "\n";
 
     // Store graph
     doc.reset();
