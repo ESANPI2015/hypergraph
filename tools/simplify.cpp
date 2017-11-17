@@ -70,40 +70,21 @@ int main (int argc, char **argv)
     // The following rule merges two FACT-OF relations to the same RELATION CLASS into one FACT-OF
 
     // Create left hand side
-    CommonConceptGraph lhs;
+    Conceptgraph lhs;
     lhs.relate("SomeRelation",Hyperedges{},Hyperedges{},"");
     lhs.relate("FirstFact", Hyperedges{}, Hyperedges{},"");
     lhs.relate("SecondFact", Hyperedges{}, Hyperedges{},"");
-    Hyperedges factOf1 = subtract(lhs.factOf(Hyperedges{"FirstFact"}, Hyperedges{"SomeRelation"}), Hyperedges{"FirstFact", "SomeRelation"});
-    Hyperedges factOf2 = subtract(lhs.factOf(Hyperedges{"SecondFact"}, Hyperedges{"SomeRelation"}), Hyperedges{"SecondFact", "SomeRelation"});
+    Hyperedges factOf1 = subtract(lhs.relate("FACT-OF1", Hyperedges{"FirstFact"}, Hyperedges{"SomeRelation"}, "FACT-OF"), Hyperedges{"FirstFact","SomeRelation"});
+    Hyperedges factOf2 = subtract(lhs.relate("FACT-OF2", Hyperedges{"SecondFact"}, Hyperedges{"SomeRelation"}, "FACT-OF"), Hyperedges{"SecondFact","SomeRelation"});
     std::cout << lhs.Hypergraph::find() << std::endl;
-    // Store graph
-    //doc = static_cast<Hypergraph*>(&lhs);
-    //fout.open("lhs.yml");
-    //if(fout.good()) {
-    //    fout << doc;
-    //} else {
-    //    std::cout << "FAILED\n";
-    //}
-    //fout.close();
 
     // Create right hand side
-    CommonConceptGraph rhs;
+    Conceptgraph rhs;
     rhs.relate("SomeRelation",Hyperedges{},Hyperedges{},"");
     rhs.relate("FirstFact", Hyperedges{}, Hyperedges{},"");
     rhs.relate("SecondFact", Hyperedges{}, Hyperedges{},"");
-    Hyperedges factOf3 = subtract(rhs.factOf(Hyperedges{"FirstFact", "SecondFact"}, Hyperedges{"SomeRelation"}), Hyperedges{"FirstFact", "SecondFact", "SomeRelation"});
+    Hyperedges factOf3 = subtract(rhs.relate("FACT-OF1", Hyperedges{"FirstFact","SecondFact"}, Hyperedges{"SomeRelation"}, "FACT-OF"), Hyperedges{"FirstFact","SecondFact","SomeRelation"});
     std::cout << rhs.Hypergraph::find() << std::endl;
-    // Store graph
-    //doc.reset();
-    //doc = static_cast<Hypergraph*>(&rhs);
-    //fout.open("rhs.yml");
-    //if(fout.good()) {
-    //    fout << doc;
-    //} else {
-    //    std::cout << "FAILED\n";
-    //}
-    //fout.close();
 
     // Create partial homomorphism
     Mapping partial(fromHyperedges(lhs.Hypergraph::find()));
@@ -114,9 +95,16 @@ int main (int argc, char **argv)
     // Rewrite
     std::stack< Mapping > sp;
     Hypergraph simplified(ccgraph.rewrite(lhs,rhs,partial,sp));
+    if (!simplified.size())
+    {
+        std::cout << "No simplification possible\n";
+        return 1;
+    }
+    std::cout << "." << std::flush;
     while (processAll)
     {
         Hypergraph simplified2 = simplified.rewrite(lhs,rhs,partial,sp);
+        std::cout << "." << std::flush;
         if (simplified2.size())
         {
             simplified = simplified2;
@@ -124,11 +112,7 @@ int main (int argc, char **argv)
             break;
         }
     }
-    if (!simplified.size())
-    {
-        std::cout << "No simplification possible\n";
-        return 1;
-    }
+    std::cout << "Done\n";
 
     // Store graph
     doc.reset();
