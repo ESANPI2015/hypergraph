@@ -42,6 +42,7 @@ Hyperedges Conceptgraph::create(const UniqueId id, const std::string& label)
     return Hyperedges();
 }
 
+// FIXME: This function should rather be one which uses the UID as the label and not vice versa!!!!
 Hyperedges Conceptgraph::create(const std::string& label)
 {
     unsigned occurrence = 1;
