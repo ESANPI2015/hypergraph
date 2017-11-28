@@ -42,8 +42,8 @@ class Conceptgraph : public Hypergraph
         void destroy(const UniqueId id);                            //< Destroy concept, relation or signature
 
         /* CONCEPTS */
-        Hyperedges create(const UniqueId id, const std::string& label);     //< Create a new concept (id, label)
-        Hyperedges create(const std::string& label);                        //< Create a new concept using label as basis for UID. If exists will add an occurrence counter
+        Hyperedges create(const UniqueId& id, const std::string& label="");    //< Create a new concept (id, label)
+        //Hyperedges create(const std::string& label);                        //< Create a new concept using label as basis for UID. If exists will add an occurrence counter
         Hyperedges find(const std::string& label="");                       //< Find a concept by label
 
         /* RELATIONS */

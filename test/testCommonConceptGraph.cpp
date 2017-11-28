@@ -26,9 +26,9 @@ int main(void)
     std::cout << "> Create a common concept graph\n";
 
     /* Create classes */
-    universe.create("Person");
-    universe.create("Object");
-    universe.create("Car");
+    universe.create("PERSON", "Person");
+    universe.create("OBJECT", "Object");
+    universe.create("CAR", "Car");
     universe.isA(universe.find("Person"), universe.find("Object"));
     universe.isA(universe.find("Car"), universe.find("Object"));
 
@@ -60,7 +60,7 @@ int main(void)
     CommonConceptGraph queryGraph;
     auto personA = queryGraph.create("*","");
     auto personB = queryGraph.create("**","");
-    queryGraph.create("Person");
+    queryGraph.create("personas", "Person");
     queryGraph.instanceOf(personA, queryGraph.find("Person"));
     queryGraph.instanceOf(personB, queryGraph.find("Person"));
     queryGraph.relate(queryGraph.find("Person"), queryGraph.find("Person"), "love");

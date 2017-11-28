@@ -32,7 +32,7 @@ void Conceptgraph::createFundamentals()
     Hypergraph::from(Hyperedges{Conceptgraph::IsConceptId}, Hyperedges{Conceptgraph::IsRelationId});
 }
 
-Hyperedges Conceptgraph::create(const UniqueId id, const std::string& label)
+Hyperedges Conceptgraph::create(const UniqueId& id, const std::string& label)
 {
     if (!Hypergraph::create(id, label).empty())
     {
@@ -43,18 +43,18 @@ Hyperedges Conceptgraph::create(const UniqueId id, const std::string& label)
 }
 
 // FIXME: This function should rather be one which uses the UID as the label and not vice versa!!!!
-Hyperedges Conceptgraph::create(const std::string& label)
-{
-    unsigned occurrence = 1;
-    UniqueId id = label;
-    while (create(id, label).empty()) {
-        std::stringstream ss;
-        ss << occurrence;
-        id = label + ss.str();
-        occurrence++;
-    }
-    return Hyperedges{id};
-}
+//Hyperedges Conceptgraph::create(const std::string& label)
+//{
+//    unsigned occurrence = 1;
+//    UniqueId id = label;
+//    while (create(id, label).empty()) {
+//        std::stringstream ss;
+//        ss << occurrence;
+//        id = label + ss.str();
+//        occurrence++;
+//    }
+//    return Hyperedges{id};
+//}
 
 Hyperedges Conceptgraph::find(const std::string& label)
 {

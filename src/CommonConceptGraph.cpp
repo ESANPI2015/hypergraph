@@ -169,10 +169,15 @@ Hyperedges CommonConceptGraph::instantiateFrom(const UniqueId superId, const std
         theLabel = Hypergraph::get(superId)->label();
     }
 
-    Hyperedges id = Conceptgraph::create(superId);
-    Hypergraph::get(*id.begin())->updateLabel(theLabel);
-    instanceOf(id, Hyperedges{superId});
-    return id;
+    UniqueId id(superId);
+    unsigned i = 1;
+    while (Conceptgraph::create(id, theLabel).empty())
+    {
+        id = superId + std::to_string(i);
+        i++;
+    }
+    instanceOf(Hyperedges{id}, Hyperedges{superId});
+    return Hyperedges{id};
 }
 
 Hyperedges CommonConceptGraph::instantiateFrom(const Hyperedges& superIds, const std::string& label)
