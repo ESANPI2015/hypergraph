@@ -15,7 +15,7 @@ Conceptgraph::Conceptgraph()
     createFundamentals();
 }
 
-Conceptgraph::Conceptgraph(Hypergraph& A)
+Conceptgraph::Conceptgraph(const Hypergraph& A)
 : Hypergraph(A)
 {
     createFundamentals();

@@ -67,7 +67,7 @@ class CommonConceptGraph : public Conceptgraph
 
         /*Constructors*/
         CommonConceptGraph();
-        CommonConceptGraph(Conceptgraph& base);
+        CommonConceptGraph(const Hypergraph& base);
 
         /*Make facts*/
         Hyperedges factOf(const Hyperedges& factIds, const Hyperedges& superRelIds);

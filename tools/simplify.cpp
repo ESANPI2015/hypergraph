@@ -65,8 +65,7 @@ int main (int argc, char **argv)
 
     // Load graph
     Hypergraph* hypergraph = YAML::LoadFile(fileNameIn).as<Hypergraph*>();
-    Conceptgraph cgraph(*hypergraph);
-    CommonConceptGraph ccgraph(cgraph);
+    CommonConceptGraph ccgraph(*hypergraph);
 
     // The following rule merges two FACT-OF relations to the same RELATION CLASS into one FACT-OF
 

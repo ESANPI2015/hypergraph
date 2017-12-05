@@ -37,7 +37,7 @@ class Conceptgraph : public Hypergraph
 
         /* Constructors/Destructors */
         Conceptgraph();
-        Conceptgraph(Hypergraph& A);
+        Conceptgraph(const Hypergraph& A);
         void createFundamentals();                                  //< Creates the fundamental Hyperedges IS-RELATION and IS-CONCEPT
         void destroy(const UniqueId id);                            //< Destroy concept, relation or signature
 

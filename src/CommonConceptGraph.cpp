@@ -33,7 +33,7 @@ CommonConceptGraph::CommonConceptGraph()
     createCommonConcepts();
 }
 
-CommonConceptGraph::CommonConceptGraph(Conceptgraph& A)
+CommonConceptGraph::CommonConceptGraph(const Hypergraph& A)
 : Conceptgraph(A)
 {
     createCommonConcepts();
