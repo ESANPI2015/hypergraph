@@ -105,6 +105,7 @@ int main (int argc, char **argv)
     std::cout << "." << std::flush;
     while (processAll)
     {
+        // Rewrite
         Hypergraph simplified2 = simplified.rewrite(lhs,rhs,partial,sp);
         std::cout << "." << std::flush;
         if (simplified2.size())
@@ -113,6 +114,16 @@ int main (int argc, char **argv)
         } else {
             break;
         }
+        // Store graph (such that rewrite can be aborted)
+        doc.reset();
+        doc = static_cast<Hypergraph*>(&simplified);
+        fout.open(fileNameOut);
+        if(fout.good()) {
+            fout << doc;
+        } else {
+            std::cout << "FAILED\n";
+        }
+        fout.close();
     }
     std::chrono::high_resolution_clock::time_point end(std::chrono::high_resolution_clock::now());
     std::cout << "Done.\n";
