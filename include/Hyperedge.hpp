@@ -5,6 +5,7 @@
 #include <string>
 
 class Hypergraph;
+class Conceptgraph;
 
 /*
 * This is the main primitive of a generalized hypergraph: the hyperedge
@@ -24,6 +25,7 @@ std::ostream& operator<< (std::ostream& os , const Hyperedges& val);
 class Hyperedge
 {
     friend class Hypergraph;
+    friend class Conceptgraph;
 
     public:
         /*Constructor*/
@@ -59,6 +61,8 @@ class Hyperedge
         std::string _label;
         Hyperedges  _from;  // This is the row of an incidence matrix
         Hyperedges  _to;    // This is the column of an incidence matrix
+        Hyperedges  _fromOthers; // This is a cache of other hyperedge ids pointing from us (when looking in here it has to be checked if valid!!!)
+        Hyperedges  _toOthers;   // This is a cache of other hyperedge ids pointing to us
 };
 
 #endif

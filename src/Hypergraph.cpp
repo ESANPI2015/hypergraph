@@ -73,6 +73,7 @@ void Hypergraph::destroy(const UniqueId id)
 void Hypergraph::disconnect(const UniqueId id)
 {
     // We have to find all edges referring to us!
+    // TODO: Can we use the cache here?
     Hyperedges all = find();
     for (auto otherId : all)
     {
@@ -131,6 +132,7 @@ Hyperedges Hypergraph::from(const Hyperedges& otherIds, const Hyperedges& destId
             if (!other)
                 continue;
             destEdge->from(otherId);
+            other->_fromOthers.insert(destId); // Populate cache
             // On success, register that pair
             result = unite(result, Hyperedges{destId, otherId});
         }
@@ -168,6 +170,7 @@ Hyperedges Hypergraph::to(const Hyperedges& srcIds, const Hyperedges& otherIds)
             if (!other)
                 continue;
             srcEdge->to(otherId);
+            other->_toOthers.insert(srcId); // Populate cache
             // On success, register that pair
             result = unite(result, Hyperedges{srcId, otherId});
         }
@@ -193,15 +196,23 @@ Hyperedges Hypergraph::to(const Hyperedges& ids, const std::string& label)
 Hyperedges Hypergraph::prevNeighboursOf(const Hyperedges& ids, const std::string& label)
 {
     Hyperedges result;
-    Hyperedges all = find(label);
+    //Hyperedges all = find(label);
     for (UniqueId id : ids)
     {
         result = unite(result, from(Hyperedges{id},label));
-        for (UniqueId other : all)
+        for (UniqueId other : get(id)->_toOthers)
         {
+            Hyperedge *o(get(other));
+            // Check cache validity
+            if (!o)
+                continue;
+            // Check label
+            if (!label.empty() && (label != o->label()))
+                continue;
             // Check if id is in the TO set of other
-            if (get(other)->isPointingTo(id))
-                result.insert(other);
+            if (!o->isPointingTo(id))
+                continue;
+            result.insert(other);
         }
     }
     return result;
@@ -210,15 +221,23 @@ Hyperedges Hypergraph::prevNeighboursOf(const Hyperedges& ids, const std::string
 Hyperedges Hypergraph::nextNeighboursOf(const Hyperedges& ids, const std::string& label)
 {
     Hyperedges result;
-    Hyperedges all = find(label);
+    //Hyperedges all = find(label);
     for (UniqueId id : ids)
     {
         result = unite(result, to(Hyperedges{id},label));
-        for (UniqueId other : all)
+        for (UniqueId other : get(id)->_fromOthers)
         {
+            Hyperedge *o(get(other));
+            // Check cache validity
+            if (!o)
+                continue;
+            // Check label
+            if (!label.empty() && (label != o->label()))
+                continue;
             // Check if id is in the TO set of other
-            if (get(other)->isPointingFrom(id))
-                result.insert(other);
+            if (!o->isPointingFrom(id))
+                continue;
+            result.insert(other);
         }
     }
     return result;

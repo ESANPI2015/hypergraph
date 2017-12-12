@@ -151,58 +151,32 @@ void     Conceptgraph::destroy(const UniqueId id)
 
 Hyperedges Conceptgraph::relationsFrom(const Hyperedges& ids, const std::string& label)
 {
-    Hyperedges resultIds;
-    // Find edges which have the right label and are part of the relation set
-    Hyperedges candidateIds = Hypergraph::get(Conceptgraph::IsRelationId)->pointingFrom();
-    for (auto candidateId : candidateIds)
+    // All relations with a certain label
+    Hyperedges all(relations(label));
+    // All hyperedges pointing from us
+    Hyperedges pointingFromUs;
+    for (const UniqueId& id : ids)
     {
-        auto rel = Hypergraph::get(candidateId);
-        // Valid edge?
-        if (!rel)
-            continue;
-        // Match by label?
-        if (!label.empty() && (rel->label() != label))
-            continue;
-        // Found a relation with the given label
-        for (auto id : ids)
-        {
-            // Now we have to check if conceptId is part of the from set
-            if (rel->isPointingFrom(id))
-            {
-                // gotya!
-                resultIds.insert(candidateId);
-            }
-        }
+        Hyperedges cache(get(id)->_fromOthers);
+        pointingFromUs = unite(pointingFromUs, cache);
     }
-    return resultIds;
+    // All relations with a certain label pointing from us
+    return intersect(all, pointingFromUs);
 }
 
 Hyperedges Conceptgraph::relationsTo(const Hyperedges& ids, const std::string& label)
 {
-    Hyperedges resultIds;
-    // Find edges which have the right label and are part of the relation set
-    Hyperedges candidateIds = Hypergraph::get(Conceptgraph::IsRelationId)->pointingFrom();
-    for (auto candidateId : candidateIds)
+    // All relations with a certain label
+    Hyperedges all(relations(label));
+    // All hyperedges pointing to us
+    Hyperedges pointingToUs;
+    for (const UniqueId& id : ids)
     {
-        auto rel = Hypergraph::get(candidateId);
-        // Valid edge?
-        if (!rel)
-            continue;
-        // Match by label?
-        if (!label.empty() && (rel->label() != label))
-            continue;
-        // Found a relation with the given label
-        for (auto id : ids)
-        {
-            // Now we have to check if conceptId is part of the to set
-            if (rel->isPointingTo(id))
-            {
-                // gotya!
-                resultIds.insert(candidateId);
-            }
-        }
+        Hyperedges cache(get(id)->_toOthers);
+        pointingToUs = unite(pointingToUs, cache);
     }
-    return resultIds;
+    // All relations with a certain label pointing to us
+    return intersect(all, pointingToUs);
 }
 
 Hyperedges Conceptgraph::traverse(const UniqueId rootId,
