@@ -120,15 +120,15 @@ Hyperedges Hypergraph::find(const std::string& label)
 Hyperedges Hypergraph::from(const Hyperedges& otherIds, const Hyperedges& destIds)
 {
     Hyperedges result;
-    for (auto destId : destIds)
+    for (const UniqueId& destId : destIds)
     {
-        auto destEdge = get(destId);
+        Hyperedge* destEdge = get(destId);
         if (!destEdge)
             continue;
-        for (auto otherId : otherIds)
+        for (const UniqueId& otherId : otherIds)
         {
             // Check if other is part of this graph as well
-            auto other = get(otherId);
+            Hyperedge* other = get(otherId);
             if (!other)
                 continue;
             destEdge->from(otherId);
@@ -143,13 +143,23 @@ Hyperedges Hypergraph::from(const Hyperedges& otherIds, const Hyperedges& destId
 Hyperedges Hypergraph::from(const Hyperedges& ids, const std::string& label)
 {
     Hyperedges result;
-    for (auto id : ids)
+    if (label.empty())
     {
-        auto fromIds = get(id)->pointingFrom();
-        for (auto fromId : fromIds)
+        // Fast path for empty labels
+        for (const UniqueId& id : ids)
         {
-            if (label.empty() || (get(fromId)->label() == label))
-                result.insert(fromId);
+            Hyperedges fromIds(get(id)->pointingFrom());
+            result = unite(result, fromIds);
+        }
+    } else {
+        for (const UniqueId& id : ids)
+        {
+            Hyperedges fromIds(get(id)->pointingFrom());
+            for (const UniqueId& fromId : fromIds)
+            {
+                if (label.empty() || (get(fromId)->label() == label))
+                    result.insert(fromId);
+            }
         }
     }
     return result;
@@ -158,15 +168,15 @@ Hyperedges Hypergraph::from(const Hyperedges& ids, const std::string& label)
 Hyperedges Hypergraph::to(const Hyperedges& srcIds, const Hyperedges& otherIds)
 {
     Hyperedges result;
-    for (auto srcId : srcIds)
+    for (const UniqueId& srcId : srcIds)
     {
-        auto srcEdge = get(srcId);
+        Hyperedge* srcEdge = get(srcId);
         if (!srcEdge)
             continue;
-        for (auto otherId : otherIds)
+        for (const UniqueId& otherId : otherIds)
         {
             // Check if other is part of this graph as well
-            auto other = get(otherId);
+            Hyperedge* other = get(otherId);
             if (!other)
                 continue;
             srcEdge->to(otherId);
@@ -181,13 +191,23 @@ Hyperedges Hypergraph::to(const Hyperedges& srcIds, const Hyperedges& otherIds)
 Hyperedges Hypergraph::to(const Hyperedges& ids, const std::string& label)
 {
     Hyperedges result;
-    for (auto id : ids)
+    if (label.empty())
     {
-        auto fromIds = get(id)->pointingTo();
-        for (auto fromId : fromIds)
+        // Fast path for empty labels
+        for (const UniqueId& id : ids)
         {
-            if (label.empty() || (get(fromId)->label() == label))
-                result.insert(fromId);
+            Hyperedges toIds(get(id)->pointingTo());
+            result = unite(result, toIds);
+        }
+    } else {
+        for (const UniqueId& id : ids)
+        {
+            Hyperedges toIds(get(id)->pointingTo());
+            for (const UniqueId& toId : toIds)
+            {
+                if (label.empty() || (get(toId)->label() == label))
+                    result.insert(toId);
+            }
         }
     }
     return result;
