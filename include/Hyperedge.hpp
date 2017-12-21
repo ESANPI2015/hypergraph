@@ -29,31 +29,31 @@ class Hyperedge
 
     public:
         /*Constructor*/
-        Hyperedge(const UniqueId id="", const std::string& label=""); // NOTE: We need a default constructor with 0 arguments to use STL containers
+        Hyperedge(const UniqueId& id="", const std::string& label=""); // NOTE: We need a default constructor with 0 arguments to use STL containers
 
         /*Destructor*/
         ~Hyperedge();
 
         /*Read Access*/
-        UniqueId id() const; 
-        std::string label() const; 
-        unsigned indegree() const;
-        unsigned outdegree() const;
-        Hyperedges pointingTo() const;
-        Hyperedges pointingFrom() const;
-        bool isPointingTo(const UniqueId id);
-        bool isPointingFrom(const UniqueId id);
+        const UniqueId& id() const; 
+        const std::string& label() const; 
+        const unsigned indegree() const;
+        const unsigned outdegree() const;
+        const Hyperedges& pointingTo() const;
+        const Hyperedges& pointingFrom() const;
+        const bool isPointingTo(const UniqueId& id) const;
+        const bool isPointingFrom(const UniqueId& id) const;
 
         /*Write access*/
         void updateLabel(const std::string& label);
-        void from(const UniqueId id);
-        void to(const UniqueId id);
+        void from(const UniqueId& id);
+        void to(const UniqueId& id);
 
         /* Serialization */
         friend std::ostream& operator<< (std::ostream& stream, const Hyperedge& edge);
 
         /*Graph dependent operations*/
-        bool isPartOf(Hypergraph &graph);
+        const bool isPartOf(Hypergraph &graph) const;
 
     private:
         /*Private members*/

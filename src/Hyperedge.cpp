@@ -9,7 +9,7 @@
 #include <stdexcept>
 
 // PRIVATE CONSTRUCTORS
-Hyperedge::Hyperedge(const UniqueId id, const std::string& label)
+Hyperedge::Hyperedge(const UniqueId& id, const std::string& label)
 : _id(id),
   _label(label)
 {
@@ -25,61 +25,61 @@ void Hyperedge::updateLabel(const std::string& label)
     _label = label;
 }
 
-void Hyperedge::from(const UniqueId id)
+void Hyperedge::from(const UniqueId& id)
 {
     _from.insert(id);
 }
 
-void Hyperedge::to(const UniqueId id)
+void Hyperedge::to(const UniqueId& id)
 {
     _to.insert(id);
 }
 
-UniqueId Hyperedge::id() const
+const UniqueId& Hyperedge::id() const
 {
     return _id;
 }
 
-std::string Hyperedge::label() const
+const std::string& Hyperedge::label() const
 {
     return _label;
 }
 
-unsigned Hyperedge::indegree() const
+const unsigned Hyperedge::indegree() const
 {
     return _from.size();
 }
 
-unsigned Hyperedge::outdegree() const
+const unsigned Hyperedge::outdegree() const
 {
     return _to.size();
 }
 
-bool Hyperedge::isPointingTo(const UniqueId id)
+const bool Hyperedge::isPointingTo(const UniqueId& id) const
 {
     return _to.count(id) ? true : false;
 }
 
-bool Hyperedge::isPointingFrom(const UniqueId id)
+const bool Hyperedge::isPointingFrom(const UniqueId& id) const
 {
     return _from.count(id) ? true : false;
 }
 
-Hyperedges Hyperedge::pointingFrom() const
+const Hyperedges& Hyperedge::pointingFrom() const
 {
     return _from;
 }
 
-Hyperedges Hyperedge::pointingTo() const
+const Hyperedges& Hyperedge::pointingTo() const
 {
     return _to;
 }
 
-bool Hyperedge::isPartOf(Hypergraph &graph)
+const bool Hyperedge::isPartOf(Hypergraph &graph) const
 {
     // What does it mean to be part of a hypergraph?
     // At least it means, that <id,label> have to match, right?
-    Hyperedge *ingraph = graph.get(id());
+    Hyperedge *ingraph(graph.get(id()));
     if (!ingraph)
         return false;
     if (ingraph->label() != label())
