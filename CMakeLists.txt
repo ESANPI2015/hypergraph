@@ -20,10 +20,12 @@ pkg_check_modules(hypergraph_PKGCONFIG REQUIRED
     yaml-cpp
     )
 
+set(CMAKE_BUILD_TYPE RelWithDebInfo)
+set(CMAKE_CXX_STANDARD 11)
 include_directories(${hypergraph_PKGCONFIG_INCLUDE_DIRS})
 #message(${hypergraph_PKGCONFIG_INCLUDE_DIRS})
 link_directories(${hypergraph_PKGCONFIG_LIBRARY_DIRS})
-add_definitions(${hypergraph_PKGCONFIG_CFLAGS_OTHER} -ggdb --pedantic -Wall -Werror -std=c++11)
+add_definitions(${hypergraph_PKGCONFIG_CFLAGS_OTHER} --pedantic -Wall -Werror)
 
 set(SOURCES
     src/Hyperedge.cpp
