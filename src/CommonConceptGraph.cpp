@@ -108,6 +108,19 @@ Hyperedges CommonConceptGraph::subrelationOf(const Hyperedges& subRelIds, const 
     }
     return id;
 }
+
+Hyperedges CommonConceptGraph::subrelationFrom(const UniqueId& subRelId, const Hyperedges& fromIds, const Hyperedges& toIds, const UniqueId& superRelId)
+{
+    Hyperedges id;
+    // TODO: What about UNARY relations?
+    if (fromIds.size() && toIds.size())
+    {
+        id = Conceptgraph::relateFrom(subRelId, fromIds, toIds, superRelId);
+        if (!id.empty())
+        {
+            // ... then make the new relation a subrelation of the superrelation
+            subrelationOf(subtract(subtract(id, fromIds), toIds), Hyperedges{superRelId});
+        }
     }
     return id;
 }

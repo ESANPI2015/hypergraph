@@ -77,6 +77,7 @@ class CommonConceptGraph : public Conceptgraph
 
         /*Constructive functions using predefined relations*/
         Hyperedges subrelationOf(const Hyperedges& subRelId, const Hyperedges& superRelId);
+        Hyperedges subrelationFrom(const UniqueId& subRelId, const Hyperedges& fromIds, const Hyperedges& toIds, const UniqueId& superRelId);
         Hyperedges isA(const Hyperedges& subId, const Hyperedges& superId);
         Hyperedges hasA(const Hyperedges& parentId, const Hyperedges& childId);
         Hyperedges partOf(const Hyperedges& partId, const Hyperedges& wholeId);
