@@ -52,8 +52,8 @@ int main(void)
     std::cout << universe.find("Person") << "\n";
     std::cout << universe.instancesOf(universe.find("Person"), "Mary") << "\n";
     std::cout << universe.instancesOf(universe.find("Person"), "John") << "\n";
-    std::cout << universe.relateFrom(universe.instancesOf(universe.find("Person"), "Mary"), universe.instancesOf(universe.find("Person"), "John"), loveRelClassId) << "\n";
-    universe.relateFrom(universe.instancesOf(universe.find("Person"), "Alice"), universe.instancesOf(universe.find("Person"), "John"), loveRelClassId);
+    std::cout << universe.factFrom(universe.instancesOf(universe.find("Person"), "Mary"), universe.instancesOf(universe.find("Person"), "John"), loveRelClassId) << "\n";
+    universe.factFrom(universe.instancesOf(universe.find("Person"), "Alice"), universe.instancesOf(universe.find("Person"), "John"), loveRelClassId);
 
     std::cout << "> Create a query for a person loving another person\n";
     /* Create a query */
@@ -64,7 +64,7 @@ int main(void)
     queryGraph.instanceOf(personA, queryGraph.find("Person"));
     queryGraph.instanceOf(personB, queryGraph.find("Person"));
     queryGraph.relate(queryGraph.find("Person"), queryGraph.find("Person"), "love");
-    queryGraph.relateFrom(personA, personB, queryGraph.relations("love"));
+    queryGraph.factFrom(personA, personB, queryGraph.relations("love"));
     /* Find query in unsiverse*/
     std::stack< Mapping > searchSpace;
     Mapping mapping = universe.match(queryGraph, searchSpace);
@@ -87,7 +87,7 @@ int main(void)
     std::cout << "> Create a replacement for a person loving another person\n";
     CommonConceptGraph replacementGraph(queryGraph);
     replacementGraph.relate(replacementGraph.find("Person"), replacementGraph.find("Person"), "like");
-    replacementGraph.relateFrom(personA, personB, replacementGraph.relations("like"));
+    replacementGraph.factFrom(personA, personB, replacementGraph.relations("like"));
     // TODO: The replacement graph is now the query graph PLUS some additional nodes! These have to be added although they are not in the replacement Mapping
     // This has to be added somehow to the rewrite algorithm
 

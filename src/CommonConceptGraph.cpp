@@ -57,10 +57,11 @@ Hyperedges CommonConceptGraph::factOf(const Hyperedges& factIds, const Hyperedge
     return id;
 }
 
-Hyperedges CommonConceptGraph::relateFrom(const Hyperedges& fromIds, const Hyperedges& toIds, const UniqueId superId)
+Hyperedges CommonConceptGraph::factFrom(const Hyperedges& fromIds, const Hyperedges& toIds, const UniqueId superId)
 {
     // At first create the relation ...
     Hyperedges id;
+    // TODO: What about UNARY relations?
     if (fromIds.size() && toIds.size())
     {
         id = Conceptgraph::relateFrom(fromIds, toIds, superId);
@@ -73,17 +74,17 @@ Hyperedges CommonConceptGraph::relateFrom(const Hyperedges& fromIds, const Hyper
     return id;
 }
 
-Hyperedges CommonConceptGraph::relateFrom(const Hyperedges& fromIds, const Hyperedges& toIds, const Hyperedges& superIds)
+Hyperedges CommonConceptGraph::factFrom(const Hyperedges& fromIds, const Hyperedges& toIds, const Hyperedges& superIds)
 {
     Hyperedges result;
     for (UniqueId superId : superIds)
     {
-        result = unite(result, relateFrom(fromIds, toIds, superId));
+        result = unite(result, factFrom(fromIds, toIds, superId));
     }
     return result;
 }
 
-Hyperedges CommonConceptGraph::relateAnother(const Hyperedges& fromIds, const Hyperedges& toIds, const Hyperedges& otherIds)
+Hyperedges CommonConceptGraph::factFromAnother(const Hyperedges& fromIds, const Hyperedges& toIds, const Hyperedges& otherIds)
 {
     Hyperedges result;
     for (UniqueId otherId : otherIds)
@@ -91,7 +92,7 @@ Hyperedges CommonConceptGraph::relateAnother(const Hyperedges& fromIds, const Hy
         // Get the superRels
         Hyperedges superRels = factsOf(otherId, "", TraversalDirection::DOWN);
         // Create new facts from these superRels
-        result = unite(result, relateFrom(fromIds, toIds, superRels));
+        result = unite(result, factFrom(fromIds, toIds, superRels));
     }
     return result;
 }
@@ -103,7 +104,10 @@ Hyperedges CommonConceptGraph::subrelationOf(const Hyperedges& subRelIds, const 
     Hyperedges toIds = intersect(Conceptgraph::relations(), superRelIds);
     if (fromIds.size() && toIds.size())
     {
-        id = relateFrom(fromIds, toIds, CommonConceptGraph::SubrelOfId);
+        id = factFrom(fromIds, toIds, CommonConceptGraph::SubrelOfId);
+    }
+    return id;
+}
     }
     return id;
 }
@@ -115,7 +119,7 @@ Hyperedges CommonConceptGraph::isA(const Hyperedges& subIds, const Hyperedges& s
     Hyperedges toIds = intersect(Conceptgraph::find(), superIds);
     if (fromIds.size() && toIds.size())
     {
-        id = relateFrom(fromIds, toIds, CommonConceptGraph::IsAId);
+        id = factFrom(fromIds, toIds, CommonConceptGraph::IsAId);
     }
     return id;
 }
@@ -127,7 +131,7 @@ Hyperedges CommonConceptGraph::hasA(const Hyperedges& parentIds, const Hyperedge
     Hyperedges toIds = intersect(Conceptgraph::find(), childIds);
     if (fromIds.size() && toIds.size())
     {
-        id = relateFrom(fromIds, toIds, CommonConceptGraph::HasAId);
+        id = factFrom(fromIds, toIds, CommonConceptGraph::HasAId);
     }
     return id;
 }
@@ -139,7 +143,7 @@ Hyperedges CommonConceptGraph::partOf(const Hyperedges& partIds, const Hyperedge
     Hyperedges toIds = intersect(Conceptgraph::find(), wholeIds);
     if (fromIds.size() && toIds.size())
     {
-        id = relateFrom(fromIds, toIds, CommonConceptGraph::PartOfId);
+        id = factFrom(fromIds, toIds, CommonConceptGraph::PartOfId);
     }
     return id;
 }
@@ -151,14 +155,14 @@ Hyperedges CommonConceptGraph::connects(const Hyperedges& connectorIds, const Hy
     Hyperedges toIds = intersect(Conceptgraph::find(), interfaceIds);
     if (fromIds.size() && toIds.size())
     {
-        id = relateFrom(fromIds, toIds, CommonConceptGraph::ConnectsId);
+        id = factFrom(fromIds, toIds, CommonConceptGraph::ConnectsId);
     }
     return id;
 }
 
 Hyperedges CommonConceptGraph::instanceOf(const Hyperedges& individualIds, const Hyperedges& superIds)
 {
-    return relateFrom(intersect(Conceptgraph::find(), individualIds), intersect(Conceptgraph::find(), superIds), CommonConceptGraph::InstanceOfId);
+    return factFrom(intersect(Conceptgraph::find(), individualIds), intersect(Conceptgraph::find(), superIds), CommonConceptGraph::InstanceOfId);
 }
 
 Hyperedges CommonConceptGraph::instantiateFrom(const UniqueId superId, const std::string& label)
@@ -232,7 +236,7 @@ Hyperedges CommonConceptGraph::instantiateDeepFrom(const Hyperedges& superIds, c
                 for (UniqueId commonRelId : commonRels)
                 {
                     // Create new facts from these common relations
-                    original2new[commonRelId] = relateAnother(original2new[superId], original2new[originalId], Hyperedges{commonRelId});
+                    original2new[commonRelId] = factFromAnother(original2new[superId], original2new[originalId], Hyperedges{commonRelId});
                 }
             }
         }
@@ -296,7 +300,7 @@ Hyperedges CommonConceptGraph::instantiateSuperDeepFrom(const Hyperedges& superI
                 for (UniqueId commonRelId : commonRels)
                 {
                     // Create new facts from these superRels
-                    original2new[commonRelId] = relateAnother(original2new[originalId], original2new[otherOriginalId], Hyperedges{commonRelId});
+                    original2new[commonRelId] = factFromAnother(original2new[originalId], original2new[otherOriginalId], Hyperedges{commonRelId});
                 }
             }
         }
