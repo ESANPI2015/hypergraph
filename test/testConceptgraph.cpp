@@ -188,6 +188,13 @@ int main(void)
     Hypergraph rewritten = universe2.rewrite(query, replacement, repl, searchSpace);
     std::cout << rewritten.find() << std::endl;
 
+    std::cout << "> All edges of rewritten graph" << std::endl;
+    edges = rewritten.find();
+    for (auto edgeId : edges)
+    {
+        std::cout << *rewritten.get(edgeId) << std::endl;
+    }
+
     std::cout << "> All concepts" << std::endl;
     Conceptgraph fin(rewritten);
     concepts = fin.find();
