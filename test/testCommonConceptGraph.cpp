@@ -88,10 +88,10 @@ int main(void)
         }
     }
 
-    std::cout << "> Create a replacement for a person loving another person\n";
-    CommonConceptGraph replacementGraph(queryGraph);
-    replacementGraph.relate(replacementGraph.find("Person"), replacementGraph.find("Person"), "like");
-    replacementGraph.factFrom(personA, personB, replacementGraph.relations("like"));
+    //std::cout << "> Create a replacement for a person loving another person\n";
+    //CommonConceptGraph replacementGraph(queryGraph);
+    //replacementGraph.relate(replacementGraph.find("Person"), replacementGraph.find("Person"), "like");
+    //replacementGraph.factFrom(personA, personB, replacementGraph.relations("like"));
     // TODO: The replacement graph is now the query graph PLUS some additional nodes! These have to be added although they are not in the replacement Mapping
     // This has to be added somehow to the rewrite algorithm
 
