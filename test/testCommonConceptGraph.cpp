@@ -1,6 +1,10 @@
 #include "CommonConceptGraph.hpp"
 #include "HyperedgeYAML.hpp"
 
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
+
 #include <fstream>
 #include <iostream>
 #include <cassert>
