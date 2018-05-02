@@ -103,6 +103,11 @@ Hyperedges Conceptgraph::relateFrom(const Hyperedges& fromIds, const Hyperedges&
 
 void     Conceptgraph::destroy(const UniqueId& id)
 {
+    // Very important: We should never delete our two BASIC RELATIONS
+    if (id == Conceptgraph::IsConceptId)
+        return;
+    if (id == Conceptgraph::IsRelationId)
+        return;
     if (Hypergraph::get(Conceptgraph::IsConceptId)->isPointingFrom(id))
     {
         // For a concept, we have to get rid of ALL associated relations (EXCEPT the urrelation)
