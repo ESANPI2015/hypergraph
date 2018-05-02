@@ -2,6 +2,10 @@
 #include "Hyperedge.hpp"
 #include "HyperedgeYAML.hpp"
 
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
+
 #include <fstream>
 #include <iostream>
 #include <cassert>
@@ -22,11 +26,7 @@ int main(void)
     assert(testGraph.create("2", "Second edge").empty() == false);
 
     std::cout << "> All edges" << std::endl;
-    auto edges = testGraph.find();
-    for (auto edgeId : edges)
-    {
-        std::cout << edgeId << std::endl;
-    }
+    std::cout << testGraph.find() << std::endl;
 
     std::cout << "> Connect edge 1 -> 2" << std::endl;
     assert(testGraph.to(Hyperedges{"1"},Hyperedges{"2"}).size() == 2);
@@ -64,11 +64,7 @@ int main(void)
     Hypergraph *restoredGraph = test.as<Hypergraph*>();
 
     std::cout << "> All edges of restored graph" << std::endl;
-    edges = restoredGraph->find();
-    for (auto edgeId : edges)
-    {
-        std::cout << edgeId << std::endl;
-    }
+    std::cout << restoredGraph->find() << std::endl;
 
     std::cout << "*** TESTS DONE ***" << std::endl;
 
