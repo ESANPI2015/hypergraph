@@ -17,6 +17,16 @@
     ---|------------           ---|-------
 
     We want to enforce unique ids, so ids will not be assigned automatically but it can be checked if it is available
+
+    NOTES:
+    * get() returns a pointer instead of a reference to provide NULL if Hyperedge does not exist.
+      The alternative is to define a special NULL Hyperedge (with id "0" or "NULL"). This will however make all 'if(get(id))' snippets invalid.
+      (See nice explanations here: https://stackoverflow.com/questions/10371094/returning-a-null-reference-in-c)
+    * An additional way to optimize scalability of this approach is to use hashmaps instead of normal maps.
+      Then lookup can be done in O(1) (average). However, this could be premature optimization.
+    * A std::map is NOT a one-to-one mapping but a many-to-one mapping ... A better structure could be to specify
+      aribitrary mappings by std::set< std::pair< UniqueId, UniqueId > > or something similar.
+    * Instead of using std::set for Hyperedges, we could use an unordered_set which would also help with scalability issues (because it is a hash table)
 */
 
 typedef std::map<UniqueId, UniqueId> Mapping;   //< This map stores a one-to-one mapping between hedges (IDs)
@@ -39,7 +49,7 @@ class Hypergraph {
         void destroy(const UniqueId id);                                // Will remove a hyperedge from this hypergraph (and also disconnect it from anybody)
 
         /*Get access to edges*/
-        Hyperedge* get(const UniqueId id);                              // Provides access to the hyperedge given by id. NOTE: Pointer instead of Reference is used here to provide NULL if Hyperedge does not exist
+        Hyperedge* get(const UniqueId id);                              // Provides access to the hyperedge given by id.
         Hyperedges find(const std::string& label="") const;             // Finds all hyperedges with a certain label
 
         /*Connect edges*/
@@ -88,6 +98,7 @@ class Hypergraph {
 
     protected:
         // Private members for factory
+        // NOTE: We could use a hashmap to improve scalability. However this might be premature optimization.
         std::map<UniqueId, Hyperedge> _edges;  // stores all hyperedges in a map id -> hyperedge
 };
 
