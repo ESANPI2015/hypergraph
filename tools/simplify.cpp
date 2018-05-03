@@ -67,66 +67,131 @@ int main (int argc, char **argv)
     Hypergraph* hypergraph = YAML::LoadFile(fileNameIn).as<Hypergraph*>();
     CommonConceptGraph ccgraph(*hypergraph);
 
+    Hypergraph simplified(ccgraph);
     // The following rule merges two FACT-OF relations to the same RELATION CLASS into one FACT-OF
-
-    // Create left hand side
-    Conceptgraph lhs;
-    lhs.relate("SomeRelation",Hyperedges{},Hyperedges{},"");
-    lhs.relate("FirstFact", Hyperedges{}, Hyperedges{},"");
-    lhs.relate("SecondFact", Hyperedges{}, Hyperedges{},"");
-    Hyperedges factOf1 = subtract(lhs.relate("FACT-OF1", Hyperedges{"FirstFact"}, Hyperedges{"SomeRelation"}, "FACT-OF"), Hyperedges{"FirstFact","SomeRelation"});
-    Hyperedges factOf2 = subtract(lhs.relate("FACT-OF2", Hyperedges{"SecondFact"}, Hyperedges{"SomeRelation"}, "FACT-OF"), Hyperedges{"SecondFact","SomeRelation"});
-    std::cout << lhs.Hypergraph::find() << std::endl;
-
-    // Create right hand side
-    Conceptgraph rhs;
-    rhs.relate("SomeRelation",Hyperedges{},Hyperedges{},"");
-    rhs.relate("FirstFact", Hyperedges{}, Hyperedges{},"");
-    rhs.relate("SecondFact", Hyperedges{}, Hyperedges{},"");
-    Hyperedges factOf3 = subtract(rhs.relate("FACT-OF1", Hyperedges{"FirstFact","SecondFact"}, Hyperedges{"SomeRelation"}, "FACT-OF"), Hyperedges{"FirstFact","SecondFact","SomeRelation"});
-    std::cout << rhs.Hypergraph::find() << std::endl;
-
-    // Create partial homomorphism
-    Mapping partial(fromHyperedges(lhs.Hypergraph::find()));
-    partial[*factOf1.begin()] = *factOf3.begin();
-    partial[*factOf2.begin()] = *factOf3.begin();
-    std::cout << partial << std::endl;
-
-    // Rewrite
-    std::stack< Mapping > sp;
-    std::chrono::high_resolution_clock::time_point start(std::chrono::high_resolution_clock::now());
-    Hypergraph simplified(ccgraph.rewrite(lhs,rhs,partial,sp));
-    if (!simplified.size())
     {
-        std::cout << "No simplification possible\n";
-        return 1;
-    }
-    std::cout << "." << std::flush;
-    while (processAll)
-    {
+        // Create left hand side
+        Conceptgraph lhs;
+        lhs.relate("SomeRelation",Hyperedges{},Hyperedges{},"");
+        lhs.relate("FirstFact", Hyperedges{}, Hyperedges{},"");
+        lhs.relate("SecondFact", Hyperedges{}, Hyperedges{},"");
+        Hyperedges factOf1 = subtract(lhs.relate("FACT-OF1", Hyperedges{"FirstFact"}, Hyperedges{"SomeRelation"}, "FACT-OF"), Hyperedges{"FirstFact","SomeRelation"});
+        Hyperedges factOf2 = subtract(lhs.relate("FACT-OF2", Hyperedges{"SecondFact"}, Hyperedges{"SomeRelation"}, "FACT-OF"), Hyperedges{"SecondFact","SomeRelation"});
+        std::cout << lhs.Hypergraph::find() << std::endl;
+
+        // Create right hand side
+        Conceptgraph rhs;
+        rhs.relate("SomeRelation",Hyperedges{},Hyperedges{},"");
+        rhs.relate("FirstFact", Hyperedges{}, Hyperedges{},"");
+        rhs.relate("SecondFact", Hyperedges{}, Hyperedges{},"");
+        Hyperedges factOf3 = subtract(rhs.relate("FACT-OF3", Hyperedges{"FirstFact","SecondFact"}, Hyperedges{"SomeRelation"}, "FACT-OF"), Hyperedges{"FirstFact","SecondFact","SomeRelation"});
+        std::cout << rhs.Hypergraph::find() << std::endl;
+
+        // Create partial homomorphism
+        Mapping partial(fromHyperedges(lhs.Hypergraph::find()));
+        partial[*factOf1.begin()] = *factOf3.begin();
+        partial[*factOf2.begin()] = *factOf3.begin();
+        std::cout << partial << std::endl;
+
         // Rewrite
-        Hypergraph simplified2 = simplified.rewrite(lhs,rhs,partial,sp);
-        std::cout << "." << std::flush;
-        if (simplified2.size())
+        std::stack< Mapping > sp;
+        std::chrono::high_resolution_clock::time_point start(std::chrono::high_resolution_clock::now());
+        simplified = simplified.rewrite(lhs,rhs,partial,sp);
+        if (!simplified.size())
         {
-            simplified = simplified2;
-        } else {
-            break;
+            std::cout << "No simplification possible\n";
+            return 1;
         }
-        // Store graph (such that rewrite can be aborted)
-        doc.reset();
-        doc = static_cast<Hypergraph*>(&simplified);
-        fout.open(fileNameOut);
-        if(fout.good()) {
-            fout << doc;
-        } else {
-            std::cout << "FAILED\n";
+        std::cout << "." << std::flush;
+        while (processAll)
+        {
+            // Rewrite
+            Hypergraph simplified2 = simplified.rewrite(lhs,rhs,partial,sp);
+            std::cout << "." << std::flush;
+            if (simplified2.size())
+            {
+                simplified = simplified2;
+            } else {
+                break;
+            }
+            // Store graph (such that rewrite can be aborted)
+            doc.reset();
+            doc = static_cast<Hypergraph*>(&simplified);
+            fout.open(fileNameOut);
+            if(fout.good()) {
+                fout << doc;
+            } else {
+                std::cout << "FAILED\n";
+            }
+            fout.close();
         }
-        fout.close();
+        std::chrono::high_resolution_clock::time_point end(std::chrono::high_resolution_clock::now());
+        std::cout << "Done.\n";
+        std::cout << "Time elapsed [us]: " << std::chrono::duration_cast<std::chrono::microseconds>(end-start).count() << "\n";
     }
-    std::chrono::high_resolution_clock::time_point end(std::chrono::high_resolution_clock::now());
-    std::cout << "Done.\n";
-    std::cout << "Time elapsed [us]: " << std::chrono::duration_cast<std::chrono::microseconds>(end-start).count() << "\n";
+
+    // The following rule merges two INSTANCE-OF relations to the same CONCEPT CLASS into one INSTANCE-OF
+    {
+        // Create left hand side
+        // NOTE: The only prerequisite is, that the RELATION CLASS of instanceOf is labelled "INSTANCE-OF"
+        Conceptgraph lhs;
+        lhs.create("SomeConcept","");
+        lhs.create("FirstInstance","");
+        lhs.create("SecondInstance","");
+        Hyperedges instanceOf1 = subtract(lhs.relate("INSTANCE-OF1", Hyperedges{"FirstInstance"}, Hyperedges{"SomeConcept"}, "INSTANCE-OF"), Hyperedges{"FirstInstance","SomeConcept"});
+        Hyperedges instanceOf2 = subtract(lhs.relate("INSTANCE-OF2", Hyperedges{"SecondInstance"}, Hyperedges{"SomeConcept"}, "INSTANCE-OF"), Hyperedges{"SecondInstance","SomeConcept"});
+        std::cout << lhs.Hypergraph::find() << std::endl;
+
+        // Create right hand side
+        Conceptgraph rhs;
+        rhs.create("SomeConcept","");
+        rhs.create("FirstInstance","");
+        rhs.create("SecondInstance","");
+        Hyperedges instanceOf3 = subtract(rhs.relate("INSTANCE-OF3", Hyperedges{"FirstInstance","SecondInstance"}, Hyperedges{"SomeConcept"}, "INSTANCE-OF"), Hyperedges{"FirstInstance","SecondInstance","SomeConcept"});
+        std::cout << rhs.Hypergraph::find() << std::endl;
+
+        // Create partial homomorphism
+        Mapping partial(fromHyperedges(lhs.Hypergraph::find()));
+        partial[*instanceOf1.begin()] = *instanceOf3.begin();
+        partial[*instanceOf2.begin()] = *instanceOf3.begin();
+        std::cout << partial << std::endl;
+
+        // Rewrite
+        std::stack< Mapping > sp;
+        std::chrono::high_resolution_clock::time_point start(std::chrono::high_resolution_clock::now());
+        simplified = simplified.rewrite(lhs,rhs,partial,sp);
+        if (!simplified.size())
+        {
+            std::cout << "No simplification possible\n";
+            return 1;
+        }
+        std::cout << "." << std::flush;
+        while (processAll)
+        {
+            // Rewrite
+            Hypergraph simplified2 = simplified.rewrite(lhs,rhs,partial,sp);
+            std::cout << "." << std::flush;
+            if (simplified2.size())
+            {
+                simplified = simplified2;
+            } else {
+                break;
+            }
+            // Store graph (such that rewrite can be aborted)
+            doc.reset();
+            doc = static_cast<Hypergraph*>(&simplified);
+            fout.open(fileNameOut);
+            if(fout.good()) {
+                fout << doc;
+            } else {
+                std::cout << "FAILED\n";
+            }
+            fout.close();
+        }
+        std::chrono::high_resolution_clock::time_point end(std::chrono::high_resolution_clock::now());
+        std::cout << "Done.\n";
+        std::cout << "Time elapsed [us]: " << std::chrono::duration_cast<std::chrono::microseconds>(end-start).count() << "\n";
+    }
 
     // Store graph
     doc.reset();
