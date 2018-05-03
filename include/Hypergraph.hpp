@@ -29,7 +29,8 @@ std::ostream& operator<< (std::ostream& os , const Mapping& val);
 class Hypergraph {
     public:
         Hypergraph();
-        Hypergraph(Hypergraph& A, Hypergraph& B);           // creates a new hypergraph out of two given ones
+        Hypergraph(const Hypergraph& other);                // copy constructor to repopulate the hyperedge cache(s)
+        Hypergraph(const Hypergraph& A, const Hypergraph& B);           // creates a new hypergraph out of two given ones
         ~Hypergraph();
 
         /*Factory functions for member edges*/
@@ -39,7 +40,7 @@ class Hypergraph {
 
         /*Get access to edges*/
         Hyperedge* get(const UniqueId id);                              // Provides access to the hyperedge given by id
-        Hyperedges find(const std::string& label="");                   // Finds all hyperedges with a certain label
+        Hyperedges find(const std::string& label="") const;             // Finds all hyperedges with a certain label
 
         /*Connect edges*/
         Hyperedges to(const Hyperedges& srcIds, const Hyperedges& others);    // Afterwards every srcId in srcIds will point to others. The converse is not true!!

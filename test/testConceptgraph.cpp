@@ -195,8 +195,15 @@ int main(void)
         std::cout << *rewritten.get(edgeId) << std::endl;
     }
 
-    std::cout << "> All concepts" << std::endl;
+    std::cout << "> All relations" << std::endl;
     Conceptgraph fin(rewritten);
+    Hyperedges allRels(fin.relations());
+    for (UniqueId relId : allRels)
+    {
+        std::cout << *fin.get(relId) << std::endl;
+    }
+
+    std::cout << "> All concepts" << std::endl;
     concepts = fin.find();
     for (auto conceptId : concepts)
     {
