@@ -110,11 +110,25 @@ void     Conceptgraph::destroy(const UniqueId& id)
         return;
     if (Hypergraph::get(Conceptgraph::IsConceptId)->isPointingFrom(id))
     {
-        // For a concept, we have to get rid of ALL associated relations (EXCEPT the urrelation)
-        auto relationIds = subtract(relationsOf(Hyperedges{id}), Hyperedges{Conceptgraph::IsConceptId});
-        for (auto relId : relationIds)
+        // When we delete a concept we check if
+        // a) all relations pointingFrom us still point from something else
+        Hyperedges relsFromUs(relationsFrom(Hyperedges{id}));
+        for (UniqueId relId : relsFromUs)
         {
-            Hypergraph::destroy(relId);
+            // Ignore URRELATION
+            if (relId == Conceptgraph::IsConceptId)
+                continue;
+            // If it is not pointing from anything anymore, we destroy it
+            if (Hypergraph::get(relId)->pointingFrom().size() <= 1)
+                Hypergraph::destroy(relId);
+        }
+        // b) all relations pointingTo us still point to something else
+        Hyperedges relsToUs(relationsTo(Hyperedges{id}));
+        for (UniqueId relId : relsToUs)
+        {
+            // If it is not pointing to anything anymore, we destroy it
+            if (Hypergraph::get(relId)->pointingTo().size() <= 1)
+                Hypergraph::destroy(relId);
         }
     }
     // Removing a relation does not imply anything than just calling the base class destroy thing, right?
