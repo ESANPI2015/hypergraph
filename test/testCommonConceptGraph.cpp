@@ -1,5 +1,5 @@
 #include "CommonConceptGraph.hpp"
-#include "HyperedgeYAML.hpp"
+#include "HypergraphYAML.hpp"
 
 #ifdef NDEBUG
 #undef NDEBUG
@@ -11,17 +11,15 @@
 
 int main(void)
 {
-    YAML::Node test;
-    std::ofstream fout;
     std::cout << "*** COMMON CONCEPT GRAPH TEST ***" << std::endl;
 
     CommonConceptGraph universe;
 
     std::cout << "> Store empty common concept graph\n";
-    test = static_cast<Hypergraph*>(&universe);
+    std::ofstream fout;
     fout.open("emptyCCG.yml");
     if(fout.good()) {
-        fout << test;
+        fout << YAML::StringFrom(universe) << std::endl;
     } else {
         std::cout << "FAILED\n";
     }
@@ -95,11 +93,9 @@ int main(void)
     // TODO: The replacement graph is now the query graph PLUS some additional nodes! These have to be added although they are not in the replacement Mapping
     // This has to be added somehow to the rewrite algorithm
 
-    test.reset();
-    test = static_cast<Hypergraph*>(&universe);
     fout.open("commonUniverse.yml");
     if(fout.good()) {
-        fout << test;
+        fout << YAML::StringFrom(universe) << std::endl;
     } else {
         std::cout << "FAILED\n";
     }

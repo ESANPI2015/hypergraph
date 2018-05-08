@@ -1,5 +1,5 @@
 #include "Conceptgraph.hpp"
-#include "HyperedgeYAML.hpp"
+#include "HypergraphYAML.hpp"
 
 #ifdef NDEBUG
 #undef NDEBUG
@@ -17,13 +17,10 @@ int main(void)
 
     std::cout << "> Store empty concept graph using YAML" << std::endl;
 
-    YAML::Node test;
-    test = static_cast<Hypergraph*>(&universe);
-
     std::ofstream fout;
     fout.open("emptyCG.yml");
     if(fout.good()) {
-        fout << test;
+        fout << YAML::StringFrom(universe) << std::endl;
     } else {
         std::cout << "FAILED\n";
     }
@@ -77,32 +74,26 @@ int main(void)
 
     std::cout << "> Store concept graph using YAML" << std::endl;
 
-    test.reset();
-    test = static_cast<Hypergraph*>(&universe);
-
     fout.open("universe.yml");
     if(fout.good()) {
-        fout << test;
+        fout << YAML::StringFrom(universe) << std::endl;
     } else {
         std::cout << "FAILED\n";
     }
     fout.close();
 
     std::cout << "> Create new hypergraph from YAML" << std::endl;
-
-    test.reset();
-    test = YAML::LoadFile("universe.yml");
-    Hypergraph *restoredGraph = test.as<Hypergraph*>();
+    Hypergraph restoredGraph(YAML::LoadFile("universe.yml").as<Hypergraph>());
 
     std::cout << "> All edges of restored graph" << std::endl;
-    auto edges = restoredGraph->find();
+    auto edges = restoredGraph.find();
     for (auto edgeId : edges)
     {
-        std::cout << *restoredGraph->get(edgeId) << std::endl;
+        std::cout << *restoredGraph.get(edgeId) << std::endl;
     }
 
     std::cout << "> Make it a concept graph" << std::endl;
-    Conceptgraph universe2(*restoredGraph);
+    Conceptgraph universe2(restoredGraph);
 
     std::cout << "> All concepts" << std::endl;
     concepts = universe2.find();
@@ -137,11 +128,9 @@ int main(void)
         std::cout << "\t" << *query.get(conceptId) << std::endl;
     }
 
-    test.reset();
-    test = static_cast<Hypergraph*>(&query);
     fout.open("query.yml");
     if(fout.good()) {
-        fout << test;
+        fout << YAML::StringFrom(query) << std::endl;
     } else {
         std::cout << "FAILED\n";
     }
@@ -163,11 +152,9 @@ int main(void)
     {
         std::cout << "\t" << *replacement.get(conceptId) << std::endl;
     }
-    test.reset();
-    test = static_cast<Hypergraph*>(&replacement);
     fout.open("replacement.yml");
     if(fout.good()) {
-        fout << test;
+        fout << YAML::StringFrom(replacement) << std::endl;
     } else {
         std::cout << "FAILED\n";
     }

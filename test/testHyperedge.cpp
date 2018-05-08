@@ -1,6 +1,6 @@
-#include "Hypergraph.hpp"
 #include "Hyperedge.hpp"
-#include "HyperedgeYAML.hpp"
+#include "Hypergraph.hpp"
+#include "HypergraphYAML.hpp"
 
 #ifdef NDEBUG
 #undef NDEBUG
@@ -45,13 +45,10 @@ int main(void)
 
     std::cout << "> Store hypergraph using YAML" << std::endl;
 
-    YAML::Node test;
-    test = &testGraph;
-
     std::ofstream fout;
     fout.open("test.yml");
     if(fout.good()) {
-        fout << test;
+        fout << YAML::StringFrom(testGraph) << std::endl;
     } else {
         std::cout << "FAILED\n";
     }
@@ -59,12 +56,11 @@ int main(void)
 
     std::cout << "> Create new hypergraph from YAML" << std::endl;
 
-    test.reset();
-    test = YAML::LoadFile("test.yml");
-    Hypergraph *restoredGraph = test.as<Hypergraph*>();
+    YAML::Node test(YAML::LoadFile("test.yml"));
+    Hypergraph restoredGraph(test.as<Hypergraph>());
 
     std::cout << "> All edges of restored graph" << std::endl;
-    std::cout << restoredGraph->find() << std::endl;
+    std::cout << restoredGraph.find() << std::endl;
 
     std::cout << "*** TESTS DONE ***" << std::endl;
 

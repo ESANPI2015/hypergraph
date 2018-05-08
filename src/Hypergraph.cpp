@@ -109,6 +109,11 @@ void Hypergraph::disconnect(const UniqueId id)
     }
 }
 
+const Hyperedge& Hypergraph::read(const UniqueId id) const
+{
+    return _edges.at(id);
+}
+
 Hyperedge* Hypergraph::get(const UniqueId id)
 {
     if (_edges.count(id))

@@ -36,7 +36,7 @@ set(SOURCES
 set(HEADERS
     include/Hyperedge.hpp
     include/Hypergraph.hpp
-    include/HyperedgeYAML.hpp
+    include/HypergraphYAML.hpp
     include/Conceptgraph.hpp
     include/CommonConceptGraph.hpp
     )

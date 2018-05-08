@@ -1,5 +1,5 @@
 #include "CommonConceptGraph.hpp"
-#include "HyperedgeYAML.hpp"
+#include "HypergraphYAML.hpp"
 
 #include <fstream>
 #include <iostream>
@@ -28,7 +28,6 @@ void usage (const char *myName)
 
 int main (int argc, char **argv)
 {
-    YAML::Node doc;
     std::ofstream fout;
 
     // Parse command line
@@ -64,8 +63,8 @@ int main (int argc, char **argv)
     std::string fileNameOut(argv[optind+1]);
 
     // Load graph
-    Hypergraph* hypergraph = YAML::LoadFile(fileNameIn).as<Hypergraph*>();
-    CommonConceptGraph ccgraph(*hypergraph);
+    Hypergraph hypergraph(YAML::LoadFile(fileNameIn).as<Hypergraph>());
+    CommonConceptGraph ccgraph(hypergraph);
 
     Hypergraph simplified(ccgraph);
     // The following rule merges two FACT-OF relations to the same RELATION CLASS into one FACT-OF
@@ -115,11 +114,9 @@ int main (int argc, char **argv)
                 break;
             }
             // Store graph (such that rewrite can be aborted)
-            doc.reset();
-            doc = static_cast<Hypergraph*>(&simplified);
             fout.open(fileNameOut);
             if(fout.good()) {
-                fout << doc;
+                fout << YAML::StringFrom(simplified) << std::endl;
             } else {
                 std::cout << "FAILED\n";
             }
@@ -178,11 +175,9 @@ int main (int argc, char **argv)
                 break;
             }
             // Store graph (such that rewrite can be aborted)
-            doc.reset();
-            doc = static_cast<Hypergraph*>(&simplified);
             fout.open(fileNameOut);
             if(fout.good()) {
-                fout << doc;
+                fout << YAML::StringFrom(simplified) << std::endl;
             } else {
                 std::cout << "FAILED\n";
             }
@@ -194,11 +189,9 @@ int main (int argc, char **argv)
     }
 
     // Store graph
-    doc.reset();
-    doc = static_cast<Hypergraph*>(&simplified);
     fout.open(fileNameOut);
     if(fout.good()) {
-        fout << doc;
+        fout << YAML::StringFrom(simplified) << std::endl;
     } else {
         std::cout << "FAILED\n";
     }

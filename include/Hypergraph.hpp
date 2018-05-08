@@ -49,6 +49,7 @@ class Hypergraph {
         void destroy(const UniqueId id);                                // Will remove a hyperedge from this hypergraph (and also disconnect it from anybody)
 
         /*Get access to edges*/
+        const Hyperedge& read(const UniqueId id) const;
         Hyperedge* get(const UniqueId id);                              // Provides access to the hyperedge given by id.
         Hyperedges find(const std::string& label="") const;             // Finds all hyperedges with a certain label
 
