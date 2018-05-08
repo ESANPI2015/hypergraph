@@ -7,7 +7,6 @@
 #include <algorithm>
 #include <iostream>
 
-
 /*
    This is an experimental encoder/decoder for hypergraph <-> YAML stuff
    However there are open questions:
@@ -18,51 +17,10 @@
 namespace YAML {
     // Preserve ordering of keys when storing
     // Taken from https://github.com/l0b0/OpenXcom/blob/01f78550bdfb39f2a862f314d0fba32d683ca0d7/src/Engine/Options.cpp
-    void writeNode(const Node& node, Emitter& emitter)
-    {
-        switch (node.Type())
-        {
-            case NodeType::Sequence:
-            {
-                emitter << YAML::BeginSeq;
-                for (size_t i = 0; i < node.size(); i++)
-                {
-                    writeNode(node[i], emitter);
-                }
-                emitter << YAML::EndSeq;
-                break;
-            }
-            case NodeType::Map:
-            {
-                emitter << YAML::BeginMap;
+    void writeNode(const Node& node, Emitter& emitter);
 
-                // First collect all the keys
-                std::vector<std::string> keys(node.size());
-                int key_it = 0;
-                for (YAML::const_iterator it = node.begin(); it != node.end(); ++it)
-                {
-                    keys[key_it++] = it->first.as<std::string>();
-                }
-
-                // Then sort them
-                std::sort(keys.begin(), keys.end());
-
-                // Then emit all the entries in sorted order.
-                for(size_t i = 0; i < keys.size(); i++)
-                {
-                    emitter << YAML::Key;
-                    emitter << keys[i];
-                    emitter << YAML::Value;
-                    writeNode(node[keys[i]], emitter);
-                }
-                emitter << YAML::EndMap;
-                break;
-            }
-            default:
-                emitter << node;
-                break;
-        }
-    }
+    // Easy to use function to create a order preserving serialization of a Hypergraph
+    std::string StringFrom(const Hypergraph& g);
 
     template<>
         struct convert<Hyperedge> {
@@ -160,14 +118,6 @@ namespace YAML {
                 return true;
             }
         };
-
-    std::string StringFrom(const Hypergraph& g)
-    {
-        Node doc(g);
-        Emitter out;
-        writeNode(doc, out);
-        return out.c_str();
-    }
 }
 
 #endif

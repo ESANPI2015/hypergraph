@@ -30,6 +30,7 @@ add_definitions(${hypergraph_PKGCONFIG_CFLAGS_OTHER} --pedantic -Wall -Werror)
 set(SOURCES
     src/Hyperedge.cpp
     src/Hypergraph.cpp
+    src/HypergraphYAML.cpp
     src/Conceptgraph.cpp
     src/CommonConceptGraph.cpp
     )
