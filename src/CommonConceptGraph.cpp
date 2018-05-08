@@ -363,6 +363,13 @@ Hyperedges CommonConceptGraph::factsOf(const Hyperedges& superRelIds, const std:
     return result;
 }
 
+Hyperedges CommonConceptGraph::subrelationsOf(const Hyperedges& superRelIds, const std::string& label, const TraversalDirection dir)
+{
+    Hyperedges result;
+    for (UniqueId superRelId : superRelIds)
+        result = unite(result, subrelationsOf(superRelId, label, dir));
+    return result;
+}
 Hyperedges CommonConceptGraph::subrelationsOf(const UniqueId superRelId, const std::string& label, const TraversalDirection dir)
 {
     // Here we start a traversal from superRelId following every subrelationOf relation

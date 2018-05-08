@@ -95,6 +95,7 @@ class CommonConceptGraph : public Conceptgraph
         Hyperedges factsOf(const UniqueId superRelId, const std::string& label="", const TraversalDirection dir=UP);           // non-transitive
         Hyperedges factsOf(const Hyperedges& superRelIds, const std::string& label="", const TraversalDirection dir=UP);       // non-transitive factOf
         Hyperedges subrelationsOf(const UniqueId superRelId, const std::string& label="", const TraversalDirection dir=UP);    //transitive subrelOf
+        Hyperedges subrelationsOf(const Hyperedges& superRelIds, const std::string& label="", const TraversalDirection dir=UP);    //transitive subrelOf
 
         /*Other common queries using subrelationsOf!*/
         /*NOTE: The traversal direction tells if the basic relation is to be followed in its direction(DOWN) or against it(UP)*/
