@@ -9,13 +9,11 @@ SET(ENV{PKG_CONFIG_PATH}
     ${CMAKE_BINARY_DIR}:$ENV{PKG_CONFIG_PATH}
     )
 
-find_package(PkgConfig)
-#pkg_check_modules(YAML REQUIRED yaml-0.1)
-#include_directories(${YAML_INCLUDE_DIRS})
-#link_directories(${YAML_LIBRARY_DIRS})
-#add_definitions(-DYAML_SUPPORT ${YAML_CFLAGS_OTHER})
-#set(EXTRA_LIBRARIES ${EXTRA_LIBRARIES} yaml)
+if(NOT TARGET yaml-cpp)
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../ext/yaml-cpp yaml-cpp)
+endif(NOT TARGET yaml-cpp)
 
+find_package(PkgConfig)
 pkg_check_modules(hypergraph_PKGCONFIG REQUIRED
     yaml-cpp
     libgit2
