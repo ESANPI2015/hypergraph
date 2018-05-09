@@ -1,3 +1,4 @@
+#include "CommonConceptGraph.hpp"
 #include "HypergraphDB.hpp"
 #include "HypergraphYAML.hpp"
 
@@ -16,11 +17,27 @@ int main(void)
     std::cout << "> Create DB\n";
     HypergraphDB myDB;
 
-    std::cout << "> Load common universe\n";
-    Hypergraph myGraph(YAML::LoadFile("commonUniverse.yml").as<Hypergraph>());
+    std::cout << "> Create common concept graph\n";
+    CommonConceptGraph universe;
+    universe.create("PERSON", "Person");
+    universe.instantiateFrom("PERSON", "Moritz Schilling");
+    universe.instantiateFrom("PERSON", "and his colleague");
 
     std::cout << "> Commit to DB\n";
-    myDB.commit("commonUniverse", myGraph);
+    myDB.commit("myUniverse", universe);
+
+    std::cout << "> Open from DB\n";
+    CommonConceptGraph otherUniverse(myDB.open("myUniverse"));
+
+    std::cout << "> Modify graph\n";
+    Hyperedges colleagues(otherUniverse.find("and his colleague"));
+    for (UniqueId colleague : colleagues)
+    {
+        otherUniverse.get(colleague)->updateLabel("Tobi");
+    }
+
+    std::cout << "> Recommit to DB\n";
+    myDB.commit("myUniverse", otherUniverse);
     
     std::cout << "*** TESTS DONE ***" << std::endl;
 
