@@ -1,4 +1,5 @@
 #include "HypergraphDB.hpp"
+#include "HypergraphYAML.hpp"
 
 #ifdef NDEBUG
 #undef NDEBUG
@@ -14,9 +15,13 @@ int main(void)
 
     std::cout << "> Create DB\n";
     HypergraphDB myDB;
-    
-    // TODO: Check if git folder exists
 
+    std::cout << "> Load common universe\n";
+    Hypergraph myGraph(YAML::LoadFile("commonUniverse.yml").as<Hypergraph>());
+
+    std::cout << "> Commit to DB\n";
+    myDB.commit("commonUniverse", myGraph);
+    
     std::cout << "*** TESTS DONE ***" << std::endl;
 
     return 0;

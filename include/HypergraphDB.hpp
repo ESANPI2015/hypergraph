@@ -22,7 +22,6 @@ class HypergraphDB {
         HypergraphDB(const std::string& dir="./HDB");
         ~HypergraphDB();
 
-        Hypergraph create(const std::string& name);
         Hypergraph open(const std::string& name);
         bool commit(const std::string& name, const Hypergraph& graph);
         //bool publish();
