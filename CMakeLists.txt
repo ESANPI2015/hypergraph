@@ -18,6 +18,7 @@ find_package(PkgConfig)
 
 pkg_check_modules(hypergraph_PKGCONFIG REQUIRED
     yaml-cpp
+    libgit2
     )
 
 set(CMAKE_BUILD_TYPE RelWithDebInfo)
@@ -31,6 +32,7 @@ set(SOURCES
     src/Hyperedge.cpp
     src/Hypergraph.cpp
     src/HypergraphYAML.cpp
+    src/HypergraphDB.cpp
     src/Conceptgraph.cpp
     src/CommonConceptGraph.cpp
     )
@@ -38,6 +40,7 @@ set(HEADERS
     include/Hyperedge.hpp
     include/Hypergraph.hpp
     include/HypergraphYAML.hpp
+    include/HypergraphDB.hpp
     include/Conceptgraph.hpp
     include/CommonConceptGraph.hpp
     )
@@ -69,6 +72,11 @@ RUNTIME DESTINATION bin)
 add_executable(simplify tools/simplify.cpp)
 target_link_libraries(simplify hypergraph)
 install(TARGETS simplify
+RUNTIME DESTINATION bin)
+
+add_executable(testHypergraphDB test/testHypergraphDB.cpp)
+target_link_libraries(testHypergraphDB hypergraph)
+install(TARGETS testHypergraphDB
 RUNTIME DESTINATION bin)
 
 # pkg-config, to be installed:
