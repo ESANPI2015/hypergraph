@@ -8,9 +8,15 @@
     For each new Hypergraph it will create a YAML file in the GIT named after the Hypergraph.
     When finished working with a Hypergraph, a call to commit will try to commit the changes into the GIT.
 
+    TODO:
+    * Every instance of this class should have their own branch (unique!)
+    * Before starting to work, pull from remote master branch
+    * On destruction, merge with master branch & push to remote
+
     NOTES:
     * Assign a unique id/name to hypergraph?
     * Shall we back up the Hypergraphs in a list and return references?
+    * Instead of using libgit ... should we just use CLI interface of GIT?
 */
 
 #include "Hypergraph.hpp"
