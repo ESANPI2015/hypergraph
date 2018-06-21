@@ -435,6 +435,49 @@ Hyperedges CommonConceptGraph::descendantsOf(const Hyperedges& ancestorIds, cons
     return result;
 }
 
+Hyperedges CommonConceptGraph::directSubclassesOf(const Hyperedges& ids, const std::string& label, const TraversalDirection dir)
+{
+    Hyperedges result;
+    // Get all subrelationsOf IS-A
+    Hyperedges subRels = subrelationsOf(CommonConceptGraph::IsAId);
+    // Get all factsOf these subrelations
+    Hyperedges facts = factsOf(subRels);
+
+    switch (dir)
+    {
+        case DOWN:
+        {
+            // Get all relationsFrom id
+            Hyperedges relsFromSubs = Conceptgraph::relationsFrom(ids);
+            // Contains all (id <-- factFromSubRelOfIsA --> X) relations
+            Hyperedges relevantRels = intersect(relsFromSubs, facts);
+            // Get all these X matching the label
+            result = unite(result, Hypergraph::to(relevantRels, label));
+        }
+        break;
+        case BOTH:
+        {
+            // Get all relationsFrom id
+            Hyperedges relsFromSubs = Conceptgraph::relationsFrom(ids);
+            // Contains all (id <-- factFromSubRelOfIsA --> X) relations
+            Hyperedges relevantRels = intersect(relsFromSubs, facts);
+            // Get all these X matching the label
+            result = unite(result, Hypergraph::to(relevantRels, label));
+        }
+        case UP:
+        {
+            // Get all relationsTo id
+            Hyperedges relsToSupers = Conceptgraph::relationsTo(ids);
+            // Contains all (X <-- factFromSubRelOfIsA --> id) relations
+            Hyperedges relevantRels = intersect(relsToSupers, facts);
+            // Get all these X matching the label
+            result = unite(result, Hypergraph::from(relevantRels, label));
+        }
+        break;
+    }
+    return result;
+}
+
 Hyperedges CommonConceptGraph::instancesOf(const Hyperedges& ids, const std::string& label, const TraversalDirection dir)
 {
     Hyperedges result;

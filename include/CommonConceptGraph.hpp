@@ -104,6 +104,7 @@ class CommonConceptGraph : public Conceptgraph
         Hyperedges subclassesOf(const Hyperedges& ids, const std::string& label="", const TraversalDirection dir=UP);      //transitive isA
         Hyperedges partsOf(const Hyperedges& ids, const std::string& label="", const TraversalDirection dir=UP);           //transitive partOf
         Hyperedges descendantsOf(const Hyperedges& ancestorIds, const std::string& label="", const TraversalDirection dir=DOWN); //transitive hasA
+        Hyperedges directSubclassesOf(const Hyperedges& ids, const std::string& label="", const TraversalDirection dir=UP); // non-transitive isA
         Hyperedges componentsOf(const Hyperedges& ids, const std::string& label="", const TraversalDirection dir=UP);     //non-transitive partOf
         Hyperedges instancesOf(const Hyperedges& ids, const std::string& label="", const TraversalDirection dir=UP);      //non-transitive instanceOf
         Hyperedges childrenOf(const Hyperedges& ids, const std::string& label="", const TraversalDirection dir=DOWN);     //non-transitive hasA
