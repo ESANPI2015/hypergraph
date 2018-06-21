@@ -85,6 +85,7 @@ class CommonConceptGraph : public Conceptgraph
         Hyperedges instanceOf(const Hyperedges& individualIds, const Hyperedges& superIds);
 
         /*Constructive functions creating new concepts*/
+        Hyperedges createSubclassOf(const UniqueId& subId, const Hyperedges& superIds, const std::string& label=""); // create subId,label <-- IS-A --> superId(s)
         Hyperedges instantiateFrom(const UniqueId superId, const std::string& label=""); // create label <-- INSTANCE-OF --> superId
         Hyperedges instantiateFrom(const Hyperedges& superIds, const std::string& label="");
         Hyperedges instantiateAnother(const Hyperedges& otherIds, const std::string& label=""); // create another instance from the superclasses of others

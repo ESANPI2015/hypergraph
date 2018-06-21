@@ -178,6 +178,13 @@ Hyperedges CommonConceptGraph::instanceOf(const Hyperedges& individualIds, const
     return factFrom(intersect(Conceptgraph::find(), individualIds), intersect(Conceptgraph::find(), superIds), CommonConceptGraph::InstanceOfId);
 }
 
+Hyperedges CommonConceptGraph::createSubclassOf(const UniqueId& subId, const Hyperedges& superIds, const std::string& label)
+{
+    Hyperedges result(Conceptgraph::create(subId, label));
+    isA(result, superIds);
+    return result;
+}
+
 Hyperedges CommonConceptGraph::instantiateFrom(const UniqueId superId, const std::string& label)
 {
     std::string theLabel = label;
