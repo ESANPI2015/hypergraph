@@ -40,10 +40,10 @@ template <typename ResultFilter, typename TraversalFilter> Hyperedges Hypergraph
         Hyperedges unknowns;
         switch (dir)
         {
-            case DOWN:
+            case FORWARD:
                 unknowns = nextNeighboursOf(Hyperedges{edge->id()});
                 break;
-            case UP:
+            case INVERSE:
                 unknowns = prevNeighboursOf(Hyperedges{edge->id()});
                 break;
             case BOTH:

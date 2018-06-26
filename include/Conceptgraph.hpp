@@ -63,14 +63,15 @@ class Conceptgraph : public Hypergraph
             return unite(relationsFrom(ids,label), relationsTo(ids,label));
         }
         /* TRAVERSALS */
+        // TODO: Make these template functions?
         Hyperedges traverse(const UniqueId& rootId,                                 //< Traverse the (sub)graph starting at rootId
                             const std::string& visitLabel="",                       //< filter visited relations OR concepts by this label
                             const std::string& relationLabel="",                    //< follow relations matching this label
-                            const TraversalDirection dir=DOWN);
+                            const TraversalDirection dir=FORWARD);
         Hyperedges traverse(const UniqueId& rootId,                                 //< Traverse the (sub)graph starting at rootId
                             const std::vector<std::string>& visitLabels,            //< visited relations OR concepts matching one of these labels will be in the results
                             const std::vector<std::string>& relationLabels,         //< follow relations matching one of these labels
-                            const TraversalDirection dir=DOWN);
+                            const TraversalDirection dir=FORWARD);
 };
 
 #endif

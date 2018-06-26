@@ -90,7 +90,7 @@ Hyperedges CommonConceptGraph::factFromAnother(const Hyperedges& fromIds, const 
     for (UniqueId otherId : otherIds)
     {
         // Get the superRels
-        Hyperedges superRels = factsOf(otherId, "", TraversalDirection::DOWN);
+        Hyperedges superRels = factsOf(otherId, "", TraversalDirection::FORWARD);
         // Create new facts from these superRels
         result = unite(result, factFrom(fromIds, toIds, superRels));
     }
@@ -220,7 +220,7 @@ Hyperedges CommonConceptGraph::instantiateAnother(const Hyperedges& otherIds, co
     for (UniqueId otherId : otherIds)
     {
         // Get superclass of other
-        Hyperedges superclasses = instancesOf(otherId,"",TraversalDirection::DOWN);
+        Hyperedges superclasses = instancesOf(otherId,"",TraversalDirection::FORWARD);
         // Instantiate from superclass of other
         result = unite(result, instantiateFrom(superclasses, label));
     }
@@ -239,7 +239,7 @@ Hyperedges CommonConceptGraph::instantiateDeepFrom(const Hyperedges& superIds, c
         original2new[superId] = instantiateFrom(superId, label);
         result = unite(result, original2new[superId]);
         // Get all superclasses as well!
-        Hyperedges superclassIds = subclassesOf(superId, "", DOWN);
+        Hyperedges superclassIds = subclassesOf(superId, "", FORWARD);
         // For each of them
         for (UniqueId superDuperId : superclassIds)
         {
@@ -333,7 +333,7 @@ Hyperedges CommonConceptGraph::factsOf(const UniqueId superRelId, const std::str
     Hyperedges result;
     switch (dir)
     {
-        case UP:
+        case INVERSE:
             {
                 // NOTE: all contains FACT-OF with (FACT-OF --> superRelId)
                 Hyperedges all = Conceptgraph::relationsTo(Hyperedges{superRelId}, get(CommonConceptGraph::FactOfId)->label());
@@ -348,7 +348,7 @@ Hyperedges CommonConceptGraph::factsOf(const UniqueId superRelId, const std::str
                 // ... the result will then contain all facts with (facts <-- FACT-OF --> superRelId)
                 result = unite(result, Hypergraph::from(all, label));
             }
-        case DOWN:
+        case FORWARD:
             {
                 // Opposite directions
                 Hyperedges all = Conceptgraph::relationsFrom(Hyperedges{superRelId}, get(CommonConceptGraph::FactOfId)->label());
@@ -435,6 +435,47 @@ Hyperedges CommonConceptGraph::descendantsOf(const Hyperedges& ancestorIds, cons
     return result;
 }
 
+Hyperedges CommonConceptGraph::directSubrelationsOf(const Hyperedges& ids, const std::string& label, const TraversalDirection dir)
+{
+    Hyperedges result;
+    // Get all factsOf these SUBREL-OF
+    Hyperedges facts = factsOf(CommonConceptGraph::SubrelOfId);
+
+    switch (dir)
+    {
+        case FORWARD:
+        {
+            // Get all relationsFrom id
+            Hyperedges relsFromSubs = Conceptgraph::relationsFrom(ids);
+            // Contains all (id <-- factFromSubRelOf --> X) relations
+            Hyperedges relevantRels = intersect(relsFromSubs, facts);
+            // Get all these X matching the label
+            result = unite(result, Hypergraph::to(relevantRels, label));
+        }
+        break;
+        case BOTH:
+        {
+            // Get all relationsFrom id
+            Hyperedges relsFromSubs = Conceptgraph::relationsFrom(ids);
+            // Contains all (id <-- factFromSubRelOf --> X) relations
+            Hyperedges relevantRels = intersect(relsFromSubs, facts);
+            // Get all these X matching the label
+            result = unite(result, Hypergraph::to(relevantRels, label));
+        }
+        case INVERSE:
+        {
+            // Get all relationsTo id
+            Hyperedges relsToSupers = Conceptgraph::relationsTo(ids);
+            // Contains all (X <-- factFromSubRelOf --> id) relations
+            Hyperedges relevantRels = intersect(relsToSupers, facts);
+            // Get all these X matching the label
+            result = unite(result, Hypergraph::from(relevantRels, label));
+        }
+        break;
+    }
+    return result;
+}
+
 Hyperedges CommonConceptGraph::directSubclassesOf(const Hyperedges& ids, const std::string& label, const TraversalDirection dir)
 {
     Hyperedges result;
@@ -445,7 +486,7 @@ Hyperedges CommonConceptGraph::directSubclassesOf(const Hyperedges& ids, const s
 
     switch (dir)
     {
-        case DOWN:
+        case FORWARD:
         {
             // Get all relationsFrom id
             Hyperedges relsFromSubs = Conceptgraph::relationsFrom(ids);
@@ -464,7 +505,7 @@ Hyperedges CommonConceptGraph::directSubclassesOf(const Hyperedges& ids, const s
             // Get all these X matching the label
             result = unite(result, Hypergraph::to(relevantRels, label));
         }
-        case UP:
+        case INVERSE:
         {
             // Get all relationsTo id
             Hyperedges relsToSupers = Conceptgraph::relationsTo(ids);
@@ -488,7 +529,7 @@ Hyperedges CommonConceptGraph::instancesOf(const Hyperedges& ids, const std::str
 
     switch (dir)
     {
-        case DOWN:
+        case FORWARD:
         {
             // Get all relationsFrom id
             Hyperedges relsFromIndividuals = Conceptgraph::relationsFrom(ids);
@@ -507,7 +548,7 @@ Hyperedges CommonConceptGraph::instancesOf(const Hyperedges& ids, const std::str
             // Get all these X matching the label
             result = unite(result, Hypergraph::to(relevantRels, label));
         }
-        case UP:
+        case INVERSE:
         {
             // Get all relationsTo id
             Hyperedges relsToSupers = Conceptgraph::relationsTo(ids);
@@ -531,7 +572,7 @@ Hyperedges CommonConceptGraph::componentsOf(const Hyperedges& ids, const std::st
 
     switch (dir)
     {
-        case DOWN:
+        case FORWARD:
         {
             // Get all relationsFrom id
             Hyperedges relsFromParts = Conceptgraph::relationsFrom(ids);
@@ -550,7 +591,7 @@ Hyperedges CommonConceptGraph::componentsOf(const Hyperedges& ids, const std::st
             // Get all these X matching the label
             result = unite(result, Hypergraph::to(relevantRels, label));
         }
-        case UP:
+        case INVERSE:
         {
             // Get all relationsTo id
             Hyperedges relsToWholes = Conceptgraph::relationsTo(ids);
@@ -574,7 +615,7 @@ Hyperedges CommonConceptGraph::childrenOf(const Hyperedges& ids, const std::stri
 
     switch (dir)
     {
-        case DOWN:
+        case FORWARD:
         {
             // Get all relationsFrom ids
             Hyperedges relsFromParents = Conceptgraph::relationsFrom(ids);
@@ -593,7 +634,7 @@ Hyperedges CommonConceptGraph::childrenOf(const Hyperedges& ids, const std::stri
             // Get all these X matching the label
             result = unite(result, Hypergraph::to(relevantRels, label));
         }
-        case UP:
+        case INVERSE:
         {
             // Get all relationsTo id
             Hyperedges relsToParents = Conceptgraph::relationsTo(ids);
@@ -617,7 +658,7 @@ Hyperedges CommonConceptGraph::endpointsOf(const Hyperedges& ids, const std::str
 
     switch (dir)
     {
-        case DOWN:
+        case FORWARD:
         {
             // Get all relationsFrom ids
             Hyperedges relsFromConnectors = Conceptgraph::relationsFrom(ids);
@@ -636,7 +677,7 @@ Hyperedges CommonConceptGraph::endpointsOf(const Hyperedges& ids, const std::str
             // Get all these X matching the label
             result = unite(result, Hypergraph::to(relevantRels, label));
         }
-        case UP:
+        case INVERSE:
         {
             // Get all relationsTo id
             Hyperedges relsToConnectors = Conceptgraph::relationsTo(ids);

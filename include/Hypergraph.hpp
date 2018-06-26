@@ -70,9 +70,9 @@ class Hypergraph {
 
         /*Traverse connected subgraphs*/
         enum TraversalDirection {
-            DOWN,   // in direction of the hedges
-            UP,     // against the direction of the hedges
-            BOTH    // in both directions
+            FORWARD,    // in direction of the hedges
+            INVERSE,    // against the direction of the hedges
+            BOTH        // in both directions
         };
         /*Traversal which returns all visited edges*/
         // TODO: Rethink signature of functors f and g
@@ -81,7 +81,7 @@ class Hypergraph {
             const UniqueId rootId,                  // The starting edge
             ResultFilter f,                         // Unary function bool f(Hyperedge *)
             TraversalFilter g,                      // Binary function bool g(Hyperedge *current, Hyperedge *next)
-            const TraversalDirection dir = DOWN
+            const TraversalDirection dir = FORWARD
         );
 
         /* Pattern matching */

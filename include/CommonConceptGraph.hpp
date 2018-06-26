@@ -93,29 +93,31 @@ class CommonConceptGraph : public Conceptgraph
         Hyperedges instantiateSuperDeepFrom(const Hyperedges& otherIds, const std::string& label=""); // create an instance also cloning ALL descendants and parts
 
         /*Common queries*/
-        Hyperedges factsOf(const UniqueId superRelId, const std::string& label="", const TraversalDirection dir=UP);           // non-transitive
-        Hyperedges factsOf(const Hyperedges& superRelIds, const std::string& label="", const TraversalDirection dir=UP);       // non-transitive factOf
-        Hyperedges subrelationsOf(const UniqueId superRelId, const std::string& label="", const TraversalDirection dir=UP);    //transitive subrelOf
-        Hyperedges subrelationsOf(const Hyperedges& superRelIds, const std::string& label="", const TraversalDirection dir=UP);    //transitive subrelOf
+        // TODO: Need factsOf(const Hyperedges& fromIds, const Hyperedges& toIds, const std::string& label="", const TraversalDirection dir=INVERSE);
+        Hyperedges factsOf(const UniqueId superRelId, const std::string& label="", const TraversalDirection dir=INVERSE);           // non-transitive
+        Hyperedges factsOf(const Hyperedges& superRelIds, const std::string& label="", const TraversalDirection dir=INVERSE);       // non-transitive factOf
+        Hyperedges subrelationsOf(const UniqueId superRelId, const std::string& label="", const TraversalDirection dir=INVERSE);    //transitive subrelOf
+        Hyperedges subrelationsOf(const Hyperedges& superRelIds, const std::string& label="", const TraversalDirection dir=INVERSE);    //transitive subrelOf
+        Hyperedges directSubrelationsOf(const Hyperedges& superRelIds, const std::string& label="", const TraversalDirection dir=INVERSE);    //non-transitive subrelOf
 
         /*Other common queries using subrelationsOf!*/
-        /*NOTE: The traversal direction tells if the basic relation is to be followed in its direction(DOWN) or against it(UP)*/
-        Hyperedges transitiveClosure(const UniqueId rootId, const UniqueId relId, const std::string& label="", const TraversalDirection dir=DOWN);
-        Hyperedges subclassesOf(const Hyperedges& ids, const std::string& label="", const TraversalDirection dir=UP);      //transitive isA
-        Hyperedges partsOf(const Hyperedges& ids, const std::string& label="", const TraversalDirection dir=UP);           //transitive partOf
-        Hyperedges descendantsOf(const Hyperedges& ancestorIds, const std::string& label="", const TraversalDirection dir=DOWN); //transitive hasA
-        Hyperedges directSubclassesOf(const Hyperedges& ids, const std::string& label="", const TraversalDirection dir=UP); // non-transitive isA
-        Hyperedges componentsOf(const Hyperedges& ids, const std::string& label="", const TraversalDirection dir=UP);     //non-transitive partOf
-        Hyperedges instancesOf(const Hyperedges& ids, const std::string& label="", const TraversalDirection dir=UP);      //non-transitive instanceOf
-        Hyperedges childrenOf(const Hyperedges& ids, const std::string& label="", const TraversalDirection dir=DOWN);     //non-transitive hasA
-        Hyperedges endpointsOf(const Hyperedges& ids, const std::string& label="", const TraversalDirection dir=DOWN);    //non-transitive connects
+        /*NOTE: The traversal direction tells if the basic relation is to be followed in its direction(FORWARD) or against it(INVERSE)*/
+        Hyperedges transitiveClosure(const UniqueId rootId, const UniqueId relId, const std::string& label="", const TraversalDirection dir=FORWARD);
+        Hyperedges subclassesOf(const Hyperedges& ids, const std::string& label="", const TraversalDirection dir=INVERSE);      //transitive isA
+        Hyperedges partsOf(const Hyperedges& ids, const std::string& label="", const TraversalDirection dir=INVERSE);           //transitive partOf
+        Hyperedges descendantsOf(const Hyperedges& ancestorIds, const std::string& label="", const TraversalDirection dir=FORWARD); //transitive hasA
+        Hyperedges directSubclassesOf(const Hyperedges& ids, const std::string& label="", const TraversalDirection dir=INVERSE); // non-transitive isA
+        Hyperedges componentsOf(const Hyperedges& ids, const std::string& label="", const TraversalDirection dir=INVERSE);     //non-transitive partOf
+        Hyperedges instancesOf(const Hyperedges& ids, const std::string& label="", const TraversalDirection dir=INVERSE);      //non-transitive instanceOf
+        Hyperedges childrenOf(const Hyperedges& ids, const std::string& label="", const TraversalDirection dir=FORWARD);     //non-transitive hasA
+        Hyperedges endpointsOf(const Hyperedges& ids, const std::string& label="", const TraversalDirection dir=FORWARD);    //non-transitive connects
 
         /*Shortcuts*/
         Hyperedges subrelationOf(const UniqueId subRelId, const UniqueId superRelId)
         {
             return subrelationOf(Hyperedges{subRelId}, Hyperedges{superRelId});
         }
-        Hyperedges subclassesOf(const UniqueId id, const std::string& label="", const TraversalDirection dir=UP)
+        Hyperedges subclassesOf(const UniqueId id, const std::string& label="", const TraversalDirection dir=INVERSE)
         {
             return subclassesOf(Hyperedges{id}, label, dir);
         }
@@ -127,11 +129,11 @@ class CommonConceptGraph : public Conceptgraph
         {
             return isA(subIds, Hyperedges{superId});
         }
-        Hyperedges childrenOf(const UniqueId id, const std::string& label="", const TraversalDirection dir=DOWN)
+        Hyperedges childrenOf(const UniqueId id, const std::string& label="", const TraversalDirection dir=FORWARD)
         {
             return childrenOf(Hyperedges{id}, label, dir);
         }
-        Hyperedges instancesOf(const UniqueId id, const std::string& label="", const TraversalDirection dir=UP)
+        Hyperedges instancesOf(const UniqueId id, const std::string& label="", const TraversalDirection dir=INVERSE)
         {
             return instancesOf(Hyperedges{id}, label, dir);
         }

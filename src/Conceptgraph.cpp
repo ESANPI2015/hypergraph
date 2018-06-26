@@ -206,11 +206,11 @@ Hyperedges Conceptgraph::traverse(const UniqueId& rootId,
 
         for (auto relId : relations)
         {
-            // Put all successor hedges (DOWN) or predecessor hedges (UP)  into the set of toVisit to be searched
+            // Put all successor hedges (FORWARD) or predecessor hedges (INVERSE)  into the set of toVisit to be searched
             auto rel = get(relId);
             switch (dir)
             {
-                case DOWN:
+                case FORWARD:
                     if (rel->isPointingFrom(current->id()))
                     {
                         auto others = rel->pointingTo();
@@ -229,7 +229,7 @@ Hyperedges Conceptgraph::traverse(const UniqueId& rootId,
                             toVisit.push(otherId);
                         }
                     }
-                case UP:
+                case INVERSE:
                     if (rel->isPointingTo(current->id()))
                     {
                         auto others = rel->pointingFrom();
