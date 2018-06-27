@@ -140,11 +140,9 @@ Hyperedges CommonConceptGraph::isA(const Hyperedges& subIds, const Hyperedges& s
 Hyperedges CommonConceptGraph::hasA(const Hyperedges& parentIds, const Hyperedges& childIds)
 {
     Hyperedges id;
-    Hyperedges fromIds = intersect(Conceptgraph::find(), parentIds);
-    Hyperedges toIds = intersect(Conceptgraph::find(), childIds);
-    if (fromIds.size() && toIds.size())
+    if (parentIds.size() && childIds.size())
     {
-        id = factFrom(fromIds, toIds, CommonConceptGraph::HasAId);
+        id = factFrom(parentIds, childIds, CommonConceptGraph::HasAId);
     }
     return id;
 }
@@ -152,11 +150,9 @@ Hyperedges CommonConceptGraph::hasA(const Hyperedges& parentIds, const Hyperedge
 Hyperedges CommonConceptGraph::partOf(const Hyperedges& partIds, const Hyperedges& wholeIds)
 {
     Hyperedges id;
-    Hyperedges fromIds = intersect(unite(Conceptgraph::find(),Conceptgraph::relations()), partIds); // To encode nested subgraphs
-    Hyperedges toIds = intersect(Conceptgraph::find(), wholeIds);
-    if (fromIds.size() && toIds.size())
+    if (partIds.size() && wholeIds.size())
     {
-        id = factFrom(fromIds, toIds, CommonConceptGraph::PartOfId);
+        id = factFrom(partIds, wholeIds, CommonConceptGraph::PartOfId);
     }
     return id;
 }
@@ -164,11 +160,9 @@ Hyperedges CommonConceptGraph::partOf(const Hyperedges& partIds, const Hyperedge
 Hyperedges CommonConceptGraph::connects(const Hyperedges& connectorIds, const Hyperedges& interfaceIds)
 {
     Hyperedges id;
-    Hyperedges fromIds = intersect(Conceptgraph::find(), connectorIds);
-    Hyperedges toIds = intersect(Conceptgraph::find(), interfaceIds);
-    if (fromIds.size() && toIds.size())
+    if (connectorIds.size() && interfaceIds.size())
     {
-        id = factFrom(fromIds, toIds, CommonConceptGraph::ConnectsId);
+        id = factFrom(connectorIds, interfaceIds, CommonConceptGraph::ConnectsId);
     }
     return id;
 }
