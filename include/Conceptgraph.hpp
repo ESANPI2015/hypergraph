@@ -47,13 +47,13 @@ class Conceptgraph : public Hypergraph
 
         /* RELATIONS */
         Hyperedges relate(const UniqueId& id, const Hyperedges& fromIds, const Hyperedges& toIds, const std::string& label);    //< Create N:M relation
-        Hyperedges relate(const Hyperedges& fromIds, const Hyperedges& toIds, const std::string& label);                        //< Create N:M relation using label as UID
+        Hyperedges relate(const Hyperedges& fromIds, const Hyperedges& toIds, const std::string& label);                        //< Create N:M relation using all info to generate a good UID
         Hyperedges relations(const std::string& label="");                                                                      //< Find relations by label
         //Hyperedges relations(const std::vector<std::string>& labels="");              //< Find relations matching one of the given labels
 
         /* RELATIONS FROM A TEMPLATE */
         Hyperedges relateFrom(const UniqueId& id, const Hyperedges& fromIds, const Hyperedges& toIds, const UniqueId& relId);
-        Hyperedges relateFrom(const Hyperedges& fromIds, const Hyperedges& toIds, const UniqueId& relId);
+        Hyperedges relateFrom(const Hyperedges& fromIds, const Hyperedges& toIds, const UniqueId& relId);                       //< Create another relation labelled like relId using all info to gen a good UID
 
         /* QUERIES */
         Hyperedges relationsFrom(const Hyperedges& ids, const std::string& label="");

@@ -76,27 +76,33 @@ Hyperedges Conceptgraph::relateFrom(const UniqueId& id, const Hyperedges& fromId
 
 Hyperedges Conceptgraph::relate(const Hyperedges& fromIds, const Hyperedges& toIds, const std::string& label)
 {
-    unsigned occurrence = 1;
-    UniqueId id = label;
-    while (Conceptgraph::relate(id, fromIds, toIds, label).empty()) {
-        std::stringstream ss;
-        ss << occurrence;
-        id = label + ss.str();
-        occurrence++;
+    // See also https://en.cppreference.com/w/cpp/utility/hash
+    UniqueId id(label);
+    for (const UniqueId& saltId : unite(fromIds, toIds))
+    {
+        auto myHash(std::hash<UniqueId>{}(id));
+        auto newHash(std::hash<UniqueId>{}(saltId));
+        id = std::to_string(myHash ^ (newHash << 1));
+    }
+    if (Conceptgraph::relate(id, fromIds, toIds, label).empty()) {
+        // TODO: What do we do now?
     }
     return unite(Hyperedges{id}, unite(fromIds, toIds));
 }
 
 Hyperedges Conceptgraph::relateFrom(const Hyperedges& fromIds, const Hyperedges& toIds, const UniqueId& relId)
 {
-    std::string label = Hypergraph::get(relId)->label();
-    unsigned occurrence = 1;
-    UniqueId id = relId; // Take relId as basis!!!
-    while (Conceptgraph::relate(id, fromIds, toIds, label).empty()) {
-        std::stringstream ss;
-        ss << occurrence;
-        id = label + ss.str();
-        occurrence++;
+    // See also https://en.cppreference.com/w/cpp/utility/hash
+    UniqueId id(relId);
+    for (const UniqueId& saltId : unite(fromIds, toIds))
+    {
+        auto myHash(std::hash<UniqueId>{}(id));
+        auto newHash(std::hash<UniqueId>{}(saltId));
+        id = std::to_string(myHash ^ (newHash << 1));
+    }
+    const std::string& label(Hypergraph::get(relId)->label());
+    if (Conceptgraph::relate(id, fromIds, toIds, label).empty()) {
+        // TODO: What do we do now?
     }
     return unite(Hyperedges{id}, unite(fromIds, toIds));
 }
