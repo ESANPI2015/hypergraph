@@ -84,8 +84,11 @@ Hyperedges Conceptgraph::relate(const Hyperedges& fromIds, const Hyperedges& toI
         auto newHash(std::hash<UniqueId>{}(saltId));
         id = std::to_string(myHash ^ (newHash << 1));
     }
-    if (Conceptgraph::relate(id, fromIds, toIds, label).empty()) {
-        // TODO: What do we do now?
+    // Re-hash in case of an (unlikely) collision
+    while (Conceptgraph::relate(id, fromIds, toIds, label).empty()) {
+        auto myHash(std::hash<UniqueId>{}(id));
+        auto newHash(std::hash<UniqueId>{}(label));
+        id = std::to_string(myHash ^ (newHash << 1));
     }
     return unite(Hyperedges{id}, unite(fromIds, toIds));
 }
@@ -101,8 +104,11 @@ Hyperedges Conceptgraph::relateFrom(const Hyperedges& fromIds, const Hyperedges&
         id = std::to_string(myHash ^ (newHash << 1));
     }
     const std::string& label(Hypergraph::get(relId)->label());
-    if (Conceptgraph::relate(id, fromIds, toIds, label).empty()) {
-        // TODO: What do we do now?
+    // Re-hash in case of an (unlikely) collision
+    while (Conceptgraph::relate(id, fromIds, toIds, label).empty()) {
+        auto myHash(std::hash<UniqueId>{}(id));
+        auto newHash(std::hash<UniqueId>{}(label));
+        id = std::to_string(myHash ^ (newHash << 1));
     }
     return unite(Hyperedges{id}, unite(fromIds, toIds));
 }
