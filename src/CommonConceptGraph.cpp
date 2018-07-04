@@ -181,18 +181,18 @@ Hyperedges CommonConceptGraph::createSubclassOf(const UniqueId& subId, const Hyp
 
 Hyperedges CommonConceptGraph::instantiateFrom(const UniqueId superId, const std::string& label)
 {
-    std::string theLabel = label;
+    std::string theLabel(label);
     if (theLabel.empty())
     {
         theLabel = Hypergraph::get(superId)->label();
     }
 
     UniqueId id(superId);
-    unsigned i = 1;
     while (Conceptgraph::create(id, theLabel).empty())
     {
-        id = superId + std::to_string(i);
-        i++;
+        auto myHash(std::hash<UniqueId>{}(id));
+        auto newHash(std::hash<UniqueId>{}(theLabel));
+        id = std::to_string(myHash ^ (newHash << 1));
     }
     instanceOf(Hyperedges{id}, Hyperedges{superId});
     return Hyperedges{id};
