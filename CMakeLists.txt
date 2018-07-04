@@ -77,6 +77,11 @@ target_link_libraries(merge hypergraph)
 install(TARGETS merge
 RUNTIME DESTINATION bin)
 
+add_executable(query tools/query.cpp)
+target_link_libraries(query hypergraph)
+install(TARGETS query
+RUNTIME DESTINATION bin)
+
 add_executable(testHypergraphDB test/testHypergraphDB.cpp)
 target_link_libraries(testHypergraphDB hypergraph)
 install(TARGETS testHypergraphDB
