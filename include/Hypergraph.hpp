@@ -47,6 +47,7 @@ class Hypergraph {
         Hyperedges create(const UniqueId id, 
                           const std::string& label="");                 // Tries to create a hyperedge with a given id ... if already taken, returns empty set
         void destroy(const UniqueId id);                                // Will remove a hyperedge from this hypergraph (and also disconnect it from anybody)
+        void importFrom(const Hypergraph& other);                 // Imports all hyperedges from other graph (unless they already exist)
 
         /*Get access to edges*/
         const Hyperedge& read(const UniqueId id) const;
@@ -85,6 +86,7 @@ class Hypergraph {
         );
 
         /* Pattern matching */
+        // TODO: Make these template functions to pass a function for matching
         Mapping match(Hypergraph& other,                                                       //< Find embedding of other graph in this graph
                       std::stack< Mapping >& searchSpace                                       //< Uses this to use/store the state of the search
                      );

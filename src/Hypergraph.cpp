@@ -8,55 +8,37 @@ Hypergraph::Hypergraph()
 
 Hypergraph::Hypergraph(const Hypergraph& other)
 {
-    // When we construct a graph from other, we have to repopulate the cache by rewiring
-    
-    // First pass: Clone hedges
-    for (UniqueId id : other.find())
-    {
-        create(id, other._edges.at(id).label());
-    }
-
-    // Second pass: Rewire (see from and to methods which populate the cache(s))
-    for (UniqueId id : find())
-    {
-        from(other._edges.at(id).pointingFrom(), Hyperedges{id});
-        to(Hyperedges{id}, other._edges.at(id).pointingTo());
-    }
+    importFrom(other);
 }
 
 Hypergraph::Hypergraph(const Hypergraph& A, const Hypergraph& B)
 {
-    // If things have the same ID they are the same!
-    Hyperedges allOfA(A.find());
-    Hyperedges allOfB(B.find());
-
-    // First pass: Clone hedges of A and B
-    for (auto idA : allOfA)
-    {
-        create(idA, A._edges.at(idA).label());
-    }
-    for (auto idB : allOfB)
-    {
-        create(idB, B._edges.at(idB).label());
-    }
-
-    // Second pass: Wire the hedges
-    Hyperedges allOfMe(find());
-    for (auto id : allOfMe)
-    {
-        // The new hedges will point to/from the union of the corresponding sets of the A and B hedges with the same id
-        Hyperedges fromA = A._edges.count(id) ? A._edges.at(id).pointingFrom() : Hyperedges();
-        Hyperedges fromB = B._edges.count(id) ? B._edges.at(id).pointingFrom() : Hyperedges();
-        Hyperedges toA = A._edges.count(id) ? A._edges.at(id).pointingTo() : Hyperedges();
-        Hyperedges toB = B._edges.count(id) ? B._edges.at(id).pointingTo() : Hyperedges();
-        from(unite(fromA, fromB), Hyperedges{id});
-        to(Hyperedges{id}, unite(toA, toB));
-    }
+    importFrom(A);
+    importFrom(B);
 }
 
 Hypergraph::~Hypergraph()
 {
     // We hold no pointers so we do not need to do anything here
+}
+
+void Hypergraph::importFrom(const Hypergraph& other)
+{
+    // When we construct a graph from other, we have to repopulate the cache by rewiring
+    // First pass: Clone hedges
+    for (const UniqueId& id : other.find())
+    {
+        create(id, other._edges.at(id).label());
+    }
+
+    // Second pass: Rewire (see from and to methods which populate the cache(s))
+    for (const UniqueId id : find())
+    {
+        if (!other._edges.count(id))
+            continue;
+        from(other._edges.at(id).pointingFrom(), Hyperedges{id});
+        to(Hyperedges{id}, other._edges.at(id).pointingTo());
+    }
 }
 
 Hyperedges Hypergraph::create(const UniqueId id, const std::string& label)
