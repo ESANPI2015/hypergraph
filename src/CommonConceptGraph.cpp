@@ -359,7 +359,7 @@ Hyperedges CommonConceptGraph::factsOf(const Hyperedges& superRelIds, const std:
     for (UniqueId superRelId : superRelIds)
     {
         Hyperedges some = factsOf(superRelId, label, dir);
-        result.insert(some.begin(), some.end());
+        result.insert(result.end(), some.begin(), some.end());
     }
     return result;
 }

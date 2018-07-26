@@ -1,7 +1,7 @@
 #ifndef _HYPEREDGE_HPP
 #define _HYPEREDGE_HPP
 
-#include <set>
+#include <vector>
 #include <string>
 
 class Hypergraph;
@@ -16,7 +16,7 @@ class Conceptgraph;
 */
 
 typedef std::string UniqueId;
-typedef std::set<UniqueId> Hyperedges;
+typedef std::vector<UniqueId> Hyperedges;
 Hyperedges unite(const Hyperedges& a, const Hyperedges& b);       // Unites the two hyperedge sets to a new one
 Hyperedges intersect(const Hyperedges& a, const Hyperedges& b);   // Intersects the two hyperedge sets and returns the result (DLOG)
 Hyperedges subtract(const Hyperedges& a, const Hyperedges& b);    // Returns all edges which are in A but not in B

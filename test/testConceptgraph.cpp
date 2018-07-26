@@ -38,7 +38,8 @@ int main(void)
 
     std::cout << "> Create another concept and check it" << std::endl;
     universe.create("4", "Second concept");
-    assert(universe.find("Second concept").count("4") > 0);
+    concepts = universe.find("Second concept");
+    assert(concepts.size() > 0);
 
     std::cout << "> Relate the first and the second concept\n";
     universe.relate("5", Hyperedges{"3"}, Hyperedges{"4"}, "relatedTo");
@@ -121,7 +122,7 @@ int main(void)
 
     std::cout << "> Create another concept graph for inexact pattern matching\n";
     Conceptgraph query;
-    query.relate(query.create("Root"), query.create("*",""), "A");
+    query.relate("A", query.create("Root"), query.create("*",""), "A");
     concepts = query.Hypergraph::find();
     for (auto conceptId : concepts)
     {
@@ -146,7 +147,7 @@ int main(void)
 
     std::cout << "> Create another concept graph which serves as a replacement for the matched subgraph\n";
     Conceptgraph replacement;
-    replacement.relate(replacement.create("**",""), replacement.create("Root"), "A^-1");
+    replacement.relate("A^-1", replacement.create("**",""), replacement.create("Root"), "A^-1");
     concepts = replacement.Hypergraph::find();
     for (auto conceptId : concepts)
     {

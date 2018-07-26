@@ -27,12 +27,12 @@ void Hyperedge::updateLabel(const std::string& label)
 
 void Hyperedge::from(const UniqueId& id)
 {
-    _from.insert(id);
+    _from.push_back(id);
 }
 
 void Hyperedge::to(const UniqueId& id)
 {
-    _to.insert(id);
+    _to.push_back(id);
 }
 
 const UniqueId& Hyperedge::id() const
@@ -57,12 +57,12 @@ const unsigned Hyperedge::outdegree() const
 
 const bool Hyperedge::isPointingTo(const UniqueId& id) const
 {
-    return _to.count(id) ? true : false;
+    return std::find(_to.begin(), _to.end(), id) != _to.end() ? true : false;
 }
 
 const bool Hyperedge::isPointingFrom(const UniqueId& id) const
 {
-    return _from.count(id) ? true : false;
+    return std::find(_from.begin(), _from.end(), id) != _from.end() ? true : false;
 }
 
 const Hyperedges& Hyperedge::pointingFrom() const
@@ -111,7 +111,7 @@ std::ostream& operator<< (std::ostream& stream, const Hyperedge& edge)
 Hyperedges unite(const Hyperedges& a, const Hyperedges& b)
 {
     Hyperedges result(a);
-    result.insert(b.begin(), b.end());
+    result.insert(result.end(), b.begin(), b.end());
     return result;
 }
 
@@ -120,8 +120,8 @@ Hyperedges intersect(const Hyperedges& a, const Hyperedges& b)
     Hyperedges result;
     for (auto id : a)
     {
-        if (b.count(id))
-            result.insert(id);
+        if (std::find(b.begin(), b.end(), id) != b.end())
+            result.push_back(id);
     }
     return result;
 }
@@ -131,8 +131,8 @@ Hyperedges subtract(const Hyperedges& a, const Hyperedges& b)
     Hyperedges result;
     for (auto id : a)
     {
-        if (!b.count(id))
-            result.insert(id);
+        if (std::find(b.begin(), b.end(), id) == b.end())
+            result.push_back(id);
     }
     return result;
 }

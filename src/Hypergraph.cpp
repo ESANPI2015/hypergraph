@@ -81,12 +81,12 @@ void Hypergraph::disconnect(const UniqueId id)
         if (other->isPointingTo(id))
         {
             // remove id from _to set
-            other->_to.erase(id);
+            std::remove(other->_to.begin(), other->_to.end(), id);
         }
         if (other->isPointingFrom(id))
         {
             // remove id from _from set
-            other->_from.erase(id);
+            std::remove(other->_from.begin(), other->_from.end(), id);
         }
     }
 }
@@ -116,7 +116,7 @@ Hyperedges Hypergraph::find(const std::string& label) const
         // If edge does not match the label, skip it
         if (!label.empty() && (edge.label() != label))
             continue;
-        result.insert(id);
+        result.push_back(id);
     }
     return result;
 }
@@ -137,7 +137,7 @@ Hyperedges Hypergraph::from(const Hyperedges& otherIds, const Hyperedges& destId
             if (!other)
                 continue;
             destEdge->from(otherId);
-            other->_fromOthers.insert(destId); // Populate cache
+            other->_fromOthers.push_back(destId); // Populate cache
             // On success, register that pair
             result = unite(result, Hyperedges{destId, otherId});
         }
@@ -163,7 +163,7 @@ Hyperedges Hypergraph::from(const Hyperedges& ids, const std::string& label)
             for (const UniqueId& fromId : fromIds)
             {
                 if (label.empty() || (get(fromId)->label() == label))
-                    result.insert(fromId);
+                    result.push_back(fromId);
             }
         }
     }
@@ -185,7 +185,7 @@ Hyperedges Hypergraph::to(const Hyperedges& srcIds, const Hyperedges& otherIds)
             if (!other)
                 continue;
             srcEdge->to(otherId);
-            other->_toOthers.insert(srcId); // Populate cache
+            other->_toOthers.push_back(srcId); // Populate cache
             // On success, register that pair
             result = unite(result, Hyperedges{srcId, otherId});
         }
@@ -211,7 +211,7 @@ Hyperedges Hypergraph::to(const Hyperedges& ids, const std::string& label)
             for (const UniqueId& toId : toIds)
             {
                 if (label.empty() || (get(toId)->label() == label))
-                    result.insert(toId);
+                    result.push_back(toId);
             }
         }
     }
@@ -237,7 +237,7 @@ Hyperedges Hypergraph::prevNeighboursOf(const Hyperedges& ids, const std::string
             // Check if id is in the TO set of other
             if (!o->isPointingTo(id))
                 continue;
-            result.insert(other);
+            result.push_back(other);
         }
     }
     return result;
@@ -262,7 +262,7 @@ Hyperedges Hypergraph::nextNeighboursOf(const Hyperedges& ids, const std::string
             // Check if id is in the TO set of other
             if (!o->isPointingFrom(id))
                 continue;
-            result.insert(other);
+            result.push_back(other);
         }
     }
     return result;
@@ -336,9 +336,9 @@ Mapping Hypergraph::match(Hypergraph& other, std::stack< Mapping >& searchSpace)
         for (UniqueId candidateId : filteredByLabel)
         {
             if (get(candidateId)->indegree() < otherIndegree)
-                filteredByLabelAndDegree.erase(candidateId);
+                std::remove(filteredByLabelAndDegree.begin(), filteredByLabelAndDegree.end(), candidateId);
             if (get(candidateId)->outdegree() < otherOutdegree)
-                filteredByLabelAndDegree.erase(candidateId);
+                std::remove(filteredByLabelAndDegree.begin(), filteredByLabelAndDegree.end(), candidateId);
         }
         // Check if solution possible
         if (!filteredByLabelAndDegree.size())
@@ -429,7 +429,7 @@ Mapping Hypergraph::match(Hypergraph& other, std::stack< Mapping >& searchSpace)
                     if (!newMapping.count(templateId))
                         continue;
                     UniqueId matchId(newMapping[templateId]);
-                    if (!matchPointsTo.count(matchId))
+                    if (std::find(matchPointsTo.begin(), matchPointsTo.end(), matchId) == matchPointsTo.end())
                     {
                         valid = false;
                         break;
@@ -442,7 +442,7 @@ Mapping Hypergraph::match(Hypergraph& other, std::stack< Mapping >& searchSpace)
                     if (!newMapping.count(templateId))
                         continue;
                     UniqueId matchId(newMapping[templateId]);
-                    if (!matchPointsFrom.count(matchId))
+                    if (std::find(matchPointsFrom.begin(), matchPointsFrom.end(), matchId) == matchPointsFrom.end())
                     {
                         valid = false;
                         break;
@@ -511,14 +511,14 @@ Hypergraph Hypergraph::rewrite(Hypergraph& lhs, Hypergraph& rhs, const Mapping& 
             continue;
         // Does not exist for sure, so will always succeed
         result.create(originalId, get(originalId)->label());
-        preservedOriginals.insert(originalId);
+        preservedOriginals.push_back(originalId);
         original2new[originalId] = originalId;
     }
 
     // Third step: Cycle over matches
     // Here, we either delete OR preserve & alter originals
     // NOTE: Deletion here is IMPLICIT (by not creating it)
-    Hyperedges alteredOriginals;
+    std::set< UniqueId > alteredOriginals;
     for (const auto &pair : m)
     {
         UniqueId matchedId(pair.first);
@@ -575,7 +575,7 @@ Hypergraph Hypergraph::rewrite(Hypergraph& lhs, Hypergraph& rhs, const Mapping& 
 
     // Fifth step: Wiring
     // A) Reconstruct wiring of original hedges
-    Hyperedges handledEdges;
+    std::set< UniqueId > handledEdges;
     for (const UniqueId firstIdOld : originals)
     {
         // Check if also part of the result

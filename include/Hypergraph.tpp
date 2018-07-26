@@ -2,6 +2,8 @@
 #include "Hyperedge.hpp"
 #include <map>
 #include <set>
+#include <vector>
+#include <algorithm>
 #include <queue>
 #include <sstream>
 
@@ -13,7 +15,7 @@ template <typename ResultFilter, typename TraversalFilter> Hyperedges Hypergraph
 )
 {
     Hyperedges result;
-    Hyperedges visited;
+    std::set< UniqueId > visited;
     std::queue< UniqueId > edges;
 
     edges.push(rootId);
@@ -33,7 +35,7 @@ template <typename ResultFilter, typename TraversalFilter> Hyperedges Hypergraph
         if (f(edge))
         {
             // edge matches filter func
-            result.insert(edge->id());
+            result.push_back(edge->id());
         }
 
         // Handle search direction

@@ -184,7 +184,7 @@ Hyperedges Conceptgraph::traverse(const UniqueId& rootId,
                     const TraversalDirection dir)
 {
     Hyperedges result;
-    Hyperedges visited;
+    std::set< UniqueId > visited;
     std::queue< UniqueId > toVisit;
 
     toVisit.push(rootId);
@@ -204,7 +204,7 @@ Hyperedges Conceptgraph::traverse(const UniqueId& rootId,
         if (!visitLabels.size() || (std::find(visitLabels.begin(), visitLabels.end(), current->label()) != visitLabels.end()))
         {
             // edge matches filter
-            result.insert(current->id());
+            result.push_back(current->id());
         }
 
         // TODO: Rewrite this part using relationsTo and relationsFrom depending on dir!
@@ -213,7 +213,7 @@ Hyperedges Conceptgraph::traverse(const UniqueId& rootId,
         for (std::string label : relationLabels)
         {
             Hyperedges some = relationsOf(Hyperedges{current->id()}, label);
-            relations.insert(some.begin(), some.end());
+            relations.insert(relations.end(), some.begin(), some.end());
         }
 
         for (auto relId : relations)
