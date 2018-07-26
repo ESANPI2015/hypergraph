@@ -111,7 +111,12 @@ std::ostream& operator<< (std::ostream& stream, const Hyperedge& edge)
 Hyperedges unite(const Hyperedges& a, const Hyperedges& b)
 {
     Hyperedges result(a);
-    result.insert(result.end(), b.begin(), b.end());
+    //result.insert(result.end(), b.begin(), b.end());
+    for (auto id : b)
+    {
+        if (std::find(a.begin(), a.end(), id) == a.end())
+            result.push_back(id);
+    }
     return result;
 }
 

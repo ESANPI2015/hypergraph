@@ -17,7 +17,7 @@ class Conceptgraph;
 
 typedef std::string UniqueId;
 typedef std::vector<UniqueId> Hyperedges;
-Hyperedges unite(const Hyperedges& a, const Hyperedges& b);       // Unites the two hyperedge sets to a new one
+Hyperedges unite(const Hyperedges& a, const Hyperedges& b);       // Unites the two hyperedge sets to a new one (no duplicates!)
 Hyperedges intersect(const Hyperedges& a, const Hyperedges& b);   // Intersects the two hyperedge sets and returns the result (DLOG)
 Hyperedges subtract(const Hyperedges& a, const Hyperedges& b);    // Returns all edges which are in A but not in B
 std::ostream& operator<< (std::ostream& os , const Hyperedges& val);
