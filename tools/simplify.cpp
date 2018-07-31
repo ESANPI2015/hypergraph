@@ -88,14 +88,16 @@ int main (int argc, char **argv)
 
         // Create partial homomorphism
         Mapping partial(fromHyperedges(lhs.Hypergraph::find()));
-        partial[*factOf1.begin()] = *factOf3.begin();
-        partial[*factOf2.begin()] = *factOf3.begin();
+        partial.erase(*factOf1.begin());
+        partial.erase(*factOf2.begin());
+        partial.insert({*factOf1.begin(), *factOf3.begin()});
+        partial.insert({*factOf2.begin(), *factOf3.begin()});
         std::cout << partial << std::endl;
 
         // Rewrite
         std::stack< Mapping > sp;
         std::chrono::high_resolution_clock::time_point start(std::chrono::high_resolution_clock::now());
-        simplified = simplified.rewrite(lhs,rhs,partial,sp);
+        simplified = simplified.rewrite(lhs,rhs,partial,sp,Hypergraph::defaultMatchFunc);
         if (!simplified.size())
         {
             std::cout << "No simplification possible\n";
@@ -105,7 +107,7 @@ int main (int argc, char **argv)
         while (processAll)
         {
             // Rewrite
-            Hypergraph simplified2 = simplified.rewrite(lhs,rhs,partial,sp);
+            Hypergraph simplified2 = simplified.rewrite(lhs,rhs,partial,sp,Hypergraph::defaultMatchFunc);
             std::cout << "." << std::flush;
             if (simplified2.size())
             {
@@ -149,14 +151,16 @@ int main (int argc, char **argv)
 
         // Create partial homomorphism
         Mapping partial(fromHyperedges(lhs.Hypergraph::find()));
-        partial[*instanceOf1.begin()] = *instanceOf3.begin();
-        partial[*instanceOf2.begin()] = *instanceOf3.begin();
+        partial.erase(*instanceOf1.begin());
+        partial.erase(*instanceOf2.begin());
+        partial.insert({*instanceOf1.begin(), *instanceOf3.begin()});
+        partial.insert({*instanceOf2.begin(), *instanceOf3.begin()});
         std::cout << partial << std::endl;
 
         // Rewrite
         std::stack< Mapping > sp;
         std::chrono::high_resolution_clock::time_point start(std::chrono::high_resolution_clock::now());
-        simplified = simplified.rewrite(lhs,rhs,partial,sp);
+        simplified = simplified.rewrite(lhs,rhs,partial,sp,Hypergraph::defaultMatchFunc);
         if (!simplified.size())
         {
             std::cout << "No simplification possible\n";
@@ -166,7 +170,7 @@ int main (int argc, char **argv)
         while (processAll)
         {
             // Rewrite
-            Hypergraph simplified2 = simplified.rewrite(lhs,rhs,partial,sp);
+            Hypergraph simplified2 = simplified.rewrite(lhs,rhs,partial,sp,Hypergraph::defaultMatchFunc);
             std::cout << "." << std::flush;
             if (simplified2.size())
             {

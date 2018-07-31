@@ -69,7 +69,7 @@ int main(void)
     queryGraph.factFrom(personA, personB, queryGraph.relations("love"));
     /* Find query in unsiverse*/
     std::stack< Mapping > searchSpace;
-    Mapping mapping = universe.match(queryGraph, searchSpace);
+    Mapping mapping = universe.match(queryGraph, searchSpace, Hypergraph::defaultMatchFunc);
     for (const auto &pair : mapping)
     {
         std::cout << *queryGraph.get(pair.first) << " -> " << *universe.get(pair.second) << "\n";
@@ -77,7 +77,7 @@ int main(void)
 
     std::cout << "> Find all matches for some person loving another person\n";
     searchSpace = std::stack< Mapping >();
-    while ((mapping = universe.match(queryGraph, searchSpace)).size())
+    while ((mapping = universe.match(queryGraph, searchSpace, Hypergraph::defaultMatchFunc)).size())
     {
         std::cout << "\n";
         for (const auto &pair : mapping)

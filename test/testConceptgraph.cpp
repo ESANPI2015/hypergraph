@@ -139,7 +139,7 @@ int main(void)
 
     std::cout << "> Try to find a match of the query graph in the data graph\n";
     std::stack< Mapping > searchSpace;
-    Mapping mapping = universe2.match(query, searchSpace);
+    Mapping mapping = universe2.match(query, searchSpace, Hypergraph::defaultMatchFunc);
     for (auto it : mapping)
     {
         std::cout << "\t" << *(query.get(it.first)) << " -> " << *(universe2.get(it.second)) << std::endl;
@@ -163,9 +163,10 @@ int main(void)
 
     std::cout << "> Define the mapping between query and replacement\n";
     Mapping repl(fromHyperedges(query.Hypergraph::find()));
-    repl["Root"] = "Root";
-    repl["*"] = "**";
-    repl["A"] = "A^-1";
+    repl.erase("*");
+    repl.erase("A");
+    repl.insert({"*", "**"});
+    repl.insert({"A", "A^-1"});
     for (auto it : repl)
     {
         std::cout << "\t" << *(query.get(it.first)) << " -> " << *(replacement.get(it.second)) << std::endl;
@@ -173,7 +174,7 @@ int main(void)
 
     std::cout << "> Rewrite (using previous search space)\n";
     searchSpace.push(mapping);
-    Hypergraph rewritten = universe2.rewrite(query, replacement, repl, searchSpace);
+    Hypergraph rewritten = universe2.rewrite(query, replacement, repl, searchSpace, Hypergraph::defaultMatchFunc);
     std::cout << rewritten.find() << std::endl;
 
     std::cout << "> All edges of rewritten graph" << std::endl;

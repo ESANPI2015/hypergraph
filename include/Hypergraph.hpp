@@ -29,11 +29,11 @@
     * Instead of using std::set for Hyperedges, we could use an unordered_set which would also help with scalability issues (because it is a hash table)
 */
 
-typedef std::map<UniqueId, UniqueId> Mapping;   //< This map stores a one-to-one mapping between hedges (IDs)
-bool equal(const Mapping& a, const Mapping& b); //< Check if two mappings are equal or not
-Mapping invert(const Mapping& m);               //< Returns the inverse mapping
-Mapping fromHyperedges(const Hyperedges& a);    //< Constructs a identity mapping between the elements of a
-Mapping join(const Mapping& a, const Mapping& b); //< Constructs from two mappings the inner join: a:X->Y, b:X->Z --> result: Y->Z
+typedef std::multimap<UniqueId, UniqueId> Mapping;   //< This map stores a many-to-many mapping between hedges (IDs)
+bool equal(const Mapping& a, const Mapping& b);      //< Check if two mappings are equal or not
+Mapping invert(const Mapping& m);                    //< Returns the inverse mapping
+Mapping fromHyperedges(const Hyperedges& a);         //< Constructs a identity mapping between the elements of a
+Mapping join(const Mapping& a, const Mapping& b);    //< Constructs from two mappings the inner join: a:X->Y, b:X->Z --> result: Y->Z
 std::ostream& operator<< (std::ostream& os , const Mapping& val);
 
 class Hypergraph {
@@ -85,18 +85,27 @@ class Hypergraph {
             const TraversalDirection dir = FORWARD
         );
 
+        /* Default matching function */
+        static bool defaultMatchFunc(Hyperedge *a, Hyperedge* b)
+        {
+            return ((a->id() == b->id()) || (b->label().empty()) || (a->label() == b->label())) ? true : false;
+        }
+
         /* Pattern matching */
-        // TODO: Make these template functions to pass a function for matching
-        Mapping match(Hypergraph& other,                                                       //< Find embedding of other graph in this graph
-                      std::stack< Mapping >& searchSpace                                       //< Uses this to use/store the state of the search
+        template< typename MatchFunc > Mapping match(
+                      Hypergraph& other,                    //< The graph to be found in the current graph
+                      std::stack< Mapping >& searchSpace,   //< A tree of the current state in search space.
+                      MatchFunc m                           //< A binary function bool m(Hyperedge *, Hyperedge *) which decides if a hedge of other and a hedge of the current graph are candidates or not
                      );
 
         /* Graph rewriting: single pushout */
-        // NOTE: Partial Map means, that hedges in lhs do not need to be mapped to hedges in rhs
-        Hypergraph rewrite(Hypergraph& lhs,                     //< The left hand side graph to be matched to the data graph
-                           Hypergraph& rhs,                     //< The right hand side to replace the matched subgraph with
-                           const Mapping& partialMap,           //< A partial map from the lhs to the rhs (TODO: currently N:1, should become N:M)
-                           std::stack< Mapping >& searchSpace   //< The search space of the matching phase for reusage
+        // NOTE: Partial Map means, that hedges in lhs do not need to be mapped to hedges in rhs (if not mapped, then they will get destroyed)
+        template< typename MatchFunc > Hypergraph rewrite(
+                            Hypergraph& lhs,                     //< The matching graph
+                            Hypergraph& rhs,                     //< The replacment graph
+                            const Mapping& partialMap,           //< A partial map from lhs to rhs (N:N)
+                            std::stack< Mapping >& searchSpace,  //< The search space of the matching phase for reusage
+                            MatchFunc mf                         //< A binary function bool m(Hyperedge *, Hyperedge *) which decides if a hedge of other and a hedge of the current graph are candidates or not
                           );
 
     protected:
