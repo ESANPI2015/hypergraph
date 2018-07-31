@@ -41,34 +41,38 @@ CommonConceptGraph::CommonConceptGraph(const Hypergraph& A)
 
 Hyperedges CommonConceptGraph::factOf(const Hyperedges& factIds, const Hyperedges& superRelIds)
 {
-    // Is it as simple as this?
-    Hyperedges id;
+    Hyperedges ids;
     Hyperedges fromIds = intersect(Conceptgraph::relations(), factIds);
     Hyperedges toIds = intersect(Conceptgraph::relations(), superRelIds);
-    if (fromIds.size() && toIds.size())
+    // Bacause FACT-OF is a BINARY relation we have to create one entity per pair
+    for (const UniqueId& fromId : fromIds)
     {
-        id = Conceptgraph::relateFrom(fromIds, toIds, CommonConceptGraph::FactOfId);
-        if (!id.empty())
+        for (const UniqueId& toId : toIds)
         {
-            // If we have created a factOf a factOf superrelation :D , we have to link them
-            Hypergraph::from(subtract(subtract(id, fromIds), toIds), Hyperedges{CommonConceptGraph::FactOfId});
+            Hyperedges id(Conceptgraph::relateFrom(Hyperedges{fromId}, Hyperedges{toId}, CommonConceptGraph::FactOfId));
+            if (!id.empty())
+            {
+                // If we have created a factOf a factOf superrelation :D , we have to link them
+                Hypergraph::from(id, Hyperedges{CommonConceptGraph::FactOfId});
+                ids = unite(ids, id);
+            }
         }
     }
-    return id;
+    return ids;
 }
 
 Hyperedges CommonConceptGraph::factFrom(const Hyperedges& fromIds, const Hyperedges& toIds, const UniqueId superId)
 {
     // At first create the relation ...
     Hyperedges id;
-    // TODO: What about UNARY relations?
-    if (fromIds.size() && toIds.size())
+    // When we create a FACT of a RELATION, we have to check that in- and outdegree match!
+    if ((fromIds.size() == get(superId)->indegree()) && (toIds.size() == get(superId)->outdegree()))
     {
         id = Conceptgraph::relateFrom(fromIds, toIds, superId);
         if (!id.empty())
         {
             // ... then make the new relation a factOf the super relation
-            factOf(subtract(subtract(id, fromIds), toIds), Hyperedges{superId});
+            factOf(id, Hyperedges{superId});
         }
     }
     return id;
@@ -104,6 +108,7 @@ Hyperedges CommonConceptGraph::subrelationOf(const Hyperedges& subRelIds, const 
     Hyperedges toIds = intersect(Conceptgraph::relations(), superRelIds);
     if (fromIds.size() && toIds.size())
     {
+        // NOTE: This will fail if fromIds.size() and toIds.size() do not match the in- and outdegree of SUBREL-OF (which are 1,1)
         id = factFrom(fromIds, toIds, CommonConceptGraph::SubrelOfId);
     }
     return id;
@@ -112,14 +117,14 @@ Hyperedges CommonConceptGraph::subrelationOf(const Hyperedges& subRelIds, const 
 Hyperedges CommonConceptGraph::subrelationFrom(const UniqueId& subRelId, const Hyperedges& fromIds, const Hyperedges& toIds, const UniqueId& superRelId)
 {
     Hyperedges id;
-    // TODO: What about UNARY relations?
-    if (fromIds.size() && toIds.size())
+    // FIXME: When we create a SUBRELATION of a RELATION, we have to check that a) arity matches (DONE) and b) fromIds subsumes superRel.fromIds (toIds as well)
+    if ((fromIds.size() == get(superRelId)->indegree()) && (toIds.size() == get(superRelId)->outdegree()))
     {
         id = Conceptgraph::relateFrom(subRelId, fromIds, toIds, superRelId);
         if (!id.empty())
         {
             // ... then make the new relation a subrelation of the superrelation
-            subrelationOf(subtract(subtract(id, fromIds), toIds), Hyperedges{superRelId});
+            subrelationOf(id, Hyperedges{superRelId});
         }
     }
     return id;
@@ -127,44 +132,22 @@ Hyperedges CommonConceptGraph::subrelationFrom(const UniqueId& subRelId, const H
 
 Hyperedges CommonConceptGraph::isA(const Hyperedges& subIds, const Hyperedges& superIds)
 {
-    Hyperedges id;
-    Hyperedges fromIds = intersect(Conceptgraph::find(), subIds);
-    Hyperedges toIds = intersect(Conceptgraph::find(), superIds);
-    if (fromIds.size() && toIds.size())
-    {
-        id = factFrom(fromIds, toIds, CommonConceptGraph::IsAId);
-    }
-    return id;
+    return (factFrom(intersect(Conceptgraph::find(), subIds), intersect(Conceptgraph::find(), superIds), CommonConceptGraph::IsAId));
 }
 
 Hyperedges CommonConceptGraph::hasA(const Hyperedges& parentIds, const Hyperedges& childIds)
 {
-    Hyperedges id;
-    if (parentIds.size() && childIds.size())
-    {
-        id = factFrom(parentIds, childIds, CommonConceptGraph::HasAId);
-    }
-    return id;
+    return (factFrom(intersect(Conceptgraph::find(), parentIds), intersect(Conceptgraph::find(), childIds), CommonConceptGraph::HasAId));
 }
 
 Hyperedges CommonConceptGraph::partOf(const Hyperedges& partIds, const Hyperedges& wholeIds)
 {
-    Hyperedges id;
-    if (partIds.size() && wholeIds.size())
-    {
-        id = factFrom(partIds, wholeIds, CommonConceptGraph::PartOfId);
-    }
-    return id;
+    return (factFrom(intersect(Conceptgraph::find(), partIds), intersect(Conceptgraph::find(), wholeIds), CommonConceptGraph::PartOfId));
 }
 
 Hyperedges CommonConceptGraph::connects(const Hyperedges& connectorIds, const Hyperedges& interfaceIds)
 {
-    Hyperedges id;
-    if (connectorIds.size() && interfaceIds.size())
-    {
-        id = factFrom(connectorIds, interfaceIds, CommonConceptGraph::ConnectsId);
-    }
-    return id;
+    return (factFrom(intersect(Conceptgraph::find(), connectorIds), intersect(Conceptgraph::find(), interfaceIds), CommonConceptGraph::ConnectsId));
 }
 
 Hyperedges CommonConceptGraph::instanceOf(const Hyperedges& individualIds, const Hyperedges& superIds)
