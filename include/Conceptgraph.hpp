@@ -11,11 +11,6 @@
 * 
 * This graph does not introduce concrete concepts or relations it just serves as the basis for doing so.
 *
-* There are possible other encodings: e.g. we could use FIXED IDs (UIDs) to encode the CONCEPT and RELATION master hedges.
-* An advantage would be that this encoding would be natural language (e.g. english, french) independent.
-*
-* In order to enforce unique IDs, automatic ID assignment is not performed!
-*
 * NOTE:
 * The introduction of the two URELEMENTS is a shortcut for the following, more exact terminology:
 * X <- IS-RELATION <- FACT-OF -> IS-RELATION*
@@ -26,6 +21,9 @@
 * Y <- IS-CONCEPT to encode concepts
 *
 * The IS-CONCEPT relation is pointed by the IS-RELATION meta-relation.
+*
+* Although IS-CONCEPT and IS-RELATION are unary relations per definition, we use only two n-ary relations to represent them.
+* Otherwise we would not be label-independent anymore and need to have multiple hedges encoding concepts and relations.
 *
 */
 

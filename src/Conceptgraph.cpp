@@ -65,12 +65,13 @@ Hyperedges Conceptgraph::relate(const UniqueId& id, const Hyperedges& fromIds, c
     // NOTE: relations can also relate relations not only concepts!!!
     Hypergraph::from(fromIds, Hyperedges{id});
     Hypergraph::to(Hyperedges{id}, toIds);
-    return unite(Hyperedges{id}, unite(fromIds, toIds));
+    return Hyperedges{id};
 }
 
 Hyperedges Conceptgraph::relateFrom(const UniqueId& id, const Hyperedges& fromIds, const Hyperedges& toIds, const UniqueId& relId)
 {
    std::string label = Hypergraph::get(relId)->label();
+   // NOTE: Even though we allow the in- and outdegree of a relation created from a template to mismatch, we should check them afterwards to ensure correct arity.
    return Conceptgraph::relate(id,fromIds,toIds,label);
 }
 
@@ -90,7 +91,7 @@ Hyperedges Conceptgraph::relate(const Hyperedges& fromIds, const Hyperedges& toI
         auto newHash(std::hash<UniqueId>{}(label));
         id = std::to_string(myHash ^ (newHash << 1));
     }
-    return unite(Hyperedges{id}, unite(fromIds, toIds));
+    return Hyperedges{id};
 }
 
 Hyperedges Conceptgraph::relateFrom(const Hyperedges& fromIds, const Hyperedges& toIds, const UniqueId& relId)
@@ -105,12 +106,12 @@ Hyperedges Conceptgraph::relateFrom(const Hyperedges& fromIds, const Hyperedges&
     }
     const std::string& label(Hypergraph::get(relId)->label());
     // Re-hash in case of an (unlikely) collision
-    while (Conceptgraph::relate(id, fromIds, toIds, label).empty()) {
+    while (Conceptgraph::relateFrom(id, fromIds, toIds, relId).empty()) {
         auto myHash(std::hash<UniqueId>{}(id));
         auto newHash(std::hash<UniqueId>{}(label));
         id = std::to_string(myHash ^ (newHash << 1));
     }
-    return unite(Hyperedges{id}, unite(fromIds, toIds));
+    return Hyperedges{id};
 }
 
 void     Conceptgraph::destroy(const UniqueId& id)
