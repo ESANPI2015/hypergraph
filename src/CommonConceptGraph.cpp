@@ -132,27 +132,67 @@ Hyperedges CommonConceptGraph::subrelationFrom(const UniqueId& subRelId, const H
 
 Hyperedges CommonConceptGraph::isA(const Hyperedges& subIds, const Hyperedges& superIds)
 {
-    return (factFrom(intersect(Conceptgraph::find(), subIds), intersect(Conceptgraph::find(), superIds), CommonConceptGraph::IsAId));
+    Hyperedges result;
+    for (const UniqueId& subId : subIds)
+    {
+        for (const UniqueId& superId : superIds)
+        {
+            result = unite(result, factFrom(Hyperedges{subId}, Hyperedges{superId}, CommonConceptGraph::IsAId));
+        }
+    }
+    return result;
 }
 
 Hyperedges CommonConceptGraph::hasA(const Hyperedges& parentIds, const Hyperedges& childIds)
 {
-    return (factFrom(intersect(Conceptgraph::find(), parentIds), intersect(Conceptgraph::find(), childIds), CommonConceptGraph::HasAId));
+    Hyperedges result;
+    for (const UniqueId& pId : parentIds)
+    {
+        for (const UniqueId& cId : childIds)
+        {
+            result = unite(result, factFrom(Hyperedges{pId}, Hyperedges{cId}, CommonConceptGraph::HasAId));
+        }
+    }
+    return result;
 }
 
 Hyperedges CommonConceptGraph::partOf(const Hyperedges& partIds, const Hyperedges& wholeIds)
 {
-    return (factFrom(intersect(Conceptgraph::find(), partIds), intersect(Conceptgraph::find(), wholeIds), CommonConceptGraph::PartOfId));
+    Hyperedges result;
+    for (const UniqueId& pId : partIds)
+    {
+        for (const UniqueId& wId : wholeIds)
+        {
+            result = unite(result, factFrom(Hyperedges{pId}, Hyperedges{wId}, CommonConceptGraph::PartOfId));
+        }
+    }
+    return result;
 }
 
 Hyperedges CommonConceptGraph::connects(const Hyperedges& connectorIds, const Hyperedges& interfaceIds)
 {
-    return (factFrom(intersect(Conceptgraph::find(), connectorIds), intersect(Conceptgraph::find(), interfaceIds), CommonConceptGraph::ConnectsId));
+    Hyperedges result;
+    for (const UniqueId& cId : connectorIds)
+    {
+        for (const UniqueId& iId : interfaceIds)
+        {
+            result = unite(result, factFrom(Hyperedges{cId}, Hyperedges{iId}, CommonConceptGraph::ConnectsId));
+        }
+    }
+    return result;
 }
 
 Hyperedges CommonConceptGraph::instanceOf(const Hyperedges& individualIds, const Hyperedges& superIds)
 {
-    return factFrom(intersect(Conceptgraph::find(), individualIds), intersect(Conceptgraph::find(), superIds), CommonConceptGraph::InstanceOfId);
+    Hyperedges result;
+    for (const UniqueId& iId : individualIds)
+    {
+        for (const UniqueId& sId : superIds)
+        {
+            result = unite(result, factFrom(Hyperedges{iId}, Hyperedges{sId}, CommonConceptGraph::InstanceOfId));
+        }
+    }
+    return result;
 }
 
 Hyperedges CommonConceptGraph::createSubclassOf(const UniqueId& subId, const Hyperedges& superIds, const std::string& label)
