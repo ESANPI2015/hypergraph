@@ -66,7 +66,7 @@ int main(void)
         return 1.0f;
     };
 
-    universe.mapIt(matchFunc, resourceFunc, costFunc, "mappingRelation");
+    universe.map(matchFunc, resourceFunc, costFunc, "mappingRelation");
 
     return 0;
 }

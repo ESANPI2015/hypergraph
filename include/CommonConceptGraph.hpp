@@ -146,7 +146,7 @@ class CommonConceptGraph : public Conceptgraph
         // The resource function should return the amount of resources available for a given concept. The signature is float (CommonConceptGraph&, UniqueId)
         // The cost function should return the total costs, when two concepts are mapped. The signature is float (CommonConceptGraph&, UniqueId, UniqueId)
         // When two concepts are mapped, a FACT of <relUid> is created between them and the cost is subtracted from the resource.
-        template< typename MatchFunc, typename ResourceFunc, typename CostFunc > CommonConceptGraph mapIt (MatchFunc m, ResourceFunc r, CostFunc c, const UniqueId& relUid);
+        template< typename MatchFunc, typename ResourceFunc, typename CostFunc > CommonConceptGraph map (MatchFunc m, ResourceFunc r, CostFunc c, const UniqueId& relUid);
 };
 
 // Include template member functions

@@ -3,7 +3,7 @@
 #include <vector>
 #include <iostream>
 
-template< typename MatchFunc, typename ResourceFunc, typename CostFunc > CommonConceptGraph CommonConceptGraph::mapIt (MatchFunc m, ResourceFunc r, CostFunc c, const UniqueId& relUid)
+template< typename MatchFunc, typename ResourceFunc, typename CostFunc > CommonConceptGraph CommonConceptGraph::map (MatchFunc m, ResourceFunc r, CostFunc c, const UniqueId& relUid)
 {
     CommonConceptGraph result(*this);
 
