@@ -140,6 +140,17 @@ class CommonConceptGraph : public Conceptgraph
         {
             return instancesOf(Hyperedges{id}, label, dir);
         }
+
+        /* Generic mapping algorithm */
+        // The matching function should return true, whenever two concepts shall be matched. The signature is bool (CommonConceptGraph&, UniqueId, UniqueId)
+        // The resource function should return the amount of resources available for a given concept. The signature is float (CommonConceptGraph&, UniqueId)
+        // The cost function should return the total costs, when two concepts are mapped. The signature is float (CommonConceptGraph&, UniqueId, UniqueId)
+        // When two concepts are mapped, a FACT of <relUid> is created between them and the cost is subtracted from the resource.
+        template< typename MatchFunc, typename ResourceFunc, typename CostFunc > CommonConceptGraph mapIt (MatchFunc m, ResourceFunc r, CostFunc c, const UniqueId& relUid);
 };
+
+// Include template member functions
+// See http://stackoverflow.com/questions/495021/why-can-templates-only-be-implemented-in-the-header-file
+#include "CommonConceptGraph.tpp"
 
 #endif

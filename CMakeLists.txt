@@ -67,6 +67,11 @@ target_link_libraries(testCommonConceptGraph hypergraph)
 install(TARGETS testCommonConceptGraph
 RUNTIME DESTINATION bin)
 
+add_executable(testMap test/testMap.cpp)
+target_link_libraries(testMap hypergraph)
+install(TARGETS testMap
+RUNTIME DESTINATION bin)
+
 add_executable(simplify tools/simplify.cpp)
 target_link_libraries(simplify hypergraph)
 install(TARGETS simplify
