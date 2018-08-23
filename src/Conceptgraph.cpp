@@ -42,13 +42,13 @@ Hyperedges Conceptgraph::create(const UniqueId& id, const std::string& label)
     return Hyperedges();
 }
 
-Hyperedges Conceptgraph::find(const std::string& label)
+Hyperedges Conceptgraph::find(const std::string& label) const
 {
     // Find edges which have the right label and are part of the concepts set
     return Hypergraph::from(Hyperedges{Conceptgraph::IsConceptId}, label);
 }
 
-Hyperedges Conceptgraph::relations(const std::string& label)
+Hyperedges Conceptgraph::relations(const std::string& label) const
 {
     // Find edges which have the right label and are part of the relations set
     return Hypergraph::from(Hyperedges{Conceptgraph::IsRelationId}, label);
@@ -149,7 +149,7 @@ void     Conceptgraph::destroy(const UniqueId& id)
     Hypergraph::destroy(id);
 }
 
-Hyperedges Conceptgraph::relationsFrom(const Hyperedges& ids, const std::string& label)
+Hyperedges Conceptgraph::relationsFrom(const Hyperedges& ids, const std::string& label) const
 {
     // All relations with a certain label
     Hyperedges all(relations(label));
@@ -157,14 +157,14 @@ Hyperedges Conceptgraph::relationsFrom(const Hyperedges& ids, const std::string&
     Hyperedges pointingFromUs;
     for (const UniqueId& id : ids)
     {
-        Hyperedges cache(get(id)->_fromOthers);
+        Hyperedges cache(read(id)._fromOthers);
         pointingFromUs = unite(pointingFromUs, cache);
     }
     // All relations with a certain label pointing from us
     return intersect(all, pointingFromUs);
 }
 
-Hyperedges Conceptgraph::relationsTo(const Hyperedges& ids, const std::string& label)
+Hyperedges Conceptgraph::relationsTo(const Hyperedges& ids, const std::string& label) const
 {
     // All relations with a certain label
     Hyperedges all(relations(label));
@@ -172,7 +172,7 @@ Hyperedges Conceptgraph::relationsTo(const Hyperedges& ids, const std::string& l
     Hyperedges pointingToUs;
     for (const UniqueId& id : ids)
     {
-        Hyperedges cache(get(id)->_toOthers);
+        Hyperedges cache(read(id)._toOthers);
         pointingToUs = unite(pointingToUs, cache);
     }
     // All relations with a certain label pointing to us
@@ -182,7 +182,7 @@ Hyperedges Conceptgraph::relationsTo(const Hyperedges& ids, const std::string& l
 Hyperedges Conceptgraph::traverse(const UniqueId& rootId,
                     const std::vector<std::string>& visitLabels,
                     const std::vector<std::string>& relationLabels,
-                    const TraversalDirection dir)
+                    const TraversalDirection dir) const
 {
     Hyperedges result;
     std::set< UniqueId > visited;
@@ -193,40 +193,40 @@ Hyperedges Conceptgraph::traverse(const UniqueId& rootId,
     // Run through queue of unknown edges
     while (!toVisit.empty())
     {
-        auto current = get(toVisit.front());
+        auto current = read(toVisit.front());
         toVisit.pop();
 
-        if (visited.count(current->id()))
+        if (visited.count(current.id()))
             continue;
 
         // Visiting!!!
-        visited.insert(current->id());
+        visited.insert(current.id());
         // Insert the hedge iff either visitLabels is empty OR current label matches one of the visitLabels
-        if (!visitLabels.size() || (std::find(visitLabels.begin(), visitLabels.end(), current->label()) != visitLabels.end()))
+        if (!visitLabels.size() || (std::find(visitLabels.begin(), visitLabels.end(), current.label()) != visitLabels.end()))
         {
             // edge matches filter
-            result.push_back(current->id());
+            result.push_back(current.id());
         }
 
         // TODO: Rewrite this part using relationsTo and relationsFrom depending on dir!
         // Get all relations which match at least one of the relationLabels
         Hyperedges relations;
-        for (std::string label : relationLabels)
+        for (const std::string& label : relationLabels)
         {
-            Hyperedges some = relationsOf(Hyperedges{current->id()}, label);
+            Hyperedges some(relationsOf(Hyperedges{current.id()}, label));
             relations.insert(relations.end(), some.begin(), some.end());
         }
 
         for (auto relId : relations)
         {
             // Put all successor hedges (FORWARD) or predecessor hedges (INVERSE)  into the set of toVisit to be searched
-            auto rel = get(relId);
+            auto rel = read(relId);
             switch (dir)
             {
                 case FORWARD:
-                    if (rel->isPointingFrom(current->id()))
+                    if (rel.isPointingFrom(current.id()))
                     {
-                        auto others = rel->pointingTo();
+                        auto others = rel.pointingTo();
                         for (auto otherId : others)
                         {
                             toVisit.push(otherId);
@@ -234,18 +234,18 @@ Hyperedges Conceptgraph::traverse(const UniqueId& rootId,
                     }
                     break;
                 case BOTH:
-                    if (rel->isPointingFrom(current->id()))
+                    if (rel.isPointingFrom(current.id()))
                     {
-                        auto others = rel->pointingTo();
+                        auto others = rel.pointingTo();
                         for (auto otherId : others)
                         {
                             toVisit.push(otherId);
                         }
                     }
                 case INVERSE:
-                    if (rel->isPointingTo(current->id()))
+                    if (rel.isPointingTo(current.id()))
                     {
-                        auto others = rel->pointingFrom();
+                        auto others = rel.pointingFrom();
                         for (auto otherId : others)
                         {
                             toVisit.push(otherId);
@@ -259,7 +259,7 @@ Hyperedges Conceptgraph::traverse(const UniqueId& rootId,
     return result;
 }
 
-Hyperedges Conceptgraph::traverse(const UniqueId& rootId, const std::string& visitLabel, const std::string& relationLabel, const TraversalDirection dir)
+Hyperedges Conceptgraph::traverse(const UniqueId& rootId, const std::string& visitLabel, const std::string& relationLabel, const TraversalDirection dir) const
 {
     std::vector<std::string> v;
     std::vector<std::string> r;

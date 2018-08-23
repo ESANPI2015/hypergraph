@@ -41,12 +41,12 @@ class Conceptgraph : public Hypergraph
 
         /* CONCEPTS */
         Hyperedges create(const UniqueId& id, const std::string& label="");                                                     //< Create a new concept (id, label)
-        Hyperedges find(const std::string& label="");                                                                           //< Find a concept by label
+        Hyperedges find(const std::string& label="") const;                                                                           //< Find a concept by label
 
         /* RELATIONS */
         Hyperedges relate(const UniqueId& id, const Hyperedges& fromIds, const Hyperedges& toIds, const std::string& label);    //< Create N:M relation
         Hyperedges relate(const Hyperedges& fromIds, const Hyperedges& toIds, const std::string& label);                        //< Create N:M relation using all info to generate a good UID
-        Hyperedges relations(const std::string& label="");                                                                      //< Find relations by label
+        Hyperedges relations(const std::string& label="") const;                                                                      //< Find relations by label
         //Hyperedges relations(const std::vector<std::string>& labels="");              //< Find relations matching one of the given labels
 
         /* RELATIONS FROM A TEMPLATE */
@@ -54,9 +54,9 @@ class Conceptgraph : public Hypergraph
         Hyperedges relateFrom(const Hyperedges& fromIds, const Hyperedges& toIds, const UniqueId& relId);                       //< Create another relation labelled like relId using all info to gen a good UID
 
         /* QUERIES */
-        Hyperedges relationsFrom(const Hyperedges& ids, const std::string& label="");
-        Hyperedges relationsTo(const Hyperedges& ids, const std::string& label="");
-        Hyperedges relationsOf(const Hyperedges& ids, const std::string& label="")
+        Hyperedges relationsFrom(const Hyperedges& ids, const std::string& label="") const;
+        Hyperedges relationsTo(const Hyperedges& ids, const std::string& label="") const;
+        Hyperedges relationsOf(const Hyperedges& ids, const std::string& label="") const
         {
             return unite(relationsFrom(ids,label), relationsTo(ids,label));
         }
@@ -65,11 +65,11 @@ class Conceptgraph : public Hypergraph
         Hyperedges traverse(const UniqueId& rootId,                                 //< Traverse the (sub)graph starting at rootId
                             const std::string& visitLabel="",                       //< filter visited relations OR concepts by this label
                             const std::string& relationLabel="",                    //< follow relations matching this label
-                            const TraversalDirection dir=FORWARD);
+                            const TraversalDirection dir=FORWARD) const;
         Hyperedges traverse(const UniqueId& rootId,                                 //< Traverse the (sub)graph starting at rootId
                             const std::vector<std::string>& visitLabels,            //< visited relations OR concepts matching one of these labels will be in the results
                             const std::vector<std::string>& relationLabels,         //< follow relations matching one of these labels
-                            const TraversalDirection dir=FORWARD);
+                            const TraversalDirection dir=FORWARD) const;
 };
 
 #endif
