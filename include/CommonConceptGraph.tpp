@@ -3,7 +3,7 @@
 #include <vector>
 #include <iostream>
 
-template< typename MatchFunc, typename ResourceFunc, typename CostFunc > CommonConceptGraph CommonConceptGraph::map (MatchFunc m, ResourceFunc r, CostFunc c, const UniqueId& relUid)
+template< typename MatchFunc, typename CostFunc, typename MapFunc > CommonConceptGraph CommonConceptGraph::map (MatchFunc m, CostFunc c, MapFunc mp) const
 {
     CommonConceptGraph result(*this);
 
@@ -12,8 +12,7 @@ template< typename MatchFunc, typename ResourceFunc, typename CostFunc > CommonC
     std::set< UniqueId > toBeMapped;
     std::set< UniqueId > toBeMappedTo;
 
-    // First step: Filter out non-matching pairs & gather available ressources
-    std::map< UniqueId, float> ressources;
+    // First step: Filter out non-matching pairs
     for (const UniqueId& a : all)
     {
         for (const UniqueId& b : all)
@@ -21,10 +20,8 @@ template< typename MatchFunc, typename ResourceFunc, typename CostFunc > CommonC
 	        // If there is a valid match, register it
     	    if (m(result, a, b))
     	    {
-		        toBeMapped.insert(a);
-		        toBeMappedTo.insert(b);
-		        // TODO2: What if we have multiple/different ressources?
-		        ressources[b] = r(result, b);
+	            toBeMapped.insert(a);
+	            toBeMappedTo.insert(b);
     	    }
         }
     }
@@ -44,14 +41,11 @@ template< typename MatchFunc, typename ResourceFunc, typename CostFunc > CommonC
                 {
                     // If they COULD be mapped, we have to calculate costs
                     const float costs(c(result, a, b));
-
-		            // The costs consume ressources. So we have subtract the costs from the available ressources
-		            const float ressourcesLeft(ressources[b] - costs);
-                    std::cout << "\t\t" << result.get(a)->label() << " -> " << result.get(b)->label() << ": " << ressourcesLeft << std::endl;
+                    std::cout << "\t\t" << result.get(a)->label() << " -> " << result.get(b)->label() << ": " << costs << std::endl;
 
                     // Now the mapping and its associated cost has to be inserted into a priority queue
-		            // NOTE: The mapping which consumes LESS ressources is at the top of the queue!
-                    q.push({ressourcesLeft, {a,b}});
+	            // NOTE: The mapping which consumes LESS ressources is at the top of the queue!
+                    q.push({costs, {a,b}});
                 }
             }
         }
@@ -63,11 +57,11 @@ template< typename MatchFunc, typename ResourceFunc, typename CostFunc > CommonC
             std::pair< float, std::pair< UniqueId, UniqueId > > best(q.top());
             std::cout << "\t" << result.get(best.second.first)->label() << " -> " << result.get(best.second.second)->label() << ": " << best.first << std::endl;
 
-            result.factFrom(Hyperedges{best.second.first}, Hyperedges{best.second.second}, relUid);
-	        ressources[best.second.second] -= c(result, best.second.first, best.second.second);
+            // Call the map func to map both entities (and possibly updating ressources available)
+            mp(result, best.second.first, best.second.second);
 
-	        // Remove only the first entity from 
-	        toBeMapped.erase(best.second.first);
+            // Remove only the first entity from 
+            toBeMapped.erase(best.second.first);
         } else {
 	        break;
 	    }

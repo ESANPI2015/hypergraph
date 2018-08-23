@@ -142,11 +142,11 @@ class CommonConceptGraph : public Conceptgraph
         }
 
         /* Generic mapping algorithm */
-        // The matching function should return true, whenever two concepts shall be matched. The signature is bool (CommonConceptGraph&, UniqueId, UniqueId)
-        // The resource function should return the amount of resources available for a given concept. The signature is float (CommonConceptGraph&, UniqueId)
-        // The cost function should return the total costs, when two concepts are mapped. The signature is float (CommonConceptGraph&, UniqueId, UniqueId)
+        // The matchFunc m should return true, whenever two concepts shall be matched. The signature is bool (CommonConceptGraph&, UniqueId, UniqueId)
+        // The costFunc c should return the total costs, when two concepts are mapped. The signature is float (CommonConceptGraph&, UniqueId, UniqueId)
+        // The mapFunc mp should map the two concepts and updating the corresponding resources. The signature is void (CommonConceptGraph&, UniqueId, UniqueId)
         // When two concepts are mapped, a FACT of <relUid> is created between them and the cost is subtracted from the resource.
-        template< typename MatchFunc, typename ResourceFunc, typename CostFunc > CommonConceptGraph map (MatchFunc m, ResourceFunc r, CostFunc c, const UniqueId& relUid);
+        template< typename MatchFunc, typename CostFunc, typename MapFunc > CommonConceptGraph map (MatchFunc m, CostFunc c, MapFunc mp) const;
 };
 
 // Include template member functions

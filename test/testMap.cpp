@@ -9,6 +9,9 @@
 #include <iostream>
 #include <cassert>
 
+// Each B shall have resources of 1.f initially
+std::map< std::string, float > resources = {{"X", 1.f}, {"Y", 1.f}, {"Z", 1.f}};
+
 int main(void)
 {
     std::cout << "*** COMMON CONCEPT GRAPH MAPPING TEST ***" << std::endl;
@@ -44,29 +47,40 @@ int main(void)
         return true;
     };
 
-    auto resourceFunc = [] (CommonConceptGraph& g, const UniqueId& b) -> float {
-        // Simple resource function for every target
-        return 1.f;
-    };
-
     auto costFunc = [] (CommonConceptGraph& g, const UniqueId& a, const UniqueId& b) -> float {
         // Here we assign some arbitrary costs
         const std::string& labelA(g.get(a)->label());
         const std::string& labelB(g.get(b)->label());
         if ((labelA == "A") && (labelB == "X"))
-            return 0.1f;
+            return resources["X"] - 0.1f;
         if ((labelA == "A") && (labelB == "Y"))
-            return 0.2f;
+            return resources["Y"] - 0.2f;
         if ((labelA == "A") && (labelB == "Z"))
-            return 0.3f;
+            return resources["Z"] - 0.3f;
         if (labelA == "B")
-            return 0.1f;
+            return resources[labelB] - 0.1f;
         if ((labelA == "C") && (labelB == "Y"))
-            return 0.5f;
-        return 1.0f;
+            return resources["Y"] - 0.5f;
+        return resources[labelB] - 1.0f;
     };
 
-    universe.map(matchFunc, resourceFunc, costFunc, "mappingRelation");
+    auto mapFunc = [] (CommonConceptGraph& g, const UniqueId& a, const UniqueId& b) -> void {
+        const std::string& labelA(g.get(a)->label());
+        const std::string& labelB(g.get(b)->label());
+        if ((labelA == "A") && (labelB == "X"))
+            resources["X"] -= 0.1f;
+        if ((labelA == "A") && (labelB == "Y"))
+            resources["Y"] -= 0.2f;
+        if ((labelA == "A") && (labelB == "Z"))
+            resources["Z"] -= 0.3f;
+        if (labelA == "B")
+            resources[labelB] -= 0.1f;
+        if ((labelA == "C") && (labelB == "Y"))
+            resources["Y"] -= 0.5f;
+        resources[labelB] -= 1.0f;
+    };
+
+    universe.map(matchFunc, costFunc, mapFunc);
 
     return 0;
 }
