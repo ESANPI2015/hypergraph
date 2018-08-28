@@ -3,7 +3,7 @@
 #include <vector>
 #include <iostream>
 
-template< typename MatchFunc, typename CostFunc, typename MapFunc > CommonConceptGraph CommonConceptGraph::map (MatchFunc m, CostFunc c, MapFunc mp) const
+template<typename PartitionFunc, typename MatchFunc, typename CostFunc, typename MapFunc > CommonConceptGraph CommonConceptGraph::map (PartitionFunc p, MatchFunc m, CostFunc c, MapFunc mp) const
 {
     CommonConceptGraph result(*this);
 
@@ -12,17 +12,17 @@ template< typename MatchFunc, typename CostFunc, typename MapFunc > CommonConcep
     std::set< UniqueId > toBeMapped;
     std::set< UniqueId > toBeMappedTo;
 
-    // First step: Filter out non-matching pairs
+    // First step: Call the partition function to divide concepts into two sets
     for (const UniqueId& a : all)
     {
-        for (const UniqueId& b : all)
+        const int decision(p(result, a));
+        if (decision > 0)
         {
-	        // If there is a valid match, register it
-    	    if (m(result, a, b))
-    	    {
-	            toBeMapped.insert(a);
-	            toBeMappedTo.insert(b);
-    	    }
+            toBeMapped.insert(a);
+        }
+        else if (decision < 0)
+        {
+            toBeMappedTo.insert(a);
         }
     }
      
@@ -44,7 +44,7 @@ template< typename MatchFunc, typename CostFunc, typename MapFunc > CommonConcep
                     std::cout << "\t\t" << result.get(a)->label() << " -> " << result.get(b)->label() << ": " << costs << std::endl;
 
                     // Now the mapping and its associated cost has to be inserted into a priority queue
-	            // NOTE: The mapping which consumes LESS ressources is at the top of the queue!
+	                // NOTE: The mapping which consumes LESS ressources is at the top of the queue!
                     q.push({costs, {a,b}});
                 }
             }

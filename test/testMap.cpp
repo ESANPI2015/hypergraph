@@ -37,20 +37,23 @@ int main(void)
 
 
     // Define mapping functions
-    auto matchFunc = [] (CommonConceptGraph& g, const UniqueId& a, const UniqueId& b) -> bool {
-        // If a is not of type A, return false
-        if (!g.instancesOf(Hyperedges{a}, "TypeA", CommonConceptGraph::TraversalDirection::FORWARD).size())
-            return false;
-        // If b is not of type B, return false
-        if (!g.instancesOf(Hyperedges{b}, "TypeB", CommonConceptGraph::TraversalDirection::FORWARD).size())
-            return false;
+    auto partitionFunc = [] (const CommonConceptGraph& g, const UniqueId& a) -> int {
+        if (g.instancesOf(Hyperedges{a}, "TypeA", CommonConceptGraph::TraversalDirection::FORWARD).size())
+            return 1;
+        if (g.instancesOf(Hyperedges{a}, "TypeB", CommonConceptGraph::TraversalDirection::FORWARD).size())
+            return -1;
+        return 0;
+    };
+
+    auto matchFunc = [] (const CommonConceptGraph& g, const UniqueId& a, const UniqueId& b) -> bool {
+        // The partition function already did a good job :)
         return true;
     };
 
-    auto costFunc = [] (CommonConceptGraph& g, const UniqueId& a, const UniqueId& b) -> float {
+    auto costFunc = [] (const CommonConceptGraph& g, const UniqueId& a, const UniqueId& b) -> float {
         // Here we assign some arbitrary costs
-        const std::string& labelA(g.get(a)->label());
-        const std::string& labelB(g.get(b)->label());
+        const std::string& labelA(g.read(a).label());
+        const std::string& labelB(g.read(b).label());
         if ((labelA == "A") && (labelB == "X"))
             return resources["X"] - 0.1f;
         if ((labelA == "A") && (labelB == "Y"))
@@ -64,9 +67,9 @@ int main(void)
         return resources[labelB] - 1.0f;
     };
 
-    auto mapFunc = [] (CommonConceptGraph& g, const UniqueId& a, const UniqueId& b) -> void {
-        const std::string& labelA(g.get(a)->label());
-        const std::string& labelB(g.get(b)->label());
+    auto mapFunc = [] (const CommonConceptGraph& g, const UniqueId& a, const UniqueId& b) -> void {
+        const std::string& labelA(g.read(a).label());
+        const std::string& labelB(g.read(b).label());
         if ((labelA == "A") && (labelB == "X"))
             resources["X"] -= 0.1f;
         if ((labelA == "A") && (labelB == "Y"))
@@ -80,7 +83,7 @@ int main(void)
         resources[labelB] -= 1.0f;
     };
 
-    universe.map(matchFunc, costFunc, mapFunc);
+    universe.map(partitionFunc, matchFunc, costFunc, mapFunc);
 
     return 0;
 }
