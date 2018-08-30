@@ -43,7 +43,7 @@ template<typename PartitionFunc, typename MatchFunc, typename CostFunc, typename
                 {
                     // If they COULD be mapped, we have to calculate costs
                     const float costs(c(result, a, b));
-                    std::cout << "\t\t" << result.read(a).label() << " -> " << result.read(b).label() << ": " << costs << std::endl;
+                    //std::cout << "\t\t" << result.read(a).label() << " -> " << result.read(b).label() << ": " << costs << std::endl;
 
                     // Now the mapping and its associated cost has to be inserted into a priority queue
 	                // NOTE: The mapping which consumes LESS ressources is at the top of the queue!
@@ -61,12 +61,12 @@ template<typename PartitionFunc, typename MatchFunc, typename CostFunc, typename
             std::pair< float, std::pair< UniqueId, UniqueId > > best;
             do
             {
-	       best = q.top();
+               best = q.top();
                allthebest.push_back(best); 
                q.pop();
             }
             while ((!q.empty()) && (q.top().first >= best.first));
-            std::cout << "\tFound " << allthebest.size() << " candidates with cost " << best.first << std::endl;
+            //std::cout << "\tFound " << allthebest.size() << " candidates with cost " << best.first << std::endl;
 
             // Now we random shuffle the vector of candidates
             std::random_device rd;
@@ -74,7 +74,7 @@ template<typename PartitionFunc, typename MatchFunc, typename CostFunc, typename
 
             // And select one of it
             best = allthebest.front();
-            std::cout << "\t" << result.read(best.second.first).label() << " -> " << result.read(best.second.second).label() << ": " << best.first << std::endl;
+            //std::cout << "\t" << result.read(best.second.first).label() << " -> " << result.read(best.second.second).label() << ": " << best.first << std::endl;
 
             // Call the map func to map both entities (and possibly updating ressources available)
             mp(result, best.second.first, best.second.second);
@@ -82,14 +82,14 @@ template<typename PartitionFunc, typename MatchFunc, typename CostFunc, typename
             // Remove only the first entity from 
             toBeMapped.erase(best.second.first);
         } else {
-            std::cout << "\tCould not map: ";
-            for (const UniqueId& uid : toBeMapped)
-            {
-                std::cout << result.read(uid).label() << " ";
-            }
-            std::cout << std::endl;
-	    break;
-	}
+            //std::cout << "\tCould not map: ";
+            //for (const UniqueId& uid : toBeMapped)
+            //{
+            //    std::cout << result.read(uid).label() << " ";
+            //}
+            //std::cout << std::endl;
+            break;
+        }
     }
 
     return result;
