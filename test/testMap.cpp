@@ -37,12 +37,11 @@ int main(void)
 
 
     // Define mapping functions
-    auto partitionFunc = [] (const CommonConceptGraph& g, const UniqueId& a) -> int {
-        if (g.instancesOf(Hyperedges{a}, "TypeA", CommonConceptGraph::TraversalDirection::FORWARD).size())
-            return 1;
-        if (g.instancesOf(Hyperedges{a}, "TypeB", CommonConceptGraph::TraversalDirection::FORWARD).size())
-            return -1;
-        return 0;
+    auto partitionFuncLeft = [] (const CommonConceptGraph& g) -> Hyperedges {
+        return g.instancesOf("TypeA");
+    };
+    auto partitionFuncRight = [] (const CommonConceptGraph& g) -> Hyperedges {
+        return g.instancesOf("TypeB");
     };
 
     auto matchFunc = [] (const CommonConceptGraph& g, const UniqueId& a, const UniqueId& b) -> bool {
@@ -83,7 +82,7 @@ int main(void)
         resources[labelB] -= 1.0f;
     };
 
-    universe.map(partitionFunc, matchFunc, costFunc, mapFunc);
+    universe.map(partitionFuncLeft, partitionFuncRight, matchFunc, costFunc, mapFunc);
 
     return 0;
 }

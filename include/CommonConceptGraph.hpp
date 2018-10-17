@@ -142,12 +142,12 @@ class CommonConceptGraph : public Conceptgraph
         }
 
         /* Generic mapping algorithm */
-        // The partitionFunc p should return a positive value if a concept a is to be mapped, a negative value if a concept a is to be mapped to, and zero otherwise.
-        // The signature is int (CommonConceptGraph&, UniqueId)
+        // PartitionFuncLeft should return the hedges to be mapped to the ones returned by
+        // PartitionFuncRight. The signature is Hyperedges (CommonConceptGraph&)
         // The matchFunc m should return true, whenever two concepts shall be matched. The signature is bool (CommonConceptGraph&, UniqueId, UniqueId)
-        // The costFunc c should return the total costs, when two concepts are mapped. The signature is float (CommonConceptGraph&, UniqueId, UniqueId)
+        // The costFunc c should return the total costs (e.g. amount of resources consumed/left) , when two concepts are mapped. The signature is float (CommonConceptGraph&, UniqueId, UniqueId)
         // The mapFunc mp should map the two concepts and update the corresponding resources. The signature is void (CommonConceptGraph&, UniqueId, UniqueId)
-        template<typename PartitionFunc, typename MatchFunc, typename CostFunc, typename MapFunc > CommonConceptGraph map (PartitionFunc p, MatchFunc m, CostFunc c, MapFunc mp) const;
+        template<typename PartitionFuncLeft, typename PartitionFuncRight,  typename MatchFunc, typename CostFunc, typename MapFunc > CommonConceptGraph map (PartitionFuncLeft pl, PartitionFuncRight pr, MatchFunc m, CostFunc c, MapFunc mp) const;
 };
 
 // Include template member functions

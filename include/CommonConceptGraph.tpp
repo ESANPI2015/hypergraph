@@ -5,29 +5,13 @@
 #include <algorithm>
 #include <iostream>
 
-template<typename PartitionFunc, typename MatchFunc, typename CostFunc, typename MapFunc > CommonConceptGraph CommonConceptGraph::map (PartitionFunc p, MatchFunc m, CostFunc c, MapFunc mp) const
+template<typename PartitionFuncLeft, typename PartitionFuncRight,  typename MatchFunc, typename CostFunc, typename MapFunc > CommonConceptGraph CommonConceptGraph::map (PartitionFuncLeft pl, PartitionFuncRight pr, MatchFunc m, CostFunc c, MapFunc mp) const
 {
     CommonConceptGraph result(*this);
 
-    // We have to cycle through all pairs of concepts
-    Hyperedges all(result.find());
-    std::set< UniqueId > toBeMapped;
-    std::set< UniqueId > toBeMappedTo;
-
-    // First step: Call the partition function to divide concepts into two sets
-    for (const UniqueId& a : all)
-    {
-        const int decision(p(result, a));
-        if (decision > 0)
-        {
-            toBeMapped.insert(a);
-        }
-        else if (decision < 0)
-        {
-            toBeMappedTo.insert(a);
-        }
-    }
-     
+    // First, we have to get the candidates to be mapped to other candidates
+    Hyperedges toBeMapped(pl(result));
+    Hyperedges toBeMappedTo(pr(result));
 
     // As long as we have mappable concepts, we try to greedily find a (sub-)optimal mapping
     auto cmp = [] (std::pair< float, std::pair< UniqueId, UniqueId > > a, std::pair< float, std::pair< UniqueId, UniqueId > > b) -> bool { return (a.first < b.first);};
@@ -79,8 +63,8 @@ template<typename PartitionFunc, typename MatchFunc, typename CostFunc, typename
             // Call the map func to map both entities (and possibly updating ressources available)
             mp(result, best.second.first, best.second.second);
 
-            // Remove only the first entity from 
-            toBeMapped.erase(best.second.first);
+            // Remove the candidate to be mapped, because it is mapped
+            toBeMapped.erase(std::remove(toBeMapped.begin(), toBeMapped.end(), best.second.first), toBeMapped.end());
         } else {
             //std::cout << "\tCould not map: ";
             //for (const UniqueId& uid : toBeMapped)
