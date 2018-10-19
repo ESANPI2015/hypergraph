@@ -36,8 +36,11 @@ void Hypergraph::importFrom(const Hypergraph& other)
     {
         if (!other._edges.count(id))
             continue;
-        from(other._edges.at(id).pointingFrom(), Hyperedges{id});
-        to(Hyperedges{id}, other._edges.at(id).pointingTo());
+        // Wire only those things which have not yet been wired before (otherwise we get arity changes)
+        Hyperedges newFromUids(subtract(other._edges.at(id).pointingFrom(), _edges.at(id).pointingFrom()));
+        Hyperedges newToUids(subtract(other._edges.at(id).pointingTo(), _edges.at(id).pointingTo()));
+        from(newFromUids, Hyperedges{id});
+        to(Hyperedges{id}, newToUids);
     }
 }
 
