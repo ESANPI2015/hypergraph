@@ -93,9 +93,8 @@ class CommonConceptGraph : public Conceptgraph
         Hyperedges instantiateSuperDeepFrom(const Hyperedges& otherIds, const std::string& label=""); // create an instance also cloning ALL descendants and parts
 
         /*Common queries*/
-        // TODO: Need factsOf(const Hyperedges& fromIds, const Hyperedges& toIds, const std::string& label="", const TraversalDirection dir=INVERSE);
-        Hyperedges factsOf(const UniqueId superRelId, const std::string& label="", const TraversalDirection dir=INVERSE) const;           // non-transitive
-        Hyperedges factsOf(const Hyperedges& superRelIds, const std::string& label="", const TraversalDirection dir=INVERSE) const;       // non-transitive factOf
+        Hyperedges factsOf(const Hyperedges& superRelIds, const std::string& label="", const TraversalDirection dir=INVERSE, const Hyperedges& fromIds=Hyperedges(), const Hyperedges& toIds=Hyperedges()) const;
+        Hyperedges factsOf(const UniqueId& superRelId, const std::string& label="", const TraversalDirection dir=INVERSE, const Hyperedges& fromIds=Hyperedges(), const Hyperedges& toIds=Hyperedges()) const;
         Hyperedges subrelationsOf(const UniqueId superRelId, const std::string& label="", const TraversalDirection dir=INVERSE) const;    //transitive subrelOf
         Hyperedges subrelationsOf(const Hyperedges& superRelIds, const std::string& label="", const TraversalDirection dir=INVERSE) const;    //transitive subrelOf
         Hyperedges directSubrelationsOf(const Hyperedges& superRelIds, const std::string& label="", const TraversalDirection dir=INVERSE) const;    //non-transitive subrelOf
