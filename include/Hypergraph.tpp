@@ -316,7 +316,7 @@ template <typename ResultFilter, typename TraversalFilter> Hyperedges Hypergraph
     // Run through queue of unknown edges
     while (!edges.empty())
     {
-        const UniqueId& currentUid(edges.front());
+        const UniqueId currentUid(edges.front());
         edges.pop();
         // NOTE: We do not check the pointer here! We want it to fail if there is inconsistency!!!
 
