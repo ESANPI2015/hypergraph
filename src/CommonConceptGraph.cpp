@@ -410,8 +410,21 @@ Hyperedges CommonConceptGraph::subrelationsOf(const Hyperedges& superRelIds, con
 Hyperedges CommonConceptGraph::subrelationsOf(const UniqueId superRelId, const std::string& label, const TraversalDirection dir) const
 {
     // Here we start a traversal from superRelId following every subrelationOf relation
-    // Since this cannot be subclassed/relabelled, we can use a simple traverse function
-    return Conceptgraph::traverse(superRelId, label, read(CommonConceptGraph::SubrelOfId).label(), dir);
+    // First, we define the filter functions for the concepts to be returned
+    auto cf = [&](const Hyperedge& c) -> bool {
+        if (label.empty() || (c.label() == label))
+            return true;
+        return false;
+    };
+    // Then, we define the function to decide which relations to follow
+    // The criterium is, that there exists r <- FACT-OF -> CommonConceptGraph::SubrelOfId
+    auto rf = [&](const Hyperedge& c, const Hyperedge& r) -> bool {
+        Hyperedges toSearch(to(relationsFrom(Hyperedges{r.id()}, read(CommonConceptGraph::FactOfId).label())));
+        if (std::find(toSearch.begin(), toSearch.end(), r.id()) != toSearch.end())
+            return true;
+        return false;
+    };
+    return Conceptgraph::traverse(superRelId, cf, rf, dir);
 }
 
 Hyperedges CommonConceptGraph::transitiveClosure(const UniqueId rootId, const UniqueId relId, const std::string& label, const TraversalDirection dir) const
@@ -419,20 +432,24 @@ Hyperedges CommonConceptGraph::transitiveClosure(const UniqueId rootId, const Un
     // At first, find all relations we have to consider during traversal:
     // These are all subrelations of relId including relId itself
     Hyperedges relationsToFollow(subrelationsOf(relId));
-    std::vector<std::string> relLabels;
-    for (const UniqueId& id : relationsToFollow)
-    {
-        if (!read(id).label().empty())
-            relLabels.push_back(read(id).label());
-    }
 
-    // Then we have to traverse the hypergraph starting at rootId,
-    // checking label of visited hedges,
-    // and following every relation which has a label matching one of the relations to be followed
-    std::vector<std::string> visitedLabels;
-    if (!label.empty())
-        visitedLabels.push_back(label);
-    return Conceptgraph::traverse(rootId, visitedLabels, relLabels, dir);
+    // The filter function is like the one in subrelationsOf
+    auto cf = [&](const Hyperedge& c) -> bool {
+        if (label.empty() || (c.label() == label))
+            return true;
+        return false;
+    };
+
+    // For the relation filter function, we have to check that
+    // r <- FACT-OF -> R where R is element of relationsToFollow
+    auto rf = [&](const Hyperedge& c, const Hyperedge& r) -> bool {
+        Hyperedges toSearch(to(relationsFrom(Hyperedges{r.id()}, read(CommonConceptGraph::FactOfId).label())));
+        if (intersect(toSearch, relationsToFollow).empty())
+            return false;
+        return true;
+    };
+
+    return Conceptgraph::traverse(rootId, cf, rf, dir);
 }
 
 Hyperedges CommonConceptGraph::subclassesOf(const Hyperedges& superIds, const std::string& label, const TraversalDirection dir) const
