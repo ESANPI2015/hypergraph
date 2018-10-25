@@ -1,7 +1,5 @@
 #include "Conceptgraph.hpp"
 #include <map>
-#include <set>
-#include <queue>
 #include <functional>
 #include <sstream>
 #include <algorithm>
@@ -177,95 +175,4 @@ Hyperedges Conceptgraph::relationsTo(const Hyperedges& ids, const std::string& l
     }
     // All relations with a certain label pointing to us
     return intersect(all, pointingToUs);
-}
-
-Hyperedges Conceptgraph::traverse(const UniqueId& rootId,
-                    const std::vector<std::string>& visitLabels,
-                    const std::vector<std::string>& relationLabels,
-                    const TraversalDirection dir) const
-{
-    Hyperedges result;
-    std::set< UniqueId > visited;
-    std::queue< UniqueId > toVisit;
-
-    toVisit.push(rootId);
-
-    // Run through queue of unknown edges
-    while (!toVisit.empty())
-    {
-        auto current = read(toVisit.front());
-        toVisit.pop();
-
-        if (visited.count(current.id()))
-            continue;
-
-        // Visiting!!!
-        visited.insert(current.id());
-        // Insert the hedge iff either visitLabels is empty OR current label matches one of the visitLabels
-        if (!visitLabels.size() || (std::find(visitLabels.begin(), visitLabels.end(), current.label()) != visitLabels.end()))
-        {
-            // edge matches filter
-            result.push_back(current.id());
-        }
-
-        // TODO: Rewrite this part using relationsTo and relationsFrom depending on dir!
-        // Get all relations which match at least one of the relationLabels
-        Hyperedges relations;
-        for (const std::string& label : relationLabels)
-        {
-            Hyperedges some(relationsOf(Hyperedges{current.id()}, label));
-            relations.insert(relations.end(), some.begin(), some.end());
-        }
-
-        for (auto relId : relations)
-        {
-            // Put all successor hedges (FORWARD) or predecessor hedges (INVERSE)  into the set of toVisit to be searched
-            auto rel = read(relId);
-            switch (dir)
-            {
-                case FORWARD:
-                    if (rel.isPointingFrom(current.id()))
-                    {
-                        auto others = rel.pointingTo();
-                        for (auto otherId : others)
-                        {
-                            toVisit.push(otherId);
-                        }
-                    }
-                    break;
-                case BOTH:
-                    if (rel.isPointingFrom(current.id()))
-                    {
-                        auto others = rel.pointingTo();
-                        for (auto otherId : others)
-                        {
-                            toVisit.push(otherId);
-                        }
-                    }
-                case INVERSE:
-                    if (rel.isPointingTo(current.id()))
-                    {
-                        auto others = rel.pointingFrom();
-                        for (auto otherId : others)
-                        {
-                            toVisit.push(otherId);
-                        }
-                    }
-                    break;
-            }
-        }
-    }
-
-    return result;
-}
-
-Hyperedges Conceptgraph::traverse(const UniqueId& rootId, const std::string& visitLabel, const std::string& relationLabel, const TraversalDirection dir) const
-{
-    std::vector<std::string> v;
-    std::vector<std::string> r;
-    if (!visitLabel.empty())
-        v.push_back(visitLabel);
-    if (!relationLabel.empty())
-        r.push_back(relationLabel);
-    return traverse(rootId, v, r, dir);
 }

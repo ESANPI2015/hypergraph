@@ -109,7 +109,14 @@ int main(void)
     }
 
     std::cout << "> Make a traversal returning concepts connected by a certain relation\n";
-    concepts = universe2.traverse(*universe2.find("Root").begin(), "", "R");
+    auto cf = [](const Hyperedge& c) -> bool { return true; };
+    auto rf = [](const Hyperedge& c, const Hyperedge& r) -> bool {
+        // For simplicity we just check the label
+        if (r.label() == "R")
+            return true;
+        return false;
+    };
+    concepts = universe2.traverse(*universe2.find("Root").begin(), cf, rf);
     for (auto conceptId : concepts)
     {
         std::cout << conceptId << " " << universe2.get(conceptId)->label() << std::endl;

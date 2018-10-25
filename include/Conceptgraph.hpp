@@ -46,8 +46,7 @@ class Conceptgraph : public Hypergraph
         /* RELATIONS */
         Hyperedges relate(const UniqueId& id, const Hyperedges& fromIds, const Hyperedges& toIds, const std::string& label);    //< Create N:M relation
         Hyperedges relate(const Hyperedges& fromIds, const Hyperedges& toIds, const std::string& label);                        //< Create N:M relation using all info to generate a good UID
-        Hyperedges relations(const std::string& label="") const;                                                                      //< Find relations by label
-        //Hyperedges relations(const std::vector<std::string>& labels="");              //< Find relations matching one of the given labels
+        Hyperedges relations(const std::string& label="") const;                                                                //< Find relations by label
 
         /* RELATIONS FROM A TEMPLATE */
         Hyperedges relateFrom(const UniqueId& id, const Hyperedges& fromIds, const Hyperedges& toIds, const UniqueId& relId);
@@ -61,15 +60,13 @@ class Conceptgraph : public Hypergraph
             return unite(relationsFrom(ids,label), relationsTo(ids,label));
         }
         /* TRAVERSALS */
-        // TODO: Make these template functions?
-        Hyperedges traverse(const UniqueId& rootId,                                 //< Traverse the (sub)graph starting at rootId
-                            const std::string& visitLabel="",                       //< filter visited relations OR concepts by this label
-                            const std::string& relationLabel="",                    //< follow relations matching this label
-                            const TraversalDirection dir=FORWARD) const;
-        Hyperedges traverse(const UniqueId& rootId,                                 //< Traverse the (sub)graph starting at rootId
-                            const std::vector<std::string>& visitLabels,            //< visited relations OR concepts matching one of these labels will be in the results
-                            const std::vector<std::string>& relationLabels,         //< follow relations matching one of these labels
+        template< typename ConceptFilterFunc, typename RelationFilterFunc > Hyperedges traverse(
+                            const UniqueId& rootId,                                 //< Traverse the (sub)graph starting at rootId
+                            ConceptFilterFunc cf,                                   //< visiting a concept OR relation this function should either return true or false. bool (const Hyperedge& c)
+                            RelationFilterFunc rf,                                  //< decide whether to follow a relation or not. bool (const Hyperegde& c, const Hyperedge& r)
                             const TraversalDirection dir=FORWARD) const;
 };
+
+#include "Conceptgraph.tpp"
 
 #endif
