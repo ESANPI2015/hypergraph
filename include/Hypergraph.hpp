@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <map>
+#include <unordered_map>
 #include <set>
 #include <stack>
 #include "Hyperedge.hpp"
@@ -24,9 +25,6 @@
       (See nice explanations here: https://stackoverflow.com/questions/10371094/returning-a-null-reference-in-c)
     * An additional way to optimize scalability of this approach is to use hashmaps instead of normal maps.
       Then lookup can be done in O(1) (average). However, this could be premature optimization.
-    * A std::map is NOT a one-to-one mapping but a many-to-one mapping ... A better structure could be to specify
-      aribitrary mappings by std::set< std::pair< UniqueId, UniqueId > > or something similar.
-    * Instead of using std::set for Hyperedges, we could use an unordered_set which would also help with scalability issues (because it is a hash table)
 */
 
 typedef std::multimap<UniqueId, UniqueId> Mapping;   //< This map stores a many-to-many mapping between hedges (IDs)
@@ -76,42 +74,41 @@ class Hypergraph {
             BOTH        // in both directions
         };
         /*Traversal which returns all visited edges*/
-        // TODO: Rethink signature of functors f and g
         template <typename ResultFilter, typename TraversalFilter> Hyperedges traversal
         ( 
-            const UniqueId rootId,                  // The starting edge
-            ResultFilter f,                         // Unary function bool f(Hyperedge *)
-            TraversalFilter g,                      // Binary function bool g(Hyperedge *current, Hyperedge *next)
+            const UniqueId& rootId,                  // The starting edge
+            ResultFilter f,                         // Unary function bool f(const Hyperedge&)
+            TraversalFilter g,                      // Binary function bool g(const Hyperedge& current, const Hyperedge& next)
             const TraversalDirection dir = FORWARD
-        );
+        ) const;
 
         /* Default matching function */
-        static bool defaultMatchFunc(Hyperedge *a, Hyperedge* b)
+        static bool defaultMatchFunc(const Hyperedge& a, const Hyperedge& b)
         {
-            return ((a->id() == b->id()) || (b->label().empty()) || (a->label() == b->label())) ? true : false;
+            return ((a.id() == b.id()) || (b.label().empty()) || (a.label() == b.label())) ? true : false;
         }
 
         /* Pattern matching */
         template< typename MatchFunc > Mapping match(
-                      Hypergraph& other,                    //< The graph to be found in the current graph
+                      const Hypergraph& other,                    //< The graph to be found in the current graph
                       std::stack< Mapping >& searchSpace,   //< A tree of the current state in search space.
                       MatchFunc m                           //< A binary function bool m(Hyperedge *, Hyperedge *) which decides if a hedge of other and a hedge of the current graph are candidates or not
-                     );
+                     ) const;
 
         /* Graph rewriting: single pushout */
         // NOTE: Partial Map means, that hedges in lhs do not need to be mapped to hedges in rhs (if not mapped, then they will get destroyed)
         template< typename MatchFunc > Hypergraph rewrite(
-                            Hypergraph& lhs,                     //< The matching graph
-                            Hypergraph& rhs,                     //< The replacment graph
+                            const Hypergraph& lhs,                     //< The matching graph
+                            const Hypergraph& rhs,                     //< The replacment graph
                             const Mapping& partialMap,           //< A partial map from lhs to rhs (N:N)
                             std::stack< Mapping >& searchSpace,  //< The search space of the matching phase for reusage
                             MatchFunc mf                         //< A binary function bool m(Hyperedge *, Hyperedge *) which decides if a hedge of other and a hedge of the current graph are candidates or not
-                          );
+                          ) const;
 
     protected:
-        // Private members for factory
-        // NOTE: We could use a hashmap to improve scalability. However this might be premature optimization.
-        std::map<UniqueId, Hyperedge> _edges;  // stores all hyperedges in a map id -> hyperedge
+        // Stores all hyperedges belonging to a certain graph instance
+        // For fast lookup, we use the UniqueId to retrieve the corresponding hyperedge
+        std::unordered_map<UniqueId, Hyperedge> _edges;
 };
 
 // Include template member functions

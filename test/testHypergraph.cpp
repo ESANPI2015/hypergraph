@@ -39,8 +39,8 @@ int main(void)
     std::cout << "> Make a traversal starting at 1" << std::endl;
     testGraph.traversal(
             "1",
-            [](Hyperedge *x){ std::cout << *x << std::endl; return true; },
-            [](Hyperedge *x, Hyperedge *y){ return true; }
+            [](const Hyperedge& x){ std::cout << x << std::endl; return true; },
+            [](const Hyperedge& x, const Hyperedge &y){ return true; }
          );
 
     std::cout << "> Store hypergraph using YAML" << std::endl;

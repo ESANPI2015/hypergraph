@@ -52,9 +52,9 @@ target_link_libraries(hypergraph
     ${hypergraph_PKGCONFIG_STATIC_LIBRARIES}
     )
 
-add_executable(testHyperedge test/testHyperedge.cpp)
-target_link_libraries(testHyperedge hypergraph)
-install(TARGETS testHyperedge
+add_executable(testHypergraph test/testHypergraph.cpp)
+target_link_libraries(testHypergraph hypergraph)
+install(TARGETS testHypergraph
 RUNTIME DESTINATION bin)
 
 add_executable(testConceptgraph test/testConceptgraph.cpp)
