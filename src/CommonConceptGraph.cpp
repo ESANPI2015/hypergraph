@@ -420,7 +420,7 @@ Hyperedges CommonConceptGraph::subrelationsOf(const UniqueId superRelId, const s
     // The criterium is, that there exists r <- FACT-OF -> CommonConceptGraph::SubrelOfId
     auto rf = [&](const Hyperedge& c, const Hyperedge& r) -> bool {
         Hyperedges toSearch(to(relationsFrom(Hyperedges{r.id()}, read(CommonConceptGraph::FactOfId).label())));
-        if (std::find(toSearch.begin(), toSearch.end(), r.id()) != toSearch.end())
+        if (std::find(toSearch.begin(), toSearch.end(), CommonConceptGraph::SubrelOfId) != toSearch.end())
             return true;
         return false;
     };
