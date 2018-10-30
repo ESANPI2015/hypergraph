@@ -149,6 +149,11 @@ template< typename MatchFunc > Hypergraph Hypergraph::rewrite(const Hypergraph& 
     return result;
 }
 
+/*
+	Possible improvements:
+        * Instead of searching for possible candidates beforhand, we search only for the candidates for ONE query hedge (BB-Graph algorithm)
+        * Selecting the next query hedge and its candidates should respect locality of the already mapped hedges
+*/
 template< typename MatchFunc > Mapping Hypergraph::match(const Hypergraph& other, std::stack< Mapping >& searchSpace, MatchFunc m) const
 {
     // This algorithm is according to Ullmann
