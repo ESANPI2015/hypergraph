@@ -59,7 +59,7 @@ Hyperedges Hypergraph::create(const UniqueId id, const std::string& label)
 
 void Hypergraph::destroy(const UniqueId id)
 {
-    auto edge = get(id);
+    Hyperedge* edge(get(id));
     if (!edge)
         return;
 
@@ -75,22 +75,40 @@ void Hypergraph::destroy(const UniqueId id)
 
 void Hypergraph::disconnect(const UniqueId id)
 {
-    // We have to find all edges referring to us!
-    // TODO: Can we use the cache here? Do we have to clean up the cache?
-    Hyperedges all = find();
-    for (auto otherId : all)
+    // We point to others and others might point to us
+    // I. In all Hyperedges WE point to or from we have to cleanup the caches
+    Hyperedges fromIds(get(id)->_from);
+    for (const UniqueId& fromId : fromIds)
     {
-        auto other = get(otherId);
-        if (other->isPointingTo(id))
-        {
-            // remove id from _to set
-            std::remove(other->_to.begin(), other->_to.end(), id);
-        }
-        if (other->isPointingFrom(id))
-        {
-            // remove id from _from set
-            std::remove(other->_from.begin(), other->_from.end(), id);
-        }
+        Hyperedge* other(get(fromId));
+        if (!other)
+            continue;
+        std::remove(other->_fromOthers.begin(), other->_fromOthers.end(), id);
+    }
+    Hyperedges toIds(get(id)->_to);
+    for (const UniqueId& toId : toIds)
+    {
+        Hyperedge* other(get(toId));
+        if (!other)
+            continue;
+        std::remove(other->_toOthers.begin(), other->_toOthers.end(), id);
+    }
+    // II. In all Hyperedges which point to or from US we have to cleanup their from and to sets
+    Hyperedges fromUsIds(get(id)->_fromOthers);
+    for (const UniqueId& fromUsId : fromUsIds)
+    {
+        Hyperedge* other(get(fromUsId));
+        if (!other)
+            continue;
+        std::remove(other->_from.begin(), other->_from.end(), id);
+    }
+    Hyperedges toUsIds(get(id)->_toOthers);
+    for (const UniqueId& toUsId : toUsIds)
+    {
+        Hyperedge* other(get(toUsId));
+        if (!other)
+            continue;
+        std::remove(other->_to.begin(), other->_to.end(), id);
     }
 }
 
