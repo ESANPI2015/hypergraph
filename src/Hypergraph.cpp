@@ -76,7 +76,7 @@ void Hypergraph::destroy(const UniqueId id)
 void Hypergraph::disconnect(const UniqueId id)
 {
     // We have to find all edges referring to us!
-    // TODO: Can we use the cache here?
+    // TODO: Can we use the cache here? Do we have to clean up the cache?
     Hyperedges all = find();
     for (auto otherId : all)
     {

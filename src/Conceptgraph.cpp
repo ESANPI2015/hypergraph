@@ -114,6 +114,7 @@ Hyperedges Conceptgraph::relateFrom(const Hyperedges& fromIds, const Hyperedges&
 
 void     Conceptgraph::destroy(const UniqueId& id)
 {
+    // FIXME: This function currently is dangerous! It leaves the FROM and TO sets of Conceptgraph::IsConceptId and Conceptgraph::IsRelationId dirty!
     // Very important: We should never delete our two BASIC RELATIONS
     if (id == Conceptgraph::IsConceptId)
         return;

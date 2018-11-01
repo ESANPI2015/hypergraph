@@ -68,6 +68,7 @@ class CommonConceptGraph : public Conceptgraph
         /*Constructors*/
         CommonConceptGraph();
         CommonConceptGraph(const Hypergraph& base);
+        // TODO: Need a CommonConceptGraph destroy() method. This allows to cleanup leftovers (e.g. dangling facts etc.)
 
         /*Make facts*/
         Hyperedges factOf(const Hyperedges& factIds, const Hyperedges& superRelIds);
