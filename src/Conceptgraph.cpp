@@ -114,48 +114,49 @@ Hyperedges Conceptgraph::relateFrom(const Hyperedges& fromIds, const Hyperedges&
 
 void     Conceptgraph::destroy(const UniqueId& id)
 {
+    // Avoid bad ids
     if (!get(id))
         return;
+
     // Very important: We should never delete our two BASIC RELATIONS
     if (id == Conceptgraph::IsConceptId)
         return;
     if (id == Conceptgraph::IsRelationId)
         return;
-    if (Hypergraph::read(Conceptgraph::IsConceptId).isPointingFrom(id))
+
+    // Before we can destroy any relation, we have to check all other relations referring to us
+    std::set< UniqueId > toBeDestroyed;
+    // Mark all relations pointingFrom us to be deleted iff they do not point from something else
+    Hyperedges relsFromUs(relationsFrom(Hyperedges{id}));
+    for (const UniqueId& relId : relsFromUs)
     {
-        std::set< UniqueId > toBeDestroyed;
-        // When we delete a concept we check if
-        // a) all relations pointingFrom us still point from something else
-        Hyperedges relsFromUs(relationsFrom(Hyperedges{id}));
-        for (const UniqueId& relId : relsFromUs)
-        {
-            // Ignore URRELATION
-            if (relId == Conceptgraph::IsConceptId)
-                continue;
-            if (!get(relId))
-                continue;
-            // If it is not pointing from anything anymore, we destroy it
-            if (Hypergraph::read(relId).pointingFrom().size() <= 1)
-                toBeDestroyed.insert(relId);
-        }
-        // b) all relations pointingTo us still point to something else
-        Hyperedges relsToUs(relationsTo(Hyperedges{id}));
-        for (const UniqueId& relId : relsToUs)
-        {
-            if (!get(relId))
-                continue;
-            // If it is not pointing to anything anymore, we destroy it
-            if (Hypergraph::read(relId).pointingTo().size() <= 1)
-                toBeDestroyed.insert(relId);
-        }
-        // c) Destroy all relations mentioned
-        for (const UniqueId& relId : toBeDestroyed)
-        {
-            Hypergraph::destroy(relId);
-        }
+        // Avoid bad ids
+        // TODO: Check if necessary
+        if (!get(relId))
+            continue;
+        // If it is not pointing from anything anymore, we destroy it
+        if (Hypergraph::read(relId).pointingFrom().size() <= 1)
+            toBeDestroyed.insert(relId);
     }
-    // Removing a relation does not imply anything than just calling the base class destroy thing, right?
-    // NOTE: That we allow relations also being concepts for now.
+    // Mark all relations pointingTo us to be deleted iff they do not point to something else
+    Hyperedges relsToUs(relationsTo(Hyperedges{id}));
+    for (const UniqueId& relId : relsToUs)
+    {
+        // Avoid bad ids
+        // TODO: Check if necessary
+        if (!get(relId))
+            continue;
+        // If it is not pointing to anything anymore, we destroy it
+        if (Hypergraph::read(relId).pointingTo().size() <= 1)
+            toBeDestroyed.insert(relId);
+    }
+    // Destroy all marked relations mentioned (NOTE: We call Conceptgraph::destroy here to destroy the relation chains!)
+    for (const UniqueId& relId : toBeDestroyed)
+    {
+        Conceptgraph::destroy(relId);
+    }
+
+    // Finally we destroy the Hyperedge itself
     Hypergraph::destroy(id);
 }
 

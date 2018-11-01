@@ -83,7 +83,7 @@ void Hypergraph::disconnect(const UniqueId id)
         Hyperedge* other(get(fromId));
         if (!other)
             continue;
-        std::remove(other->_fromOthers.begin(), other->_fromOthers.end(), id);
+        other->_fromOthers.erase(std::remove(other->_fromOthers.begin(), other->_fromOthers.end(), id), other->_fromOthers.end());
     }
     Hyperedges toIds(get(id)->_to);
     for (const UniqueId& toId : toIds)
@@ -91,7 +91,7 @@ void Hypergraph::disconnect(const UniqueId id)
         Hyperedge* other(get(toId));
         if (!other)
             continue;
-        std::remove(other->_toOthers.begin(), other->_toOthers.end(), id);
+        other->_toOthers.erase(std::remove(other->_toOthers.begin(), other->_toOthers.end(), id), other->_toOthers.end());
     }
     // II. In all Hyperedges which point to or from US we have to cleanup their from and to sets
     Hyperedges fromUsIds(get(id)->_fromOthers);
@@ -100,7 +100,7 @@ void Hypergraph::disconnect(const UniqueId id)
         Hyperedge* other(get(fromUsId));
         if (!other)
             continue;
-        std::remove(other->_from.begin(), other->_from.end(), id);
+        other->_from.erase(std::remove(other->_from.begin(), other->_from.end(), id), other->_from.end());
     }
     Hyperedges toUsIds(get(id)->_toOthers);
     for (const UniqueId& toUsId : toUsIds)
@@ -108,7 +108,7 @@ void Hypergraph::disconnect(const UniqueId id)
         Hyperedge* other(get(toUsId));
         if (!other)
             continue;
-        std::remove(other->_to.begin(), other->_to.end(), id);
+        other->_to.erase(std::remove(other->_to.begin(), other->_to.end(), id), other->_to.end());
     }
 }
 
@@ -183,7 +183,7 @@ Hyperedges Hypergraph::from(const Hyperedges& ids, const std::string& label) con
             Hyperedges fromIds(read(id).pointingFrom());
             for (const UniqueId& fromId : fromIds)
             {
-                if (label.empty() || (read(fromId).label() == label))
+                if (read(fromId).label() == label)
                     result.push_back(fromId);
             }
         }
