@@ -114,7 +114,8 @@ Hyperedges Conceptgraph::relateFrom(const Hyperedges& fromIds, const Hyperedges&
 
 void     Conceptgraph::destroy(const UniqueId& id)
 {
-    // FIXME: This function currently is dangerous! It leaves the FROM and TO sets of Conceptgraph::IsConceptId and Conceptgraph::IsRelationId dirty!
+    if (!get(id))
+        return;
     // Very important: We should never delete our two BASIC RELATIONS
     if (id == Conceptgraph::IsConceptId)
         return;
@@ -131,16 +132,20 @@ void     Conceptgraph::destroy(const UniqueId& id)
             // Ignore URRELATION
             if (relId == Conceptgraph::IsConceptId)
                 continue;
+            if (!get(relId))
+                continue;
             // If it is not pointing from anything anymore, we destroy it
-            if (Hypergraph::read(relId).pointingFrom().size() < 1)
+            if (Hypergraph::read(relId).pointingFrom().size() <= 1)
                 toBeDestroyed.insert(relId);
         }
         // b) all relations pointingTo us still point to something else
         Hyperedges relsToUs(relationsTo(Hyperedges{id}));
         for (const UniqueId& relId : relsToUs)
         {
+            if (!get(relId))
+                continue;
             // If it is not pointing to anything anymore, we destroy it
-            if (Hypergraph::read(relId).pointingTo().size() < 1)
+            if (Hypergraph::read(relId).pointingTo().size() <= 1)
                 toBeDestroyed.insert(relId);
         }
         // c) Destroy all relations mentioned
