@@ -102,7 +102,7 @@ Hyperedges Conceptgraph::relateFrom(const Hyperedges& fromIds, const Hyperedges&
         auto newHash(std::hash<UniqueId>{}(saltId));
         id = std::to_string(myHash ^ (newHash << 1));
     }
-    const std::string& label(Hypergraph::get(relId)->label());
+    const std::string& label(Hypergraph::read(relId).label());
     // Re-hash in case of an (unlikely) collision
     while (Conceptgraph::relateFrom(id, fromIds, toIds, relId).empty()) {
         auto myHash(std::hash<UniqueId>{}(id));
@@ -115,7 +115,7 @@ Hyperedges Conceptgraph::relateFrom(const Hyperedges& fromIds, const Hyperedges&
 void     Conceptgraph::destroy(const UniqueId& id)
 {
     // Avoid bad ids
-    if (!get(id))
+    if (!exists(id))
         return;
 
     // Very important: We should never delete our two BASIC RELATIONS
@@ -132,7 +132,7 @@ void     Conceptgraph::destroy(const UniqueId& id)
     {
         // Avoid bad ids
         // TODO: Check if necessary
-        if (!get(relId))
+        if (!exists(relId))
             continue;
         // If it is not pointing from anything anymore, we destroy it
         if (Hypergraph::read(relId).pointingFrom().size() <= 1)
@@ -144,7 +144,7 @@ void     Conceptgraph::destroy(const UniqueId& id)
     {
         // Avoid bad ids
         // TODO: Check if necessary
-        if (!get(relId))
+        if (!exists(relId))
             continue;
         // If it is not pointing to anything anymore, we destroy it
         if (Hypergraph::read(relId).pointingTo().size() <= 1)

@@ -48,7 +48,8 @@ class Hypergraph {
         void importFrom(const Hypergraph& other);                 // Imports all hyperedges from other graph (unless they already exist)
 
         /*Get access to edges*/
-        const Hyperedge& read(const UniqueId id) const;
+        bool exists(const UniqueId& uid) const;                         // Check if a hedge with uid exists
+        const Hyperedge& read(const UniqueId id) const;                 // Give read-only access to a hyperedge
         Hyperedge* get(const UniqueId id);                              // Provides access to the hyperedge given by id.
         Hyperedges find(const std::string& label="") const;             // Finds all hyperedges with a certain label
 
@@ -83,9 +84,29 @@ class Hypergraph {
         ) const;
 
         /* Default matching function */
-        static bool defaultMatchFunc(const Hyperedge& a, const Hyperedge& b)
+        static Hyperedges defaultMatchFunc(const Hypergraph& datagraph, const Hyperedge& queryHedge)
         {
-            return ((a.id() == b.id()) || (b.label().empty()) || (a.label() == b.label())) ? true : false;
+            Hyperedges candidates;
+            // Check uid
+            if (datagraph.exists(queryHedge.id()))
+            {
+                candidates.push_back(queryHedge.id());
+            } else {
+                // ... in case the uid is not found, find by label
+                candidates = datagraph.find(queryHedge.label());
+            }
+            // Filter by degree
+            // Check in and out degrees here as well!! If candidate has LESS in or out degree it can not be a candidate
+            Hyperedges filtered;
+            for (const UniqueId& candidateId : candidates)
+            {
+                if (datagraph.read(candidateId).indegree() < queryHedge.indegree())
+                    continue;
+                if (datagraph.read(candidateId).outdegree() < queryHedge.outdegree())
+                    continue;
+                filtered.push_back(candidateId);
+            }
+            return filtered;
         }
 
         /* Pattern matching */

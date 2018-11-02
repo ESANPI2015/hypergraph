@@ -161,27 +161,10 @@ template< typename MatchFunc > Mapping Hypergraph::match(const Hypergraph& other
     // First step: For each vertex in subgraph, we find other suitable candidates
     std::unordered_map< UniqueId, Hyperedges > candidateIds;
     Hyperedges otherIds(other.find());
-    Hyperedges myIds(find());
     for (const UniqueId& otherId : otherIds)
     {
-        const unsigned otherIndegree(other.read(otherId).indegree());
-        const unsigned otherOutdegree(other.read(otherId).outdegree());
-
         // Find candidates by matching func
-        for (const UniqueId& myId : myIds)
-        {
-            if (!m(read(myId), other.read(otherId)))
-                continue;
-
-            // Filter by degree
-            // Check in and out degrees here as well!! If candidate has LESS in or out degree it can not be a candidate
-            if (read(myId).indegree() < otherIndegree)
-                continue;
-            if (read(myId).outdegree() < otherOutdegree)
-                continue;
-
-            candidateIds[otherId].push_back(myId);
-        }
+        candidateIds[otherId] = m(*this, other.read(otherId));
 
         // Check if solution possible
         if (!candidateIds[otherId].size())
