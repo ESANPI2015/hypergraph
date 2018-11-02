@@ -72,11 +72,6 @@ target_link_libraries(testMap hypergraph)
 install(TARGETS testMap
 RUNTIME DESTINATION bin)
 
-add_executable(simplify tools/simplify.cpp)
-target_link_libraries(simplify hypergraph)
-install(TARGETS simplify
-RUNTIME DESTINATION bin)
-
 add_executable(merge tools/merge.cpp)
 target_link_libraries(merge hypergraph)
 install(TARGETS merge
