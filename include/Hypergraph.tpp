@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <queue>
 #include <sstream>
+#include <iostream>
 
 /*
 * This algorithm is a single pushout (SPO) graph transformation algorithm
@@ -159,22 +160,44 @@ template< typename MatchFunc > Mapping Hypergraph::match(const Hypergraph& other
     // This algorithm is according to Ullmann
     // and has been implemented following "An In-depth Comparison of Subgraph Isomorphism Algorithms in Graph Databases"
     // First step: For each vertex in subgraph, we find other suitable candidates
-    std::unordered_map< UniqueId, Hyperedges > candidateIds;
+    // TODO: We need this candidate filtering to be stored in the search space as well!!!! Then we could skip it.
+    unsigned int minCandidates = -1;
+    unsigned int maxDegree = 0;
+    UniqueId startUid;
     Hyperedges otherIds(other.find());
+    std::unordered_map< UniqueId, Hyperedges > candidateIds;
     for (const UniqueId& otherId : otherIds)
     {
         // Find candidates by matching func
         candidateIds[otherId] = m(*this, other.read(otherId));
-
-        // Check if solution possible
-        if (!candidateIds[otherId].size())
+	// First check: No candidates, no match
+	if (!candidateIds.size())
             return Mapping();
+	// Check candidate size
+	if (candidateIds[otherId].size() > minCandidates)
+            continue;
+        minCandidates = candidateIds[otherId].size();
+        // Check degree
+        unsigned int degree(other.read(otherId).indegree() + other.read(otherId).outdegree());
+        if (degree < maxDegree)
+            continue;
+        maxDegree = degree;
+        // If we are here, we found a good starting hedge
+        startUid = otherId;
     }
 
-    // Second step: Find possible mapping(s)
-    // We need a stack of mappings to prevent recursion
+    // Second step: Prepopulate the searchSpace with all mappings from startUid -> candidateId in candidateIds
+    // ONLY IF SEARCH SPACE IS EMPTY
     if (searchSpace.empty())
-        searchSpace.push(Mapping());
+    {
+        for (const UniqueId& candidateId : candidateIds[startUid])
+        {
+            Mapping initial;
+            initial.insert({startUid,candidateId});
+            searchSpace.push(initial);
+        }
+    }
+
     while (!searchSpace.empty())
     {
         // Get top of stack
