@@ -71,6 +71,7 @@ int main (int argc, char **argv)
     std::cout << "Searching ...\n";
     unsigned int no_matches = 0;
     std::stack< Mapping > searchSpace;
+    auto start = std::chrono::system_clock::now();
     Mapping mapping(datagraph.match(querygraph, searchSpace, Hypergraph::defaultMatchFunc));
 
     if (!mapping.size())
@@ -99,8 +100,10 @@ int main (int argc, char **argv)
             no_matches++;
         }
     }
+    auto end = std::chrono::system_clock::now();
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
-    std::cout << "\nFound " << no_matches << " matches\n";
+    std::cout << "\nFound " << no_matches << " matches in " << elapsed.count() << " ms\n";
 
     return no_matches;
 }
