@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <queue>
 #include <sstream>
+#include <climits>
 #include <iostream>
 
 /*
@@ -161,8 +162,9 @@ template< typename MatchFunc > Mapping Hypergraph::match(const Hypergraph& other
     // and has been implemented following "An In-depth Comparison of Subgraph Isomorphism Algorithms in Graph Databases"
     // First step: For each vertex in subgraph, we find other suitable candidates
     // TODO: We need this candidate filtering to be stored in the search space as well!!!! Then we could skip it.
-    unsigned int minCandidates = -1;
+    unsigned int minCandidates = UINT_MAX;
     unsigned int maxDegree = 0;
+    int bestValue = INT_MIN;
     UniqueId startUid;
     Hyperedges otherIds(other.find());
     std::unordered_map< UniqueId, Hyperedges > candidateIds;
@@ -174,15 +176,18 @@ template< typename MatchFunc > Mapping Hypergraph::match(const Hypergraph& other
 	if (!candidateIds.size())
             return Mapping();
 	// Check candidate size
-	if (candidateIds[otherId].size() > minCandidates)
-            continue;
-        minCandidates = candidateIds[otherId].size();
+	if (candidateIds[otherId].size() < minCandidates)
+            minCandidates = candidateIds[otherId].size();
         // Check degree
         unsigned int degree(other.read(otherId).indegree() + other.read(otherId).outdegree());
-        if (degree < maxDegree)
+        if (degree > maxDegree)
+            maxDegree = degree;
+        // Check if maxDegree - minCandidates > bestValue
+        int value = maxDegree - minCandidates;
+        if (value < bestValue)
             continue;
-        maxDegree = degree;
         // If we are here, we found a good starting hedge
+        bestValue = value;
         startUid = otherId;
     }
 
@@ -210,32 +215,48 @@ template< typename MatchFunc > Mapping Hypergraph::match(const Hypergraph& other
             return currentMapping;
         }
 
-        // VF2 selection
-        unsigned maxOverlap = 0;
-        UniqueId unmappedId;
-        for (const UniqueId& otherId : otherIds)
-        {
-            // Skip already matched ones
-            if (currentMapping.count(otherId))
+	// Custom selection:
+	// * should be a neighbour of already matched query nodes
+	// * should have the minimum amount of candidates
+	// * should have the maximum degree
+        minCandidates = UINT_MAX;
+        maxDegree = 0;
+        unsigned int maxOverlap = 0;
+        bestValue = INT_MIN;
+	UniqueId unmappedId;
+	for (const UniqueId& otherId : otherIds)
+	{
+            // If mapped, skip
+            if (currentMapping.find(otherId) != currentMapping.end())
                 continue;
-            // Retrieve the neighbourhoods
-            Hyperedges nextNeighbourIds(other.to(Hyperedges{otherId}));
-            Hyperedges prevNeighbourIds(other.from(Hyperedges{otherId}));
-            Hyperedges neighbourhood(unite(nextNeighbourIds, prevNeighbourIds));
-            // Analyse neighbourhood wrt. overlap to already mapped vertices
-            unsigned overlap = 1;
+
+	    // Check candidate size
+	    if (candidateIds[otherId].size() < minCandidates)
+                minCandidates = candidateIds[otherId].size();
+
+            // Check degree
+            unsigned int degree(other.read(otherId).indegree() + other.read(otherId).outdegree());
+            if (degree > maxDegree)
+                maxDegree = degree;
+
+            // Check neighbourhood to already mapped hedges
+	    Hyperedges neighbourhood(other.allNeighboursOf(Hyperedges{otherId}));
+            unsigned overlap = 0;
             for (const UniqueId& neighbourId : neighbourhood)
             {
-                if (currentMapping.count(neighbourId))
+                if (currentMapping.find(neighbourId) != currentMapping.end())
                     overlap++;
             }
-            // Select the one with the largest neighbourhood to already mapped hedges
-            if (overlap > maxOverlap)
-            {
-                unmappedId = otherId;
+	    if (overlap > maxOverlap)
                 maxOverlap = overlap;
-            }
-        }
+
+            int value = maxDegree + maxOverlap - minCandidates;
+            if (value < bestValue)
+                continue;
+            // If we are here, we found a good unmapped hedge
+            bestValue = value;
+	    unmappedId = otherId;
+	}
 
         // Found unmapped hedge
         // NOTE: This is actually what makes this method an Ullmann algorithm
