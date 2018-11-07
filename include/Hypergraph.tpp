@@ -267,7 +267,7 @@ template< typename MatchFunc > Mapping Hypergraph::match(const Hypergraph& other
         for (const UniqueId& candidateId : candidates)
         {
             // If we want a bijective matching, we have to make sure that candidates are not mapped multiple times!!!
-            if (currentMappingInv.count(candidateId))
+            if (currentMappingInv.find(candidateId) != currentMappingInv.end())
                 continue;
 
             // We have now the neighbourhood of the unmapped hedge and the neighbourhood of the candidate
