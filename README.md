@@ -28,12 +28,12 @@ that means that they encode an ordered N-tuple of M-cardinal sets.
 * Easy chaining of queries possible because of signature harmonisation and overloaded ops
 * Rewrite algorithm can create new nodes (e.g. make two nodes out of one)
 * Mapping algorithm added
+* Query tool which uses Pattern matching
 
 ## TODO
 
-* Simplify cannot be used anymore because the fundamental concepts have changed
-* The query tool should support a mode where the user can specify another hypergraph to be matched against the data graph
 * A possible rewrite tool could use three hypergraphs and some additional info to transform graphs
+* Change get() method to return a reference to a hyperedge. For this we need an INVALID Hyperedge concept
 
 ## NOTES
 
