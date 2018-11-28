@@ -67,6 +67,10 @@ namespace YAML {
                     UniqueId id = current["id"].as<UniqueId>();
                     std::string label = current["label"].as<std::string>();
 
+                    // Skip zero
+                    if (id == Hypergraph::Zero)
+                        continue;
+
                     // Create the edge
                     if (rhs.create(id, label).empty())
                     {

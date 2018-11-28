@@ -11,7 +11,7 @@ that means that they encode an ordered N-tuple of M-cardinal sets.
 
 ## State
 
-* Implemented basic hyperedge class
+* Implemented basic hyperedge class including the empty hyperedge (Zero)
 * Traversals use lambda functions for both result set filtering and traversal filtering
 * Derived from basic hyperedge class the concept of relations
 * Derived from basic hyperedge class the concept of concepts
@@ -33,7 +33,6 @@ that means that they encode an ordered N-tuple of M-cardinal sets.
 ## TODO
 
 * A possible rewrite tool could use three hypergraphs and some additional info to transform graphs
-* Change get() method to return a reference to a hyperedge. For this we need an INVALID Hyperedge concept
 
 ## NOTES
 

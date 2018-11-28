@@ -72,7 +72,7 @@ int main(void)
     Mapping mapping = universe.match(queryGraph, searchSpace, Hypergraph::defaultMatchFunc);
     for (const auto &pair : mapping)
     {
-        std::cout << *queryGraph.get(pair.first) << " -> " << *universe.get(pair.second) << "\n";
+        std::cout << queryGraph.get(pair.first) << " -> " << universe.get(pair.second) << "\n";
     }
 
     std::cout << "> Find all matches for some person loving another person\n";
@@ -82,7 +82,7 @@ int main(void)
         std::cout << "\n";
         for (const auto &pair : mapping)
         {
-            std::cout << *queryGraph.get(pair.first) << " -> " << *universe.get(pair.second) << "\n";
+            std::cout << queryGraph.get(pair.first) << " -> " << universe.get(pair.second) << "\n";
         }
     }
 

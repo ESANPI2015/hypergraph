@@ -2,19 +2,16 @@
 
 #include <iostream>
 
+const UniqueId Hypergraph::Zero = "Hypergraph::Hyperedge::Zero";
+
 Hypergraph::Hypergraph()
 {
+    create(Zero, "ZERO");
 }
 
 Hypergraph::Hypergraph(const Hypergraph& other)
 {
     importFrom(other);
-}
-
-Hypergraph::Hypergraph(const Hypergraph& A, const Hypergraph& B)
-{
-    importFrom(A);
-    importFrom(B);
 }
 
 Hypergraph::~Hypergraph()
@@ -78,35 +75,35 @@ void Hypergraph::disconnect(const UniqueId id)
     Hyperedges fromIds(read(id)._from);
     for (const UniqueId& fromId : fromIds)
     {
-        Hyperedge* other(get(fromId));
-        if (!other)
+        Hyperedge& other(get(fromId));
+        if (other.id() == Zero)
             continue;
-        other->_fromOthers.erase(std::remove(other->_fromOthers.begin(), other->_fromOthers.end(), id), other->_fromOthers.end());
+        other._fromOthers.erase(std::remove(other._fromOthers.begin(), other._fromOthers.end(), id), other._fromOthers.end());
     }
     Hyperedges toIds(read(id)._to);
     for (const UniqueId& toId : toIds)
     {
-        Hyperedge* other(get(toId));
-        if (!other)
+        Hyperedge& other(get(toId));
+        if (other.id() == Zero)
             continue;
-        other->_toOthers.erase(std::remove(other->_toOthers.begin(), other->_toOthers.end(), id), other->_toOthers.end());
+        other._toOthers.erase(std::remove(other._toOthers.begin(), other._toOthers.end(), id), other._toOthers.end());
     }
     // II. In all Hyperedges which point to or from US we have to cleanup their from and to sets
     Hyperedges fromUsIds(read(id)._fromOthers);
     for (const UniqueId& fromUsId : fromUsIds)
     {
-        Hyperedge* other(get(fromUsId));
-        if (!other)
+        Hyperedge& other(get(fromUsId));
+        if (other.id() == Zero)
             continue;
-        other->_from.erase(std::remove(other->_from.begin(), other->_from.end(), id), other->_from.end());
+        other._from.erase(std::remove(other._from.begin(), other._from.end(), id), other._from.end());
     }
     Hyperedges toUsIds(read(id)._toOthers);
     for (const UniqueId& toUsId : toUsIds)
     {
-        Hyperedge* other(get(toUsId));
-        if (!other)
+        Hyperedge& other(get(toUsId));
+        if (other.id() == Zero)
             continue;
-        other->_to.erase(std::remove(other->_to.begin(), other->_to.end(), id), other->_to.end());
+        other._to.erase(std::remove(other._to.begin(), other._to.end(), id), other._to.end());
     }
 }
 
@@ -122,13 +119,13 @@ const Hyperedge& Hypergraph::read(const UniqueId id) const
     return _edges.at(id);
 }
 
-Hyperedge* Hypergraph::get(const UniqueId id)
+Hyperedge& Hypergraph::get(const UniqueId id)
 {
     if (exists(id))
     {
-        return &_edges[id];
+        return _edges.at(id);
     } else {
-        return NULL;
+        return _edges.at(Hypergraph::Zero);
     }
 }
 
@@ -153,17 +150,17 @@ Hyperedges Hypergraph::from(const Hyperedges& otherIds, const Hyperedges& destId
     Hyperedges result;
     for (const UniqueId& destId : destIds)
     {
-        Hyperedge* destEdge = get(destId);
-        if (!destEdge)
+        Hyperedge& destEdge(get(destId));
+        if (destEdge.id() == Zero)
             continue;
         for (const UniqueId& otherId : otherIds)
         {
             // Check if other is part of this graph as well
-            Hyperedge* other = get(otherId);
-            if (!other)
+            Hyperedge& other(get(otherId));
+            if (other.id() == Zero)
                 continue;
-            destEdge->from(otherId);
-            other->_fromOthers.push_back(destId); // Populate cache
+            destEdge.from(otherId);
+            other._fromOthers.push_back(destId); // Populate cache
             // On success, register that pair
             result = unite(result, Hyperedges{destId, otherId});
         }
@@ -201,17 +198,17 @@ Hyperedges Hypergraph::to(const Hyperedges& srcIds, const Hyperedges& otherIds)
     Hyperedges result;
     for (const UniqueId& srcId : srcIds)
     {
-        Hyperedge* srcEdge = get(srcId);
-        if (!srcEdge)
+        Hyperedge& srcEdge(get(srcId));
+        if (srcEdge.id() == Zero)
             continue;
         for (const UniqueId& otherId : otherIds)
         {
             // Check if other is part of this graph as well
-            Hyperedge* other = get(otherId);
-            if (!other)
+            Hyperedge& other(get(otherId));
+            if (other.id() == Zero)
                 continue;
-            srcEdge->to(otherId);
-            other->_toOthers.push_back(srcId); // Populate cache
+            srcEdge.to(otherId);
+            other._toOthers.push_back(srcId); // Populate cache
             // On success, register that pair
             result = unite(result, Hyperedges{srcId, otherId});
         }

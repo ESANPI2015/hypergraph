@@ -61,7 +61,8 @@ int main (int argc, char **argv)
     // Load graphs and merge them using constructor
     Hypergraph hypergraph1(YAML::LoadFile(fileNameIn1).as<Hypergraph>());
     Hypergraph hypergraph2(YAML::LoadFile(fileNameIn2).as<Hypergraph>());
-    Hypergraph merged(hypergraph1, hypergraph2);
+    Hypergraph merged(hypergraph1);
+    merged.importFrom(hypergraph2);
 
     // Store graph
     fout.open(fileNameOut);

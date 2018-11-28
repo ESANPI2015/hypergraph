@@ -20,9 +20,6 @@
     We want to enforce unique ids, so ids will not be assigned automatically but it can be checked if it is available
 
     NOTES:
-    * get() returns a pointer instead of a reference to provide NULL if Hyperedge does not exist.
-      The alternative is to define a special NULL Hyperedge (with id "0" or "NULL"). This will however make all 'if(get(id))' snippets invalid.
-      (See nice explanations here: https://stackoverflow.com/questions/10371094/returning-a-null-reference-in-c)
     * An additional way to optimize scalability of this approach is to use hashmaps instead of normal maps.
       Then lookup can be done in O(1) (average). However, this could be premature optimization.
 */
@@ -36,9 +33,10 @@ std::ostream& operator<< (std::ostream& os , const Mapping& val);
 
 class Hypergraph {
     public:
+        static const UniqueId Zero;                  // This hyperedge represents the zero element of the hypergraph formalism.
+
         Hypergraph();
-        Hypergraph(const Hypergraph& other);                // copy constructor to repopulate the hyperedge cache(s)
-        Hypergraph(const Hypergraph& A, const Hypergraph& B);           // creates a new hypergraph out of two given ones
+        Hypergraph(const Hypergraph& other);                            // copy constructor to repopulate the hyperedge cache(s)
         ~Hypergraph();
 
         /*Factory functions for member edges*/
@@ -50,7 +48,7 @@ class Hypergraph {
         /*Get access to edges*/
         bool exists(const UniqueId& uid) const;                         // Check if a hedge with uid exists
         const Hyperedge& read(const UniqueId id) const;                 // Give read-only access to a hyperedge
-        Hyperedge* get(const UniqueId id);                              // Provides access to the hyperedge given by id.
+        Hyperedge& get(const UniqueId id);                              // Provides access to the hyperedge given by id. If id not found, returns Hypergraph::Zero
         Hyperedges find(const std::string& label="") const;             // Finds all hyperedges with a certain label
 
         /*Connect edges*/

@@ -113,13 +113,13 @@ template< typename MatchFunc > Hypergraph Hypergraph::rewrite(const Hypergraph& 
 
             // Reconstruct wiring
             if (read(firstIdOld).isPointingTo(secondIdOld))
-                result.get(firstId)->to(secondId);
+                result.get(firstId).to(secondId);
             if (read(secondIdOld).isPointingTo(firstIdOld))
-                result.get(secondId)->to(firstId);
+                result.get(secondId).to(firstId);
             if (read(firstIdOld).isPointingFrom(secondIdOld))
-                result.get(firstId)->from(secondId);
+                result.get(firstId).from(secondId);
             if (read(secondIdOld).isPointingFrom(firstIdOld))
-                result.get(secondId)->from(firstId);
+                result.get(secondId).from(firstId);
         }
     }
 
@@ -138,13 +138,13 @@ template< typename MatchFunc > Hypergraph Hypergraph::rewrite(const Hypergraph& 
 
             // Reconstruct wiring
             if (rhs.read(firstIdOld).isPointingTo(secondIdOld))
-                result.get(firstId)->to(secondId);
+                result.get(firstId).to(secondId);
             if (rhs.read(secondIdOld).isPointingTo(firstIdOld))
-                result.get(secondId)->to(firstId);
+                result.get(secondId).to(firstId);
             if (rhs.read(firstIdOld).isPointingFrom(secondIdOld))
-                result.get(firstId)->from(secondId);
+                result.get(firstId).from(secondId);
             if (rhs.read(secondIdOld).isPointingFrom(firstIdOld))
-                result.get(secondId)->from(firstId);
+                result.get(secondId).from(firstId);
         }
     }
 

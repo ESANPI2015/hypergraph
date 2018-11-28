@@ -23,8 +23,8 @@ void CommonConceptGraph::createCommonConcepts()
     Conceptgraph::relate(CommonConceptGraph::InstanceOfId, Hyperedges{Conceptgraph::IsConceptId}, Hyperedges{Conceptgraph::IsConceptId}, "INSTANCE-OF");
 
     // Make factOf point from and to itself
-    get(CommonConceptGraph::FactOfId)->from(CommonConceptGraph::FactOfId);
-    get(CommonConceptGraph::FactOfId)->to(CommonConceptGraph::FactOfId);
+    get(CommonConceptGraph::FactOfId).from(CommonConceptGraph::FactOfId);
+    get(CommonConceptGraph::FactOfId).to(CommonConceptGraph::FactOfId);
 }
 
 CommonConceptGraph::CommonConceptGraph()
