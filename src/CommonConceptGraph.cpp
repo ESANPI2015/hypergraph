@@ -12,7 +12,13 @@ const UniqueId CommonConceptGraph::InstanceOfId = "CommonConceptGraph::InstanceO
 void CommonConceptGraph::createCommonConcepts()
 {
     /* Common relations over relations*/
-    Conceptgraph::relate(CommonConceptGraph::FactOfId, Hyperedges{Conceptgraph::IsRelationId}, Hyperedges{Conceptgraph::IsRelationId}, "FACT-OF");
+    if (!exists(CommonConceptGraph::FactOfId))
+    {
+        Conceptgraph::relate(CommonConceptGraph::FactOfId, Hyperedges{Conceptgraph::IsRelationId}, Hyperedges{Conceptgraph::IsRelationId}, "FACT-OF");
+        // Make factOf point from and to itself
+        get(CommonConceptGraph::FactOfId).from(CommonConceptGraph::FactOfId);
+        get(CommonConceptGraph::FactOfId).to(CommonConceptGraph::FactOfId);
+    }
     Conceptgraph::relate(CommonConceptGraph::SubrelOfId, Hyperedges{Conceptgraph::IsRelationId}, Hyperedges{Conceptgraph::IsRelationId}, "SUBREL-OF");
 
     /* Common relations over concepts*/
@@ -21,10 +27,6 @@ void CommonConceptGraph::createCommonConcepts()
     Conceptgraph::relate(CommonConceptGraph::PartOfId, Hyperedges{Conceptgraph::IsConceptId}, Hyperedges{Conceptgraph::IsConceptId}, "PART-OF");
     Conceptgraph::relate(CommonConceptGraph::ConnectsId, Hyperedges{Conceptgraph::IsConceptId}, Hyperedges{Conceptgraph::IsConceptId}, "CONNECTS");
     Conceptgraph::relate(CommonConceptGraph::InstanceOfId, Hyperedges{Conceptgraph::IsConceptId}, Hyperedges{Conceptgraph::IsConceptId}, "INSTANCE-OF");
-
-    // Make factOf point from and to itself
-    get(CommonConceptGraph::FactOfId).from(CommonConceptGraph::FactOfId);
-    get(CommonConceptGraph::FactOfId).to(CommonConceptGraph::FactOfId);
 }
 
 CommonConceptGraph::CommonConceptGraph()

@@ -127,7 +127,8 @@ class Hypergraph {
     protected:
         // Stores all hyperedges belonging to a certain graph instance
         // For fast lookup, we use the UniqueId to retrieve the corresponding hyperedge
-        std::unordered_map<UniqueId, Hyperedge> _edges;
+        std::map<UniqueId, Hyperedge> _edges;
+        //std::unordered_map<UniqueId, Hyperedge> _edges;
 };
 
 // Include template member functions

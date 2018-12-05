@@ -16,7 +16,6 @@ endif(NOT TARGET yaml-cpp)
 find_package(PkgConfig)
 pkg_check_modules(hypergraph_PKGCONFIG REQUIRED
     yaml-cpp
-    libgit2
     )
 
 set(CMAKE_BUILD_TYPE RelWithDebInfo)

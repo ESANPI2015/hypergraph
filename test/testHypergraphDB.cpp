@@ -27,7 +27,7 @@ int main(void)
     myDB.commit("myUniverse", universe);
 
     std::cout << "> Open from DB\n";
-    CommonConceptGraph otherUniverse(myDB.open("myUniverse"));
+    CommonConceptGraph otherUniverse(myDB.load("myUniverse"));
 
     std::cout << "> Modify graph\n";
     Hyperedges colleagues(otherUniverse.find("and his colleague"));

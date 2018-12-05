@@ -4,35 +4,28 @@
 /*
 
     This class provides a simple API to effectively create a Hypergraph DB
-    When created it initializes a GIT repository.
-    For each new Hypergraph it will create a YAML file in the GIT named after the Hypergraph.
-    When finished working with a Hypergraph, a call to commit will try to commit the changes into the GIT.
-
-    TODO:
-    * Every instance of this class should have their own branch (unique!)
-    * Before starting to work, pull from remote master branch
-    * On destruction, merge with master branch & push to remote
-
-    NOTES:
-    * Assign a unique id/name to hypergraph?
-    * Shall we back up the Hypergraphs in a list and return references?
-    * Instead of using libgit ... should we just use CLI interface of GIT?
+    When created, it creates a directory (if it doesn't exist yet)
+    If connect() is called, either a new git repository is created or the exisiting one is updated (pull)
+    With load(), one of the Hypergraphs is loaded and can be used.
+    When finished with processing the Hypergraph, commit() takes care to update the local file and repository.
+    Finally, when releasing the DB, publish() will merge the changes with the remote end and publish the changes.
 */
 
 #include "Hypergraph.hpp"
-#include <git2.h>
 
 class HypergraphDB {
 
     public:
-        HypergraphDB(const std::string& dir="./HDB");
+        HypergraphDB(const std::string& dir="hypergraphDB");
         ~HypergraphDB();
 
-        Hypergraph open(const std::string& name);
+        bool connect(const std::string& uri);
+        Hypergraph load(const std::string& name);
         bool commit(const std::string& name, const Hypergraph& graph);
-        //bool publish();
+        bool publish();
     protected:
-        git_repository *repo;
+        std::string directory;
+        std::string dbUri;
 };
 
 

@@ -25,9 +25,12 @@ void Conceptgraph::createFundamentals()
     // The following is the fundametal model:
     // C <- IS-CONCEPT <- IS-RELATION
     //               R <-----|
-    Hypergraph::create(Conceptgraph::IsConceptId, "IS-CONCEPT");
     Hypergraph::create(Conceptgraph::IsRelationId, "IS-RELATION");
-    Hypergraph::from(Hyperedges{Conceptgraph::IsConceptId}, Hyperedges{Conceptgraph::IsRelationId});
+    if (!exists(Conceptgraph::IsConceptId))
+    {
+        Hypergraph::create(Conceptgraph::IsConceptId, "IS-CONCEPT");
+        Hypergraph::from(Hyperedges{Conceptgraph::IsConceptId}, Hyperedges{Conceptgraph::IsRelationId});
+    }
 }
 
 Hyperedges Conceptgraph::create(const UniqueId& id, const std::string& label)
