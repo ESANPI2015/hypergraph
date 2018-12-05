@@ -11,7 +11,10 @@ HypergraphDB::HypergraphDB(const std::string& dir)
 {
     // Create an empty git repo if it does not exist
     int ret = std::system(("/bin/bash -c \"git init "+dir+"\"").c_str());
-    std::cout << "GIT INIT: " << ret << "\n";
+    if (ret)
+    {
+        std::cout << "git init returned " << ret << std::endl;
+    }
 }
 
 HypergraphDB::~HypergraphDB()
@@ -23,9 +26,9 @@ bool HypergraphDB::connect(const std::string& uri)
     // Store parameters
     dbUri = uri;
     // Add remote (if it exists, dont do anything)
-    int ret = std::system(("/bin/bash -c \""+directory+"/git remote add hypergraphdb "+dbUri+"\"").c_str());
+    int ret = std::system(("/bin/bash -c \"cd "+directory+"; git remote add hypergraphdb "+dbUri+"\"").c_str());
     // Pull from remote
-    ret |= std::system((directory+"/git pull hypergraphdb master:master").c_str());
+    ret |= std::system(("/bin/bash -c \"cd "+directory+"; git pull hypergraphdb master:master").c_str());
     return ret > 0 ? false : true;
 }
 
@@ -57,8 +60,8 @@ bool HypergraphDB::commit(const std::string& name, const Hypergraph& graph)
 bool HypergraphDB::publish()
 {
     // We have a local master and a remote master, so we should merge
-    int ret = std::system((directory+"/git pull hypergraphdb master:master").c_str());
+    int ret = std::system(("/bin/bash -c \"cd "+directory+"; git pull hypergraphdb master:master").c_str());
     // Afterwards, we push to remote
-    ret |= std::system((directory+"/git push hypergraphdb master:master").c_str());
+    ret |= std::system(("/bin/bash -c \"cd "+directory+"; git push hypergraphdb master:master").c_str());
     return ret > 0 ? false : true;
 }
