@@ -22,6 +22,7 @@
     NOTES:
     * An additional way to optimize scalability of this approach is to use hashmaps instead of normal maps.
       Then lookup can be done in O(1) (average). However, this could be premature optimization.
+      NOTE: This will destroy ordering of serialized YAML. Therfore we use normal ordered maps for now.
 */
 
 typedef std::multimap<UniqueId, UniqueId> Mapping;   //< This map stores a many-to-many mapping between hedges (IDs)
@@ -128,7 +129,6 @@ class Hypergraph {
         // Stores all hyperedges belonging to a certain graph instance
         // For fast lookup, we use the UniqueId to retrieve the corresponding hyperedge
         std::map<UniqueId, Hyperedge> _edges;
-        //std::unordered_map<UniqueId, Hyperedge> _edges;
 };
 
 // Include template member functions
