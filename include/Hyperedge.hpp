@@ -55,7 +55,7 @@ class Hyperedge
         /*Graph dependent operations*/
         const bool isPartOf(Hypergraph &graph) const;
 
-    private:
+    protected:
         /*Private members*/
         UniqueId    _id;
         std::string _label;

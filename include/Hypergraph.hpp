@@ -111,8 +111,8 @@ class Hypergraph {
         /* Pattern matching */
         template< typename MatchFunc > Mapping match(
                       const Hypergraph& other,                    //< The graph to be found in the current graph
-                      std::stack< Mapping >& searchSpace,   //< A tree of the current state in search space.
-                      MatchFunc m                           //< A binary function bool m(Hyperedge *, Hyperedge *) which decides if a hedge of other and a hedge of the current graph are candidates or not
+                      std::stack< Mapping >& searchSpace,         //< A tree of the current state in search space.
+                      MatchFunc m                                 //< A binary function Hyperedges m(Hypergraph&, Hyperedge&)
                      ) const;
 
         /* Graph rewriting: single pushout */
@@ -120,9 +120,9 @@ class Hypergraph {
         template< typename MatchFunc > Hypergraph rewrite(
                             const Hypergraph& lhs,                     //< The matching graph
                             const Hypergraph& rhs,                     //< The replacment graph
-                            const Mapping& partialMap,           //< A partial map from lhs to rhs (N:N)
-                            std::stack< Mapping >& searchSpace,  //< The search space of the matching phase for reusage
-                            MatchFunc mf                         //< A binary function bool m(Hyperedge *, Hyperedge *) which decides if a hedge of other and a hedge of the current graph are candidates or not
+                            const Mapping& partialMap,                 //< A partial map from lhs to rhs (N:N)
+                            std::stack< Mapping >& searchSpace,        //< The search space of the matching phase for reusage
+                            MatchFunc mf                               //< A binary function Hyperedges m(Hypergraph&, Hyperedge&)
                           ) const;
 
     protected:
