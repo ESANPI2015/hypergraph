@@ -79,7 +79,7 @@ const bool Hyperedge::isPartOf(Hypergraph &graph) const
 {
     // What does it mean to be part of a hypergraph?
     // At least it means, that <id,label> have to match, right?
-    Hyperedge& ingraph(graph.get(id()));
+    const Hyperedge& ingraph(graph.access(id()));
     if (ingraph.id() == Hypergraph::Zero)
         return false;
     if (ingraph.label() != label())

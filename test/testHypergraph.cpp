@@ -26,18 +26,18 @@ int main(void)
     assert(testGraph.create("2", "Second edge").empty() == false);
 
     std::cout << "> All edges" << std::endl;
-    std::cout << testGraph.find() << std::endl;
+    std::cout << testGraph.findByLabel() << std::endl;
 
     std::cout << "> Connect edge 1 -> 2" << std::endl;
-    assert(testGraph.to(Hyperedges{"1"},Hyperedges{"2"}).size() == 2);
+    assert(testGraph.pointsTo(Hyperedges{"1"},Hyperedges{"2"}).size() == 2);
     std::cout << "> Connect edges 2 -> 23" << std::endl;
-    assert(testGraph.to(Hyperedges{"2"},Hyperedges{"23"}).size() == 2);
+    assert(testGraph.pointsTo(Hyperedges{"2"},Hyperedges{"23"}).size() == 2);
     std::cout << "> Connect edges 23 -> 24 (should fail)" << std::endl;
-    assert(testGraph.to(Hyperedges{"23"},Hyperedges{"24"}).size() == 0);
+    assert(testGraph.pointsTo(Hyperedges{"23"},Hyperedges{"24"}).size() == 0);
     std::cout << "> Connect edge 23 <- 1" << std::endl;
-    assert(testGraph.from(Hyperedges{"23"},Hyperedges{"1"}).size() == 2);
+    assert(testGraph.pointsFrom(Hyperedges{"1"},Hyperedges{"23"}).size() == 2);
     std::cout << "> Make a traversal starting at 1" << std::endl;
-    testGraph.traversal(
+    testGraph.traverse(
             "1",
             [](const Hyperedge& x){ std::cout << x << std::endl; return true; },
             [](const Hyperedge& x, const Hyperedge &y){ return true; }
@@ -60,7 +60,7 @@ int main(void)
     Hypergraph restoredGraph(test.as<Hypergraph>());
 
     std::cout << "> All edges of restored graph" << std::endl;
-    std::cout << restoredGraph.find() << std::endl;
+    std::cout << restoredGraph.findByLabel() << std::endl;
 
     std::cout << "*** TESTS DONE ***" << std::endl;
 

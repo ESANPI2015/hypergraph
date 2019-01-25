@@ -26,7 +26,7 @@ template< typename ConceptFilterFunc, typename RelationFilterFunc > Hyperedges C
         visited.insert(currentUid);
 
         // Insert the hedge iff the ConceptFilterFunc says so
-        if (cf(read(currentUid)))
+        if (cf(access(currentUid)))
         {
             // edge matches filter
             result.push_back(currentUid);
@@ -41,9 +41,9 @@ template< typename ConceptFilterFunc, typename RelationFilterFunc > Hyperedges C
                     for (const UniqueId& relUid : relations)
                     {
                         // If RelationFilterFunc returns true, we push all targets of it to the toVisit queue
-                        if (rf(read(currentUid), read(relUid)))
+                        if (rf(access(currentUid), access(relUid)))
                         {
-                            for (const UniqueId& otherUid : read(relUid).pointingTo())
+                            for (const UniqueId& otherUid : access(relUid).pointingTo())
                                 toVisit.push(otherUid);
                         }
                     }
@@ -55,9 +55,9 @@ template< typename ConceptFilterFunc, typename RelationFilterFunc > Hyperedges C
                     for (const UniqueId& relUid : relations)
                     {
                         // If RelationFilterFunc returns true, we push all targets of it to the toVisit queue
-                        if (rf(read(currentUid), read(relUid)))
+                        if (rf(access(currentUid), access(relUid)))
                         {
-                            for (const UniqueId& otherUid : read(relUid).pointingTo())
+                            for (const UniqueId& otherUid : access(relUid).pointingTo())
                                 toVisit.push(otherUid);
                         }
                     }
@@ -68,9 +68,9 @@ template< typename ConceptFilterFunc, typename RelationFilterFunc > Hyperedges C
                     for (const UniqueId& relUid : relations)
                     {
                         // If RelationFilterFunc returns true, we push all sources of it to the toVisit queue
-                        if (rf(read(currentUid), read(relUid)))
+                        if (rf(access(currentUid), access(relUid)))
                         {
-                            for (const UniqueId& otherUid : read(relUid).pointingFrom())
+                            for (const UniqueId& otherUid : access(relUid).pointingFrom())
                                 toVisit.push(otherUid);
                         }
                     }

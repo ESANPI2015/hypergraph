@@ -51,8 +51,8 @@ int main(void)
 
     auto costFunc = [] (const CommonConceptGraph& g, const UniqueId& a, const UniqueId& b) -> float {
         // Here we assign some arbitrary costs
-        const std::string& labelA(g.read(a).label());
-        const std::string& labelB(g.read(b).label());
+        const std::string& labelA(g.access(a).label());
+        const std::string& labelB(g.access(b).label());
         if ((labelA == "A") && (labelB == "X"))
             return resources["X"] - 0.1f;
         if ((labelA == "A") && (labelB == "Y"))
@@ -67,8 +67,8 @@ int main(void)
     };
 
     auto mapFunc = [] (const CommonConceptGraph& g, const UniqueId& a, const UniqueId& b) -> void {
-        const std::string& labelA(g.read(a).label());
-        const std::string& labelB(g.read(b).label());
+        const std::string& labelA(g.access(a).label());
+        const std::string& labelB(g.access(b).label());
         if ((labelA == "A") && (labelB == "X"))
             resources["X"] -= 0.1f;
         if ((labelA == "A") && (labelB == "Y"))

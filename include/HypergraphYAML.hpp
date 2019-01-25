@@ -51,9 +51,9 @@ namespace YAML {
 
             static Node encode(const Hypergraph& rhs) {
                 Node node;
-                for (auto edgeId : rhs.find())
+                for (auto edgeId : rhs.findByLabel())
                 {
-                    node.push_back(rhs.read(edgeId));
+                    node.push_back(rhs.access(edgeId));
                 }   
                 return node;
             }
@@ -96,7 +96,7 @@ namespace YAML {
                         std::vector<UniqueId> otherIds = current["pointingTo"].as< std::vector<UniqueId> >();
                         for (auto otherId : otherIds)
                         {
-                            if (rhs.to(Hyperedges{id}, Hyperedges{otherId}).empty())
+                            if (rhs.pointsTo(Hyperedges{id}, Hyperedges{otherId}).empty())
                             {
                                 std::cout << "YAML::decode(Hypergraph): " << id << " -> " << otherId << " failed\n";
                                 return false;
@@ -111,7 +111,7 @@ namespace YAML {
                         std::vector<UniqueId> otherIds = current["pointingFrom"].as< std::vector<UniqueId> >();
                         for (auto otherId : otherIds)
                         {
-                            if (rhs.from(Hyperedges{otherId}, Hyperedges{id}).empty())
+                            if (rhs.pointsFrom(Hyperedges{id}, Hyperedges{otherId}).empty())
                             {
                                 std::cout << "YAML::decode(Hypergraph): " << id << " <- " << otherId << " failed\n";
                                 return false;

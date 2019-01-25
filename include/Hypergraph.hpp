@@ -48,22 +48,22 @@ class Hypergraph {
 
         /*Get access to edges*/
         bool exists(const UniqueId& uid) const;                         // Check if a hedge with uid exists
-        const Hyperedge& read(const UniqueId id) const;                 // Give read-only access to a hyperedge
-        Hyperedge& get(const UniqueId id);                              // Provides access to the hyperedge given by id. If id not found, returns Hypergraph::Zero
-        Hyperedges find(const std::string& label="") const;             // Finds all hyperedges with a certain label
+        const Hyperedge& access(const UniqueId id) const;                 // Give read-only access to a hyperedge
+        Hyperedge& access(const UniqueId id);                              // Provides access to the hyperedge given by id. If id not found, returns Hypergraph::Zero
+        Hyperedges findByLabel(const std::string& label="") const;             // Finds all hyperedges with a certain label
 
         /*Connect edges*/
-        Hyperedges to(const Hyperedges& srcIds, const Hyperedges& others);    // Afterwards every srcId in srcIds will point to others. The converse is not true!!
-        Hyperedges from(const Hyperedges& others, const Hyperedges& destIds); // Afterwards every destId in destIds will point from others. The converse is not true!!
-        void disconnect(const UniqueId id);                                  // Disconnects edge from all other edges (this means finding all edges which reference the given id)
+        Hyperedges pointsTo(const Hyperedges& srcIds, const Hyperedges& others);    // Afterwards every srcId in srcIds will point to others. The converse is not true!!
+        Hyperedges pointsFrom(const Hyperedges& destIds, const Hyperedges& others); // Afterwards every destId in destIds will point from others. The converse is not true!!
+        void disconnect(const UniqueId id);                                         // Disconnects edge from all other edges (this means finding all edges which reference the given id)
 
         /*Queries*/
         unsigned size() const { return _edges.size(); }
-        Hyperedges from(const Hyperedges& ids, const std::string& label="") const; // Returns all hyperedges from which each id in ids points, filtered by label
-        Hyperedges to(const Hyperedges& ids, const std::string& label="") const;   // Returns all hyperedges to which each id in ids points, filtered by label
+        Hyperedges isPointingFrom(const Hyperedges& ids, const std::string& label="") const; // Returns all hyperedges from which each id in ids points, filtered by label
+        Hyperedges isPointingTo(const Hyperedges& ids, const std::string& label="") const;   // Returns all hyperedges to which each id in ids points, filtered by label
 
         /*Adjacency queries*/
-        Hyperedges prevNeighboursOf(const Hyperedges& ids, const std::string& label="") const; // Returns all hyperedges which a) are in id's from set or b) have id in their to set
+        Hyperedges previousNeighboursOf(const Hyperedges& ids, const std::string& label="") const; // Returns all hyperedges which a) are in id's from set or b) have id in their to set
         Hyperedges nextNeighboursOf(const Hyperedges& ids, const std::string& label="") const; // Returns all hyperedges which a) are in id's to set or b) have id in their from set
         Hyperedges allNeighboursOf(const Hyperedges& ids, const std::string& label="") const;  // Returns all hyperedges which a) are in id's to||from sets or b) have id in their to||from set
 
@@ -74,7 +74,7 @@ class Hypergraph {
             BOTH        // in both directions
         };
         /*Traversal which returns all visited edges*/
-        template <typename ResultFilter, typename TraversalFilter> Hyperedges traversal
+        template <typename ResultFilter, typename TraversalFilter> Hyperedges traverse
         ( 
             const UniqueId& rootId,                  // The starting edge
             ResultFilter f,                         // Unary function bool f(const Hyperedge&)
@@ -92,16 +92,16 @@ class Hypergraph {
                 candidates.push_back(queryHedge.id());
             } else {
                 // ... in case the uid is not found, find by label
-                candidates = datagraph.find(queryHedge.label());
+                candidates = datagraph.findByLabel(queryHedge.label());
             }
             // Filter by degree
             // Check in and out degrees here as well!! If candidate has LESS in or out degree it can not be a candidate
             Hyperedges filtered;
             for (const UniqueId& candidateId : candidates)
             {
-                if (datagraph.read(candidateId).indegree() < queryHedge.indegree())
+                if (datagraph.access(candidateId).indegree() < queryHedge.indegree())
                     continue;
-                if (datagraph.read(candidateId).outdegree() < queryHedge.outdegree())
+                if (datagraph.access(candidateId).outdegree() < queryHedge.outdegree())
                     continue;
                 filtered.push_back(candidateId);
             }

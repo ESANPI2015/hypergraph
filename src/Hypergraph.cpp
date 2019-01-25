@@ -11,6 +11,7 @@ Hypergraph::Hypergraph()
 
 Hypergraph::Hypergraph(const Hypergraph& other)
 {
+    create(Zero, "ZERO");
     importFrom(other);
 }
 
@@ -23,21 +24,21 @@ void Hypergraph::importFrom(const Hypergraph& other)
 {
     // When we construct a graph from other, we have to repopulate the cache by rewiring
     // First pass: Clone hedges
-    for (const UniqueId& id : other.find())
+    for (const UniqueId& id : other.findByLabel())
     {
         create(id, other._edges.at(id).label());
     }
 
     // Second pass: Rewire (see from and to methods which populate the cache(s))
-    for (const UniqueId id : find())
+    for (const UniqueId id : findByLabel())
     {
         if (!other._edges.count(id))
             continue;
         // Wire only those things which have not yet been wired before (otherwise we get arity changes)
         Hyperedges newFromUids(subtract(other._edges.at(id).pointingFrom(), _edges.at(id).pointingFrom()));
         Hyperedges newToUids(subtract(other._edges.at(id).pointingTo(), _edges.at(id).pointingTo()));
-        from(newFromUids, Hyperedges{id});
-        to(Hyperedges{id}, newToUids);
+        pointsFrom(Hyperedges{id}, newFromUids);
+        pointsTo(Hyperedges{id}, newToUids);
     }
 }
 
@@ -72,35 +73,35 @@ void Hypergraph::disconnect(const UniqueId id)
 {
     // We point to others and others might point to us
     // I. In all Hyperedges WE point to or from we have to cleanup the caches
-    Hyperedges fromIds(read(id)._from);
+    Hyperedges fromIds(access(id)._from);
     for (const UniqueId& fromId : fromIds)
     {
-        Hyperedge& other(get(fromId));
+        Hyperedge& other(access(fromId));
         if (other.id() == Zero)
             continue;
         other._fromOthers.erase(std::remove(other._fromOthers.begin(), other._fromOthers.end(), id), other._fromOthers.end());
     }
-    Hyperedges toIds(read(id)._to);
+    Hyperedges toIds(access(id)._to);
     for (const UniqueId& toId : toIds)
     {
-        Hyperedge& other(get(toId));
+        Hyperedge& other(access(toId));
         if (other.id() == Zero)
             continue;
         other._toOthers.erase(std::remove(other._toOthers.begin(), other._toOthers.end(), id), other._toOthers.end());
     }
     // II. In all Hyperedges which point to or from US we have to cleanup their from and to sets
-    Hyperedges fromUsIds(read(id)._fromOthers);
+    Hyperedges fromUsIds(access(id)._fromOthers);
     for (const UniqueId& fromUsId : fromUsIds)
     {
-        Hyperedge& other(get(fromUsId));
+        Hyperedge& other(access(fromUsId));
         if (other.id() == Zero)
             continue;
         other._from.erase(std::remove(other._from.begin(), other._from.end(), id), other._from.end());
     }
-    Hyperedges toUsIds(read(id)._toOthers);
+    Hyperedges toUsIds(access(id)._toOthers);
     for (const UniqueId& toUsId : toUsIds)
     {
-        Hyperedge& other(get(toUsId));
+        Hyperedge& other(access(toUsId));
         if (other.id() == Zero)
             continue;
         other._to.erase(std::remove(other._to.begin(), other._to.end(), id), other._to.end());
@@ -114,12 +115,12 @@ bool Hypergraph::exists(const UniqueId& uid) const
     return false;
 }
 
-const Hyperedge& Hypergraph::read(const UniqueId id) const
+const Hyperedge& Hypergraph::access(const UniqueId id) const
 {
     return _edges.at(id);
 }
 
-Hyperedge& Hypergraph::get(const UniqueId id)
+Hyperedge& Hypergraph::access(const UniqueId id)
 {
     if (exists(id))
     {
@@ -129,7 +130,7 @@ Hyperedge& Hypergraph::get(const UniqueId id)
     }
 }
 
-Hyperedges Hypergraph::find(const std::string& label) const
+Hyperedges Hypergraph::findByLabel(const std::string& label) const
 {
     Hyperedges result;
     for (auto pair : _edges)
@@ -145,21 +146,21 @@ Hyperedges Hypergraph::find(const std::string& label) const
 }
 
 
-Hyperedges Hypergraph::from(const Hyperedges& otherIds, const Hyperedges& destIds)
+Hyperedges Hypergraph::pointsFrom(const Hyperedges& destIds, const Hyperedges& otherIds)
 {
     Hyperedges result;
     for (const UniqueId& destId : destIds)
     {
-        Hyperedge& destEdge(get(destId));
+        Hyperedge& destEdge(access(destId));
         if (destEdge.id() == Zero)
             continue;
         for (const UniqueId& otherId : otherIds)
         {
             // Check if other is part of this graph as well
-            Hyperedge& other(get(otherId));
+            Hyperedge& other(access(otherId));
             if (other.id() == Zero)
                 continue;
-            destEdge.from(otherId);
+            destEdge.pointsFrom(otherId);
             other._fromOthers.push_back(destId); // Populate cache
             // On success, register that pair
             result = unite(result, Hyperedges{destId, otherId});
@@ -168,7 +169,7 @@ Hyperedges Hypergraph::from(const Hyperedges& otherIds, const Hyperedges& destId
     return result;
 }
 
-Hyperedges Hypergraph::from(const Hyperedges& ids, const std::string& label) const
+Hyperedges Hypergraph::isPointingFrom(const Hyperedges& ids, const std::string& label) const
 {
     Hyperedges result;
     if (label.empty())
@@ -176,16 +177,16 @@ Hyperedges Hypergraph::from(const Hyperedges& ids, const std::string& label) con
         // Fast path for empty labels
         for (const UniqueId& id : ids)
         {
-            Hyperedges fromIds(read(id).pointingFrom());
+            Hyperedges fromIds(access(id).pointingFrom());
             result = unite(result, fromIds);
         }
     } else {
         for (const UniqueId& id : ids)
         {
-            Hyperedges fromIds(read(id).pointingFrom());
+            Hyperedges fromIds(access(id).pointingFrom());
             for (const UniqueId& fromId : fromIds)
             {
-                if (read(fromId).label() == label)
+                if (access(fromId).label() == label)
                     result.push_back(fromId);
             }
         }
@@ -193,21 +194,21 @@ Hyperedges Hypergraph::from(const Hyperedges& ids, const std::string& label) con
     return result;
 }
 
-Hyperedges Hypergraph::to(const Hyperedges& srcIds, const Hyperedges& otherIds)
+Hyperedges Hypergraph::pointsTo(const Hyperedges& srcIds, const Hyperedges& otherIds)
 {
     Hyperedges result;
     for (const UniqueId& srcId : srcIds)
     {
-        Hyperedge& srcEdge(get(srcId));
+        Hyperedge& srcEdge(access(srcId));
         if (srcEdge.id() == Zero)
             continue;
         for (const UniqueId& otherId : otherIds)
         {
             // Check if other is part of this graph as well
-            Hyperedge& other(get(otherId));
+            Hyperedge& other(access(otherId));
             if (other.id() == Zero)
                 continue;
-            srcEdge.to(otherId);
+            srcEdge.pointsTo(otherId);
             other._toOthers.push_back(srcId); // Populate cache
             // On success, register that pair
             result = unite(result, Hyperedges{srcId, otherId});
@@ -216,7 +217,7 @@ Hyperedges Hypergraph::to(const Hyperedges& srcIds, const Hyperedges& otherIds)
     return result;
 }
 
-Hyperedges Hypergraph::to(const Hyperedges& ids, const std::string& label) const
+Hyperedges Hypergraph::isPointingTo(const Hyperedges& ids, const std::string& label) const
 {
     Hyperedges result;
     if (label.empty())
@@ -224,16 +225,16 @@ Hyperedges Hypergraph::to(const Hyperedges& ids, const std::string& label) const
         // Fast path for empty labels
         for (const UniqueId& id : ids)
         {
-            Hyperedges toIds(read(id).pointingTo());
+            Hyperedges toIds(access(id).pointingTo());
             result = unite(result, toIds);
         }
     } else {
         for (const UniqueId& id : ids)
         {
-            Hyperedges toIds(read(id).pointingTo());
+            Hyperedges toIds(access(id).pointingTo());
             for (const UniqueId& toId : toIds)
             {
-                if (label.empty() || (read(toId).label() == label))
+                if (label.empty() || (access(toId).label() == label))
                     result.push_back(toId);
             }
         }
@@ -241,20 +242,20 @@ Hyperedges Hypergraph::to(const Hyperedges& ids, const std::string& label) const
     return result;
 }
 
-Hyperedges Hypergraph::prevNeighboursOf(const Hyperedges& ids, const std::string& label) const
+Hyperedges Hypergraph::previousNeighboursOf(const Hyperedges& ids, const std::string& label) const
 {
     Hyperedges result;
-    //Hyperedges all = find(label);
+    //Hyperedges all = findByLabel(label);
     for (const UniqueId& id : ids)
     {
-        result = unite(result, from(Hyperedges{id},label));
-        for (const UniqueId& other : read(id)._toOthers)
+        result = unite(result, isPointingFrom(Hyperedges{id},label));
+        for (const UniqueId& other : access(id)._toOthers)
         {
             // Check label
-            if (!label.empty() && (label != read(other).label()))
+            if (!label.empty() && (label != access(other).label()))
                 continue;
             // Check if id is in the TO set of other
-            if (!read(other).isPointingTo(id))
+            if (!access(other).isPointingTo(id))
                 continue;
             result.push_back(other);
         }
@@ -265,17 +266,17 @@ Hyperedges Hypergraph::prevNeighboursOf(const Hyperedges& ids, const std::string
 Hyperedges Hypergraph::nextNeighboursOf(const Hyperedges& ids, const std::string& label) const
 {
     Hyperedges result;
-    //Hyperedges all = find(label);
+    //Hyperedges all = findByLabel(label);
     for (const UniqueId& id : ids)
     {
-        result = unite(result, to(Hyperedges{id},label));
-        for (const UniqueId& other : read(id)._fromOthers)
+        result = unite(result, isPointingTo(Hyperedges{id},label));
+        for (const UniqueId& other : access(id)._fromOthers)
         {
             // Check label
-            if (!label.empty() && (label != read(other).label()))
+            if (!label.empty() && (label != access(other).label()))
                 continue;
             // Check if id is in the TO set of other
-            if (!read(other).isPointingFrom(id))
+            if (!access(other).isPointingFrom(id))
                 continue;
             result.push_back(other);
         }
@@ -286,7 +287,7 @@ Hyperedges Hypergraph::nextNeighboursOf(const Hyperedges& ids, const std::string
 Hyperedges Hypergraph::allNeighboursOf(const Hyperedges& ids, const std::string& label) const
 {
     Hyperedges result;
-    result = unite(prevNeighboursOf(ids,label), nextNeighboursOf(ids,label));
+    result = unite(previousNeighboursOf(ids,label), nextNeighboursOf(ids,label));
     return result;
 }
 

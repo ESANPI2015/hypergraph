@@ -29,7 +29,7 @@ void Conceptgraph::createFundamentals()
     if (!exists(Conceptgraph::IsConceptId))
     {
         Hypergraph::create(Conceptgraph::IsConceptId, "IS-CONCEPT");
-        Hypergraph::from(Hyperedges{Conceptgraph::IsConceptId}, Hyperedges{Conceptgraph::IsRelationId});
+        Hypergraph::pointsFrom(Hyperedges{Conceptgraph::IsRelationId}, Hyperedges{Conceptgraph::IsConceptId});
     }
 }
 
@@ -37,7 +37,7 @@ Hyperedges Conceptgraph::create(const UniqueId& id, const std::string& label)
 {
     if (!Hypergraph::create(id, label).empty())
     {
-        Hypergraph::from(Hyperedges{id}, Hyperedges{Conceptgraph::IsConceptId}); // This cannot fail
+        Hypergraph::pointsFrom(Hyperedges{Conceptgraph::IsConceptId}, Hyperedges{id}); // This cannot fail
         return Hyperedges{id};
     }
     return Hyperedges();
@@ -46,13 +46,13 @@ Hyperedges Conceptgraph::create(const UniqueId& id, const std::string& label)
 Hyperedges Conceptgraph::find(const std::string& label) const
 {
     // Find edges which have the right label and are part of the concepts set
-    return Hypergraph::from(Hyperedges{Conceptgraph::IsConceptId}, label);
+    return Hypergraph::isPointingFrom(Hyperedges{Conceptgraph::IsConceptId}, label);
 }
 
 Hyperedges Conceptgraph::relations(const std::string& label) const
 {
     // Find edges which have the right label and are part of the relations set
-    return Hypergraph::from(Hyperedges{Conceptgraph::IsRelationId}, label);
+    return Hypergraph::isPointingFrom(Hyperedges{Conceptgraph::IsRelationId}, label);
 }
 
 Hyperedges Conceptgraph::relate(const UniqueId& id, const Hyperedges& fromIds, const Hyperedges& toIds, const std::string& label)
@@ -60,18 +60,18 @@ Hyperedges Conceptgraph::relate(const UniqueId& id, const Hyperedges& fromIds, c
     // Creating relations means creating a (X <- IS-RELATION) pair
     if (Hypergraph::create(id, label).empty())
         return Hyperedges();
-    Hypergraph::from(Hyperedges{id}, Hyperedges{Conceptgraph::IsRelationId});
+    Hypergraph::pointsFrom(Hyperedges{Conceptgraph::IsRelationId}, Hyperedges{id});
 
     // Furthermore, we have to connect the relation
     // NOTE: relations can also relate relations not only concepts!!!
-    Hypergraph::from(fromIds, Hyperedges{id});
-    Hypergraph::to(Hyperedges{id}, toIds);
+    Hypergraph::pointsFrom(Hyperedges{id}, fromIds);
+    Hypergraph::pointsTo(Hyperedges{id}, toIds);
     return Hyperedges{id};
 }
 
 Hyperedges Conceptgraph::relateFrom(const UniqueId& id, const Hyperedges& fromIds, const Hyperedges& toIds, const UniqueId& relId)
 {
-   const std::string& label(Hypergraph::read(relId).label());
+   const std::string& label(Hypergraph::access(relId).label());
    // NOTE: Even though we allow the in- and outdegree of a relation created from a template to mismatch, we should check them afterwards to ensure correct arity.
    return Conceptgraph::relate(id,fromIds,toIds,label);
 }
@@ -105,7 +105,7 @@ Hyperedges Conceptgraph::relateFrom(const Hyperedges& fromIds, const Hyperedges&
         auto newHash(std::hash<UniqueId>{}(saltId));
         id = std::to_string(myHash ^ (newHash << 1));
     }
-    const std::string& label(Hypergraph::read(relId).label());
+    const std::string& label(Hypergraph::access(relId).label());
     // Re-hash in case of an (unlikely) collision
     while (Conceptgraph::relateFrom(id, fromIds, toIds, relId).empty()) {
         auto myHash(std::hash<UniqueId>{}(id));
@@ -138,7 +138,7 @@ void     Conceptgraph::destroy(const UniqueId& id)
         if (!exists(relId))
             continue;
         // If it is not pointing from anything anymore, we destroy it
-        if (Hypergraph::read(relId).pointingFrom().size() <= 1)
+        if (Hypergraph::access(relId).pointingFrom().size() <= 1)
             toBeDestroyed.insert(relId);
     }
     // Mark all relations pointingTo us to be deleted iff they do not point to something else
@@ -150,7 +150,7 @@ void     Conceptgraph::destroy(const UniqueId& id)
         if (!exists(relId))
             continue;
         // If it is not pointing to anything anymore, we destroy it
-        if (Hypergraph::read(relId).pointingTo().size() <= 1)
+        if (Hypergraph::access(relId).pointingTo().size() <= 1)
             toBeDestroyed.insert(relId);
     }
     // Destroy all marked relations mentioned (NOTE: We call Conceptgraph::destroy here to destroy the relation chains!)
@@ -171,7 +171,7 @@ Hyperedges Conceptgraph::relationsFrom(const Hyperedges& ids, const std::string&
     Hyperedges pointingFromUs;
     for (const UniqueId& id : ids)
     {
-        Hyperedges cache(read(id)._fromOthers);
+        Hyperedges cache(access(id)._fromOthers);
         pointingFromUs = unite(pointingFromUs, cache);
     }
     // All relations with a certain label pointing from us
@@ -186,7 +186,7 @@ Hyperedges Conceptgraph::relationsTo(const Hyperedges& ids, const std::string& l
     Hyperedges pointingToUs;
     for (const UniqueId& id : ids)
     {
-        Hyperedges cache(read(id)._toOthers);
+        Hyperedges cache(access(id)._toOthers);
         pointingToUs = unite(pointingToUs, cache);
     }
     // All relations with a certain label pointing to us

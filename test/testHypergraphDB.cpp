@@ -33,7 +33,7 @@ int main(void)
     Hyperedges colleagues(otherUniverse.find("and his colleague"));
     for (UniqueId colleague : colleagues)
     {
-        otherUniverse.get(colleague).updateLabel("Tobi");
+        otherUniverse.access(colleague).updateLabel("Tobi");
     }
 
     std::cout << "> Recommit to DB\n";

@@ -84,7 +84,7 @@ int main (int argc, char **argv)
     // Dump first match
     for (const auto &pair : mapping)
     {
-        std::cout << querygraph.read(pair.first) << " -> " << datagraph.read(pair.second) << "\n";
+        std::cout << querygraph.access(pair.first) << " -> " << datagraph.access(pair.second) << "\n";
     }
 
     // Dump other matches if desired
@@ -95,7 +95,7 @@ int main (int argc, char **argv)
             std::cout << "\n";
             for (const auto &pair : mapping)
             {
-                std::cout << querygraph.read(pair.first) << " -> " << datagraph.read(pair.second) << "\n";
+                std::cout << querygraph.access(pair.first) << " -> " << datagraph.access(pair.second) << "\n";
             }
             no_matches++;
         }
