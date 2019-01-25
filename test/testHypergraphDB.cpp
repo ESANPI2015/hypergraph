@@ -19,7 +19,7 @@ int main(void)
 
     std::cout << "> Create common concept graph\n";
     CommonConceptGraph universe;
-    universe.create("PERSON", "Person");
+    universe.concept("PERSON", "Person");
     universe.instantiateFrom("PERSON", "Moritz Schilling");
     universe.instantiateFrom("PERSON", "and his colleague");
 
@@ -30,7 +30,7 @@ int main(void)
     CommonConceptGraph otherUniverse(myDB.load("myUniverse"));
 
     std::cout << "> Modify graph\n";
-    Hyperedges colleagues(otherUniverse.find("and his colleague"));
+    Hyperedges colleagues(otherUniverse.concepts("and his colleague"));
     for (UniqueId colleague : colleagues)
     {
         otherUniverse.access(colleague).updateLabel("Tobi");

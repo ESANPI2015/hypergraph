@@ -40,8 +40,8 @@ class Conceptgraph : public Hypergraph
         void destroy(const UniqueId& id);                                                                                       //< Destroy concept, relation or signature
 
         /* CONCEPTS */
-        Hyperedges create(const UniqueId& id, const std::string& label="");                                                     //< Create a new concept (id, label)
-        Hyperedges find(const std::string& label="") const;                                                                           //< Find a concept by label
+        Hyperedges concept(const UniqueId& id, const std::string& label="");                                                     //< Create a new concept (id, label)
+        Hyperedges concepts(const std::string& label="") const;                                                                     //< Find a concept by label
 
         /* RELATIONS */
         Hyperedges relate(const UniqueId& id, const Hyperedges& fromIds, const Hyperedges& toIds, const std::string& label);    //< Create N:M relation

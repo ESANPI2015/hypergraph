@@ -19,21 +19,21 @@ int main(void)
     CommonConceptGraph universe;
 
     // At first we need two superclasses
-    universe.create("TypeA", "TypeA");
-    universe.create("TypeB", "TypeB");
+    universe.concept("TypeA", "TypeA");
+    universe.concept("TypeB", "TypeB");
 
     // Then we need a mapping relation
-    universe.relate("mappingRelation", universe.find("TypeA"), universe.find("TypeB"), "mappedTo");
+    universe.relate("mappingRelation", universe.concepts("TypeA"), universe.concepts("TypeB"), "mappedTo");
 
 
     // Create some individuals of the two classes
-    universe.instantiateFrom(universe.find("TypeA"), "A");
-    universe.instantiateFrom(universe.find("TypeA"), "B");
-    universe.instantiateFrom(universe.find("TypeA"), "C");
+    universe.instantiateFrom(universe.concepts("TypeA"), "A");
+    universe.instantiateFrom(universe.concepts("TypeA"), "B");
+    universe.instantiateFrom(universe.concepts("TypeA"), "C");
 
-    universe.instantiateFrom(universe.find("TypeB"), "X");
-    universe.instantiateFrom(universe.find("TypeB"), "Y");
-    universe.instantiateFrom(universe.find("TypeB"), "Z");
+    universe.instantiateFrom(universe.concepts("TypeB"), "X");
+    universe.instantiateFrom(universe.concepts("TypeB"), "Y");
+    universe.instantiateFrom(universe.concepts("TypeB"), "Z");
 
 
     // Define mapping functions

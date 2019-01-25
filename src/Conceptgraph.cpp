@@ -33,7 +33,7 @@ void Conceptgraph::createFundamentals()
     }
 }
 
-Hyperedges Conceptgraph::create(const UniqueId& id, const std::string& label)
+Hyperedges Conceptgraph::concept(const UniqueId& id, const std::string& label)
 {
     if (!Hypergraph::create(id, label).empty())
     {
@@ -43,7 +43,7 @@ Hyperedges Conceptgraph::create(const UniqueId& id, const std::string& label)
     return Hyperedges();
 }
 
-Hyperedges Conceptgraph::find(const std::string& label) const
+Hyperedges Conceptgraph::concepts(const std::string& label) const
 {
     // Find edges which have the right label and are part of the concepts set
     return Hypergraph::isPointingFrom(Hyperedges{Conceptgraph::IsConceptId}, label);

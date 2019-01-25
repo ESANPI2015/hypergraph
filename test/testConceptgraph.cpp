@@ -27,34 +27,34 @@ int main(void)
     fout.close();
 
     std::cout << "> Create concept" << std::endl;
-    universe.create("3", "First concept");
+    universe.concept("3", "First concept");
 
     std::cout << "> All concepts" << std::endl;
-    auto concepts = universe.find();
+    auto concepts = universe.concepts();
     for (auto conceptId : concepts)
     {
         std::cout << conceptId << " " << universe.access(conceptId).label() << std::endl;
     }
 
     std::cout << "> Create another concept and check it" << std::endl;
-    universe.create("4", "Second concept");
-    concepts = universe.find("Second concept");
+    universe.concept("4", "Second concept");
+    concepts = universe.concepts("Second concept");
     assert(concepts.size() > 0);
 
     std::cout << "> Relate the first and the second concept\n";
     universe.relate("5", Hyperedges{"3"}, Hyperedges{"4"}, "relatedTo");
 
     std::cout << "> Create a tree of concepts related by a common relation\n";
-    universe.create("6", "Root");
-    universe.create("11","I");
-    universe.create("12","You");
-    universe.create("13","It"); 
-    universe.create("14","Huh?");
-    universe.create("15", "Plural");
-    universe.create("20", "We"); 
-    universe.create("21", "You");
-    universe.create("22", "They");
-    auto hashedId = universe.create("Doh?");
+    universe.concept("6", "Root");
+    universe.concept("11","I");
+    universe.concept("12","You");
+    universe.concept("13","It"); 
+    universe.concept("14","Huh?");
+    universe.concept("15", "Plural");
+    universe.concept("20", "We"); 
+    universe.concept("21", "You");
+    universe.concept("22", "They");
+    auto hashedId = universe.concept("Doh?");
 
     universe.relate("7",  Hyperedges{"6"}, Hyperedges{"11"}, "R");
     universe.relate("8",  Hyperedges{"6"}, Hyperedges{"12"}, "R");
@@ -67,7 +67,7 @@ int main(void)
     universe.relate("24", Hyperedges{"6"}, Hyperedges{"15"}, "R");
 
     std::cout << "> All concepts" << std::endl;
-    concepts = universe.find();
+    concepts = universe.concepts();
     for (auto conceptId : concepts)
     {
         std::cout << conceptId << " " << universe.access(conceptId).label() << std::endl;
@@ -97,7 +97,7 @@ int main(void)
     Conceptgraph universe2(restoredGraph);
 
     std::cout << "> All concepts" << std::endl;
-    concepts = universe2.find();
+    concepts = universe2.concepts();
     for (auto conceptId : concepts)
     {
         std::cout << universe2.access(conceptId) << std::endl;
@@ -116,7 +116,7 @@ int main(void)
             return true;
         return false;
     };
-    concepts = universe2.traverse(*universe2.find("Root").begin(), cf, rf);
+    concepts = universe2.traverse(*universe2.concepts("Root").begin(), cf, rf);
     for (auto conceptId : concepts)
     {
         std::cout << conceptId << " " << universe2.access(conceptId).label() << std::endl;
@@ -129,7 +129,7 @@ int main(void)
 
     std::cout << "> Create another concept graph for inexact pattern matching\n";
     Conceptgraph query;
-    query.relate("A", query.create("Root"), query.create("*",""), "A");
+    query.relate("A", query.concept("Root"), query.concept("*",""), "A");
     concepts = query.Hypergraph::findByLabel();
     for (auto conceptId : concepts)
     {
@@ -154,7 +154,7 @@ int main(void)
 
     std::cout << "> Create another concept graph which serves as a replacement for the matched subgraph\n";
     Conceptgraph replacement;
-    replacement.relate("A^-1", replacement.create("**",""), replacement.create("Root"), "A^-1");
+    replacement.relate("A^-1", replacement.concept("**",""), replacement.concept("Root"), "A^-1");
     concepts = replacement.Hypergraph::findByLabel();
     for (auto conceptId : concepts)
     {
@@ -200,7 +200,7 @@ int main(void)
     }
 
     std::cout << "> All concepts" << std::endl;
-    concepts = fin.find();
+    concepts = fin.concepts();
     for (auto conceptId : concepts)
     {
         std::cout << fin.access(conceptId) << std::endl;
