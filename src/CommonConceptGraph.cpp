@@ -9,6 +9,18 @@ const UniqueId CommonConceptGraph::PartOfId = "CommonConceptGraph::PartOf";
 const UniqueId CommonConceptGraph::ConnectsId = "CommonConceptGraph::Connects";
 const UniqueId CommonConceptGraph::InstanceOfId = "CommonConceptGraph::InstanceOf";
 
+CommonConceptGraph::CommonConceptGraph()
+: Conceptgraph()
+{
+    createCommonConcepts();
+}
+
+CommonConceptGraph::CommonConceptGraph(const Hypergraph& A)
+: Conceptgraph(A)
+{
+    createCommonConcepts();
+}
+
 void CommonConceptGraph::createCommonConcepts()
 {
     /* Common relations over relations*/
@@ -29,17 +41,6 @@ void CommonConceptGraph::createCommonConcepts()
     Conceptgraph::relate(CommonConceptGraph::InstanceOfId, Hyperedges{Conceptgraph::IsConceptId}, Hyperedges{Conceptgraph::IsConceptId}, "INSTANCE-OF");
 }
 
-CommonConceptGraph::CommonConceptGraph()
-: Conceptgraph()
-{
-    createCommonConcepts();
-}
-
-CommonConceptGraph::CommonConceptGraph(const Hypergraph& A)
-: Conceptgraph(A)
-{
-    createCommonConcepts();
-}
 
 Hyperedges CommonConceptGraph::factOf(const Hyperedges& factIds, const Hyperedges& superRelIds)
 {
@@ -97,7 +98,7 @@ Hyperedges CommonConceptGraph::factFromAnother(const Hyperedges& fromIds, const 
     for (UniqueId otherId : otherIds)
     {
         // Get the superRels
-        Hyperedges superRels(factsOf(otherId, "", TraversalDirection::FORWARD));
+        Hyperedges superRels(factsOf(otherId, Hyperedges(), Hyperedges(), TraversalDirection::FORWARD));
         // Create new facts from these superRels
         result = unite(result, factFrom(fromIds, toIds, superRels));
     }
@@ -349,7 +350,7 @@ Hyperedges CommonConceptGraph::instantiateSuperDeepFrom(const Hyperedges& superI
     return result;
 }
 
-Hyperedges CommonConceptGraph::factsOf(const UniqueId& superRelId, const std::string& label, const TraversalDirection dir, const Hyperedges& fromIds, const Hyperedges& toIds) const
+Hyperedges CommonConceptGraph::factsOf(const UniqueId& superRelId, const Hyperedges& fromIds, const Hyperedges& toIds, const TraversalDirection dir, const std::string& label) const
 {
     Hyperedges result;
     Hyperedges allFacts(access(CommonConceptGraph::FactOfId).pointingFrom()); // * <- FACT-OF -> ** ...  Either * or ** have to be intersected depending on dir
@@ -393,12 +394,12 @@ Hyperedges CommonConceptGraph::factsOf(const UniqueId& superRelId, const std::st
 }
 
 
-Hyperedges CommonConceptGraph::factsOf(const Hyperedges& superRelIds, const std::string& label, const TraversalDirection dir, const Hyperedges& fromIds, const Hyperedges& toIds) const
+Hyperedges CommonConceptGraph::factsOf(const Hyperedges& superRelIds, const Hyperedges& fromIds, const Hyperedges& toIds, const TraversalDirection dir, const std::string& label) const
 {
     Hyperedges result;
     for (const UniqueId& superRelId : superRelIds)
     {
-        Hyperedges some = factsOf(superRelId, label, dir, fromIds, toIds);
+        Hyperedges some = factsOf(superRelId, fromIds, toIds, dir, label);
         result.insert(result.end(), some.begin(), some.end());
     }
     return result;
@@ -411,6 +412,7 @@ Hyperedges CommonConceptGraph::subrelationsOf(const Hyperedges& superRelIds, con
         result = unite(result, subrelationsOf(superRelId, label, dir));
     return result;
 }
+
 Hyperedges CommonConceptGraph::subrelationsOf(const UniqueId superRelId, const std::string& label, const TraversalDirection dir) const
 {
     // Here we start a traversal from superRelId following every subrelationOf relation

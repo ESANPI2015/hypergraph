@@ -52,6 +52,7 @@
 class CommonConceptGraph : public Conceptgraph
 {
     public:
+        // TODO: Maybe it is a good idea to put factOf and subrelOf into Conceptgraph ... this could help in seperating fundamental from other not-so-fundamental relations
         /*As stated above this HEDGE will point FROM all RELATIONS which encode FACT-OF relations. It also points FROM AND TO itself!!!*/
         static const UniqueId FactOfId;
         /*This relation cannot be subclassed by itself!*/
@@ -63,11 +64,10 @@ class CommonConceptGraph : public Conceptgraph
         static const UniqueId ConnectsId;
         static const UniqueId InstanceOfId;
 
-        void createCommonConcepts();
-
         /*Constructors*/
         CommonConceptGraph();
         CommonConceptGraph(const Hypergraph& base);
+        void createCommonConcepts();
         // TODO: Need a CommonConceptGraph destroy() method. This allows to cleanup leftovers (e.g. dangling facts etc.)
 
         /*Make facts*/
@@ -90,12 +90,14 @@ class CommonConceptGraph : public Conceptgraph
         Hyperedges instantiateFrom(const UniqueId superId, const std::string& label=""); // create label <-- INSTANCE-OF --> superId
         Hyperedges instantiateFrom(const Hyperedges& superIds, const std::string& label="");
         Hyperedges instantiateAnother(const Hyperedges& otherIds, const std::string& label=""); // create another instance from the superclasses of others
+        // TODO: Decide whether we want to keep inheritance here. Actually, inhertance should be part of an AGENT running over a database and keeping the inheritance relationship consistent!
         Hyperedges instantiateDeepFrom(const Hyperedges& otherIds, const std::string& label=""); // create an instance also cloning ALL children and components
         Hyperedges instantiateSuperDeepFrom(const Hyperedges& otherIds, const std::string& label=""); // create an instance also cloning ALL descendants and parts
 
         /*Common queries*/
-        Hyperedges factsOf(const Hyperedges& superRelIds, const std::string& label="", const TraversalDirection dir=INVERSE, const Hyperedges& fromIds=Hyperedges(), const Hyperedges& toIds=Hyperedges()) const;
-        Hyperedges factsOf(const UniqueId& superRelId, const std::string& label="", const TraversalDirection dir=INVERSE, const Hyperedges& fromIds=Hyperedges(), const Hyperedges& toIds=Hyperedges()) const;
+        // factsOf will return all facts of superRelId, which points from fromIds (or any) and to toIds (or any), FORWARD direction will return superRels instead and label filters the facts by label
+        Hyperedges factsOf(const UniqueId& superRelId, const Hyperedges& fromIds=Hyperedges(), const Hyperedges& toIds=Hyperedges(), const TraversalDirection dir=INVERSE, const std::string& label="") const;
+        Hyperedges factsOf(const Hyperedges& superRelIds, const Hyperedges& fromIds=Hyperedges(), const Hyperedges& toIds=Hyperedges(), const TraversalDirection dir=INVERSE, const std::string& label="") const;
         Hyperedges subrelationsOf(const UniqueId superRelId, const std::string& label="", const TraversalDirection dir=INVERSE) const;    //transitive subrelOf
         Hyperedges subrelationsOf(const Hyperedges& superRelIds, const std::string& label="", const TraversalDirection dir=INVERSE) const;    //transitive subrelOf
         Hyperedges directSubrelationsOf(const Hyperedges& superRelIds, const std::string& label="", const TraversalDirection dir=INVERSE) const;    //non-transitive subrelOf
