@@ -25,12 +25,12 @@ void Hyperedge::updateLabel(const std::string& label)
     _label = label;
 }
 
-void Hyperedge::from(const UniqueId& id)
+void Hyperedge::pointsFrom(const UniqueId& id)
 {
     _from.push_back(id);
 }
 
-void Hyperedge::to(const UniqueId& id)
+void Hyperedge::pointsTo(const UniqueId& id)
 {
     _to.push_back(id);
 }

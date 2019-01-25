@@ -46,8 +46,8 @@ class Hyperedge
 
         /*Write access*/
         void updateLabel(const std::string& label);
-        void from(const UniqueId& id);
-        void to(const UniqueId& id);
+        void pointsFrom(const UniqueId& id);
+        void pointsTo(const UniqueId& id);
 
         /* Serialization */
         friend std::ostream& operator<< (std::ostream& stream, const Hyperedge& edge);
