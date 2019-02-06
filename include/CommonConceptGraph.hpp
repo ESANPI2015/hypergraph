@@ -90,9 +90,6 @@ class CommonConceptGraph : public Conceptgraph
         Hyperedges instantiateFrom(const UniqueId superId, const std::string& label=""); // create label <-- INSTANCE-OF --> superId
         Hyperedges instantiateFrom(const Hyperedges& superIds, const std::string& label="");
         Hyperedges instantiateAnother(const Hyperedges& otherIds, const std::string& label=""); // create another instance from the superclasses of others
-        // TODO: Decide whether we want to keep inheritance here. Actually, inhertance should be part of an AGENT running over a database and keeping the inheritance relationship consistent!
-        Hyperedges instantiateDeepFrom(const Hyperedges& otherIds, const std::string& label=""); // create an instance also cloning ALL children and components
-        Hyperedges instantiateSuperDeepFrom(const Hyperedges& otherIds, const std::string& label=""); // create an instance also cloning ALL descendants and parts
 
         /*Common queries*/
         // factsOf will return all facts of superRelId, which points from fromIds (or any) and to toIds (or any), FORWARD direction will return superRels instead and label filters the facts by label
