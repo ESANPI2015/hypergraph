@@ -52,7 +52,6 @@
 class CommonConceptGraph : public Conceptgraph
 {
     public:
-        // TODO: Maybe it is a good idea to put factOf and subrelOf into Conceptgraph ... this could help in seperating fundamental from other not-so-fundamental relations
         /*As stated above this HEDGE will point FROM all RELATIONS which encode FACT-OF relations. It also points FROM AND TO itself!!!*/
         static const UniqueId FactOfId;
         /*This relation cannot be subclassed by itself!*/
