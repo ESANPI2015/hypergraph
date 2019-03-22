@@ -44,12 +44,7 @@ int main(void)
         return g.instancesOf("TypeB");
     };
 
-    auto matchFunc = [] (const CommonConceptGraph& g, const UniqueId& a, const UniqueId& b) -> bool {
-        // The partition function already did a good job :)
-        return true;
-    };
-
-    auto costFunc = [] (const CommonConceptGraph& g, const UniqueId& a, const UniqueId& b) -> float {
+    auto matchFunc = [] (const CommonConceptGraph& g, const UniqueId& a, const UniqueId& b) -> float {
         // Here we assign some arbitrary costs
         const std::string& labelA(g.access(a).label());
         const std::string& labelB(g.access(b).label());
@@ -66,23 +61,35 @@ int main(void)
         return resources[labelB] - 1.0f;
     };
 
-    auto mapFunc = [] (const CommonConceptGraph& g, const UniqueId& a, const UniqueId& b) -> void {
+    auto mapFunc = [] (CommonConceptGraph& g, const UniqueId& a, const UniqueId& b) -> void {
         const std::string& labelA(g.access(a).label());
         const std::string& labelB(g.access(b).label());
         if ((labelA == "A") && (labelB == "X"))
             resources["X"] -= 0.1f;
-        if ((labelA == "A") && (labelB == "Y"))
+        else if ((labelA == "A") && (labelB == "Y"))
             resources["Y"] -= 0.2f;
-        if ((labelA == "A") && (labelB == "Z"))
+        else if ((labelA == "A") && (labelB == "Z"))
             resources["Z"] -= 0.3f;
-        if (labelA == "B")
+        else if (labelA == "B")
             resources[labelB] -= 0.1f;
-        if ((labelA == "C") && (labelB == "Y"))
+        else if ((labelA == "C") && (labelB == "Y"))
             resources["Y"] -= 0.5f;
-        resources[labelB] -= 1.0f;
+        else
+            resources[labelB] -= 1.0f;
+        g.factFrom(Hyperedges{a}, Hyperedges{b}, "mappingRelation");
     };
 
-    universe.map(partitionFuncLeft, partitionFuncRight, matchFunc, costFunc, mapFunc);
+    universe.importFrom(universe.map(partitionFuncLeft, partitionFuncRight, matchFunc, mapFunc));
+
+    for (const UniqueId& a : universe.instancesOf("TypeA"))
+    {
+        Hyperedges otherUids(universe.isPointingTo(universe.factsOf("mappingRelation", Hyperedges{a})));
+        for (const UniqueId& b : otherUids)
+        {
+            std::cout << universe.access(a).label() << " -> " << universe.access(b).label() << "\n";
+            std::cout << "Resources left: " << resources[universe.access(b).label()] << "\n";
+        }
+    }
 
     return 0;
 }

@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <iostream>
 
-template<typename PartitionFuncLeft, typename PartitionFuncRight,  typename MatchFunc, typename CostFunc, typename MapFunc > CommonConceptGraph CommonConceptGraph::map (PartitionFuncLeft pl, PartitionFuncRight pr, MatchFunc m, CostFunc c, MapFunc mp) const
+template<typename PartitionFuncLeft, typename PartitionFuncRight,  typename MatchFunc, typename MapFunc > CommonConceptGraph CommonConceptGraph::map (PartitionFuncLeft pl, PartitionFuncRight pr, MatchFunc m, MapFunc mp) const
 {
     CommonConceptGraph result(*this);
 
@@ -23,10 +23,9 @@ template<typename PartitionFuncLeft, typename PartitionFuncRight,  typename Matc
             for (const UniqueId& b : toBeMappedTo)
             {
                 // For each pair, we have to decide if they COULD be mapped
-                if (m(result, a, b))
+                const float costs(m(result, a, b));
+                if (costs >= 0.f)
                 {
-                    // If they COULD be mapped, we have to calculate costs
-                    const float costs(c(result, a, b));
                     //std::cout << "\t\t" << result.read(a).label() << " -> " << result.read(b).label() << ": " << costs << std::endl;
 
                     // Now the mapping and its associated cost has to be inserted into a priority queue
