@@ -7,17 +7,23 @@ template< typename ConceptFilterFunc, typename RelationFilterFunc > Hyperedges C
                     RelationFilterFunc rf,
                     const TraversalDirection dir) const
 {
+    // NOTE: We cannot use Hypergraph::traverse here, because concepts do not point to neighbouring relations (yet?)
+    // That means, that we have C <-R-> C and not C-> R-> C
     Hyperedges result;
     std::set< UniqueId > visited;
     std::queue< UniqueId > toVisit;
+    std::queue< Hyperedges > path;
 
     toVisit.push(rootId);
+    path.push(Hyperedges{rootId});
 
     // Run through queue of unknown edges
     while (!toVisit.empty())
     {
         const UniqueId currentUid(toVisit.front());
         toVisit.pop();
+        Hyperedges currentPath(path.front());
+        path.pop();
 
         if (visited.count(currentUid))
             continue;
@@ -26,7 +32,7 @@ template< typename ConceptFilterFunc, typename RelationFilterFunc > Hyperedges C
         visited.insert(currentUid);
 
         // Insert the hedge iff the ConceptFilterFunc says so
-        if (cf(access(currentUid)))
+        if (cf(*this, currentUid, currentPath))
         {
             // edge matches filter
             result.push_back(currentUid);
@@ -41,10 +47,14 @@ template< typename ConceptFilterFunc, typename RelationFilterFunc > Hyperedges C
                     for (const UniqueId& relUid : relations)
                     {
                         // If RelationFilterFunc returns true, we push all targets of it to the toVisit queue
-                        if (rf(access(currentUid), access(relUid)))
+                        if (rf(*this, currentUid, relUid))
                         {
                             for (const UniqueId& otherUid : access(relUid).pointingTo())
+                            {
+                                currentPath.push_back(otherUid);
+                                path.push(currentPath);
                                 toVisit.push(otherUid);
+                            }
                         }
                     }
                 }
@@ -55,10 +65,14 @@ template< typename ConceptFilterFunc, typename RelationFilterFunc > Hyperedges C
                     for (const UniqueId& relUid : relations)
                     {
                         // If RelationFilterFunc returns true, we push all targets of it to the toVisit queue
-                        if (rf(access(currentUid), access(relUid)))
+                        if (rf(*this, currentUid, relUid))
                         {
                             for (const UniqueId& otherUid : access(relUid).pointingTo())
+                            {
+                                currentPath.push_back(otherUid);
+                                path.push(currentPath);
                                 toVisit.push(otherUid);
+                            }
                         }
                     }
                 }
@@ -68,10 +82,14 @@ template< typename ConceptFilterFunc, typename RelationFilterFunc > Hyperedges C
                     for (const UniqueId& relUid : relations)
                     {
                         // If RelationFilterFunc returns true, we push all sources of it to the toVisit queue
-                        if (rf(access(currentUid), access(relUid)))
+                        if (rf(*this, currentUid, relUid))
                         {
                             for (const UniqueId& otherUid : access(relUid).pointingFrom())
+                            {
+                                currentPath.push_back(otherUid);
+                                path.push(currentPath);
                                 toVisit.push(otherUid);
+                            }
                         }
                     }
                 }

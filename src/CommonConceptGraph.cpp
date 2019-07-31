@@ -322,15 +322,15 @@ Hyperedges CommonConceptGraph::subrelationsOf(const UniqueId superRelId, const s
 {
     // Here we start a traversal from superRelId following every subrelationOf relation
     // First, we define the filter functions for the concepts to be returned
-    auto cf = [&](const Hyperedge& c) -> bool {
-        if (label.empty() || (c.label() == label))
+    auto cf = [&](const Conceptgraph& cg, const UniqueId& c, const Hyperedges& p) -> bool {
+        if (label.empty() || (cg.access(c).label() == label))
             return true;
         return false;
     };
     // Then, we define the function to decide which relations to follow
     // The criterium is, that there exists r <- FACT-OF -> CommonConceptGraph::SubrelOfId
-    auto rf = [&](const Hyperedge& c, const Hyperedge& r) -> bool {
-        Hyperedges toSearch(isPointingTo(relationsFrom(Hyperedges{r.id()}, access(CommonConceptGraph::FactOfId).label())));
+    auto rf = [&](const Conceptgraph& cg, const UniqueId& c, const UniqueId& r) -> bool {
+        Hyperedges toSearch(cg.isPointingTo(cg.relationsFrom(Hyperedges{r}, cg.access(CommonConceptGraph::FactOfId).label())));
         if (std::find(toSearch.begin(), toSearch.end(), CommonConceptGraph::SubrelOfId) != toSearch.end())
             return true;
         return false;
@@ -345,16 +345,16 @@ Hyperedges CommonConceptGraph::transitiveClosure(const UniqueId& rootId, const U
     Hyperedges relationsToFollow(subrelationsOf(relId));
 
     // The filter function is like the one in subrelationsOf
-    auto cf = [&](const Hyperedge& c) -> bool {
-        if (label.empty() || (c.label() == label))
+    auto cf = [&](const Conceptgraph& cg, const UniqueId& c, const Hyperedges& p) -> bool {
+        if (label.empty() || (cg.access(c).label() == label))
             return true;
         return false;
     };
 
     // For the relation filter function, we have to check that
     // r <- FACT-OF -> R where R is element of relationsToFollow
-    auto rf = [&](const Hyperedge& c, const Hyperedge& r) -> bool {
-        Hyperedges toSearch(isPointingTo(relationsFrom(Hyperedges{r.id()}, access(CommonConceptGraph::FactOfId).label())));
+    auto rf = [&](const Conceptgraph& cg, const UniqueId& c, const UniqueId& r) -> bool {
+        Hyperedges toSearch(cg.isPointingTo(cg.relationsFrom(Hyperedges{r}, cg.access(CommonConceptGraph::FactOfId).label())));
         if (intersect(toSearch, relationsToFollow).empty())
             return false;
         return true;

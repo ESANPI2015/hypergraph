@@ -109,10 +109,10 @@ int main(void)
     }
 
     std::cout << "> Make a traversal returning concepts connected by a certain relation\n";
-    auto cf = [](const Hyperedge& c) -> bool { return true; };
-    auto rf = [](const Hyperedge& c, const Hyperedge& r) -> bool {
+    auto cf = [](const Conceptgraph& cg, const UniqueId& c, const Hyperedges& p) -> bool { return true; };
+    auto rf = [](const Conceptgraph& cg, const UniqueId& c, const UniqueId& r) -> bool {
         // For simplicity we just check the label
-        if (r.label() == "R")
+        if (cg.access(r).label() == "R")
             return true;
         return false;
     };

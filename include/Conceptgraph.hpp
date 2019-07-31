@@ -60,10 +60,12 @@ class Conceptgraph : public Hypergraph
             return unite(relationsFrom(ids,label), relationsTo(ids,label));
         }
         /* TRAVERSALS */
+        // NOTE: ConceptFilterFunc signature: bool (const Conceptgraph& cg, const UniqueId& currentConcept, const Hyperedges& pathFromRootToConcept)
+        // NOTE: RelationFilterFunc signature: bool (const Conceptgraph& cg, const UniqueId& currentConcept, const UniqueId& candidateRelation)
         template< typename ConceptFilterFunc, typename RelationFilterFunc > Hyperedges traverse(
                             const UniqueId& rootId,                                 //< Traverse the (sub)graph starting at rootId
-                            ConceptFilterFunc cf,                                   //< visiting a concept OR relation this function should either return true or false. bool (const Hyperedge& c)
-                            RelationFilterFunc rf,                                  //< decide whether to follow a relation or not. bool (const Hyperegde& c, const Hyperedge& r)
+                            ConceptFilterFunc cf,                                   //< visiting a concept OR relation this function should either return true or false.
+                            RelationFilterFunc rf,                                  //< decide whether to follow a relation or not.
                             const TraversalDirection dir=FORWARD) const;
 };
 
