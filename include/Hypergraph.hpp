@@ -77,12 +77,13 @@ class Hypergraph {
         template <typename ResultFilter, typename TraversalFilter> Hyperedges traverse
         ( 
             const UniqueId& rootId,                  // The starting edge
-            ResultFilter f,                         // Unary function bool f(const Hyperedge&)
-            TraversalFilter g,                      // Binary function bool g(const Hyperedge& current, const Hyperedge& next)
+            ResultFilter f,                         // Unary function bool f(const Hypergraph&, const UniqueId&)
+            TraversalFilter g,                      // Binary function bool g(const Hypergraph&, const UniqueId& current, const UniqueId& next)
             const TraversalDirection dir = FORWARD
         ) const;
 
         /* Default matching function */
+        // Note: here we need a reference to the queryHedge (not UniqueId) to access its label and other metrics
         static Hyperedges defaultMatchFunc(const Hypergraph& datagraph, const Hyperedge& queryHedge)
         {
             Hyperedges candidates;

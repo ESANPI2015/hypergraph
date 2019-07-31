@@ -357,7 +357,7 @@ template <typename ResultFilter, typename TraversalFilter> Hyperedges Hypergraph
 
         // Visiting!!!
         visited.insert(currentUid);
-        if (f(access(currentUid)))
+        if (f(*this, currentUid))
         {
             // edge matches filter func
             result.push_back(currentUid);
@@ -384,7 +384,7 @@ template <typename ResultFilter, typename TraversalFilter> Hyperedges Hypergraph
         // Inserting unknowns into queue for further searching
         for (const UniqueId& unknownId : unknowns)
         {
-            if (g(access(currentUid), access(unknownId)))
+            if (g(*this, currentUid, unknownId))
             {
                 // edge matches filter func
                 edges.push(unknownId);
