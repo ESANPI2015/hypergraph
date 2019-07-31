@@ -39,7 +39,7 @@ int main(void)
     std::cout << "> Make a traversal starting at 1" << std::endl;
     testGraph.traverse(
             "1",
-            [](const Hypergraph& hg, const UniqueId& x){ std::cout << hg.access(x) << std::endl; return true; },
+            [](const Hypergraph& hg, const UniqueId& x, const Hyperedges& p){ std::cout << hg.access(x) << std::endl; return true; },
             [](const Hypergraph& hg, const UniqueId& x, const UniqueId&y){ return true; }
          );
 

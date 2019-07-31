@@ -77,7 +77,7 @@ class Hypergraph {
         template <typename ResultFilter, typename TraversalFilter> Hyperedges traverse
         ( 
             const UniqueId& rootId,                  // The starting edge
-            ResultFilter f,                         // Unary function bool f(const Hypergraph&, const UniqueId&)
+            ResultFilter f,                         // Unary function bool f(const Hypergraph& hg, const UniqueId& current, const Hyperedges& path)
             TraversalFilter g,                      // Binary function bool g(const Hypergraph&, const UniqueId& current, const UniqueId& next)
             const TraversalDirection dir = FORWARD
         ) const;

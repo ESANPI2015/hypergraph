@@ -342,22 +342,25 @@ template <typename ResultFilter, typename TraversalFilter> Hyperedges Hypergraph
     Hyperedges result;
     std::set< UniqueId > visited;
     std::queue< UniqueId > edges;
+    std::queue< Hyperedges > path;
 
     edges.push(rootId);
+    path.push(Hyperedges{rootId});
 
     // Run through queue of unknown edges
     while (!edges.empty())
     {
         const UniqueId currentUid(edges.front());
         edges.pop();
-        // NOTE: We do not check the pointer here! We want it to fail if there is inconsistency!!!
+        Hyperedges currentPath(path.front());
+        path.pop();
 
         if (visited.count(currentUid))
             continue;
 
         // Visiting!!!
         visited.insert(currentUid);
-        if (f(*this, currentUid))
+        if (f(*this, currentUid, currentPath))
         {
             // edge matches filter func
             result.push_back(currentUid);
@@ -388,6 +391,8 @@ template <typename ResultFilter, typename TraversalFilter> Hyperedges Hypergraph
             {
                 // edge matches filter func
                 edges.push(unknownId);
+                currentPath.push_back(unknownId);
+                path.push(currentPath);
             }
         }
     }
