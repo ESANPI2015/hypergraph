@@ -103,7 +103,7 @@ class CommonConceptGraph : public Conceptgraph
 
         /*Other common queries using subrelationsOf!*/
         /*NOTE: The traversal direction tells if the basic relation is to be followed in its direction(FORWARD) or against it(INVERSE)*/
-        Hyperedges transitiveClosure(const UniqueId rootId, const UniqueId relId, const std::string& label="", const TraversalDirection dir=FORWARD) const;
+        Hyperedges transitiveClosure(const UniqueId& rootId, const UniqueId& relId, const std::string& label="", const TraversalDirection dir=FORWARD) const;
         Hyperedges subclassesOf(const Hyperedges& ids, const std::string& label="", const TraversalDirection dir=INVERSE) const;      //transitive isA
         Hyperedges partsOf(const Hyperedges& ids, const std::string& label="", const TraversalDirection dir=INVERSE) const;           //transitive partOf
         Hyperedges descendantsOf(const Hyperedges& ancestorIds, const std::string& label="", const TraversalDirection dir=FORWARD) const; //transitive hasA

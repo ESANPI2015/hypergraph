@@ -338,7 +338,7 @@ Hyperedges CommonConceptGraph::subrelationsOf(const UniqueId superRelId, const s
     return Conceptgraph::traverse(superRelId, cf, rf, dir);
 }
 
-Hyperedges CommonConceptGraph::transitiveClosure(const UniqueId rootId, const UniqueId relId, const std::string& label, const TraversalDirection dir) const
+Hyperedges CommonConceptGraph::transitiveClosure(const UniqueId& rootId, const UniqueId& relId, const std::string& label, const TraversalDirection dir) const
 {
     // At first, find all relations we have to consider during traversal:
     // These are all subrelations of relId including relId itself
