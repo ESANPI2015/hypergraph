@@ -58,7 +58,7 @@ class Hypergraph {
         void disconnect(const UniqueId id);                                         // Disconnects edge from all other edges (this means finding all edges which reference the given id)
 
         /*Queries*/
-        unsigned size() const { return _edges.size(); }
+        const unsigned size() const { return _edges.size(); }
         Hyperedges isPointingFrom(const Hyperedges& ids, const std::string& label="") const; // Returns all hyperedges from which each id in ids points, filtered by label
         Hyperedges isPointingTo(const Hyperedges& ids, const std::string& label="") const;   // Returns all hyperedges to which each id in ids points, filtered by label
 
