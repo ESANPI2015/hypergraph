@@ -41,7 +41,8 @@ TEST_CASE("Construct an hypergraph", "[Hypergraph]")
         for (const UniqueId& a : hg.findByLabel())
         {
             REQUIRE(reconstructed.exists(a) == true);
-            // TODO: Check connections
+            REQUIRE(hg.isPointingFrom(Hyperedges{a}) == reconstructed.isPointingFrom(Hyperedges{a}));
+            REQUIRE(hg.isPointingTo(Hyperedges{a}) == reconstructed.isPointingTo(Hyperedges{a}));
         }
     }
 }
