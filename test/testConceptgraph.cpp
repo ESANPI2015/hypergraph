@@ -1,217 +1,26 @@
+#define CATCH_CONFIG_MAIN
+#include "catch.hpp"
 #include "Conceptgraph.hpp"
 #include "HypergraphYAML.hpp"
 
-#ifdef NDEBUG
-#undef NDEBUG
-#endif
-
-#include <fstream>
-#include <iostream>
-#include <cassert>
-
-int main(void)
+TEST_CASE("Construct a conceptual graph", "[Conceptgraph]")
 {
-    std::cout << "*** CONCEPT GRAPH TEST ***" << std::endl;
-
-    Conceptgraph universe;
-
-    std::cout << "> Store empty concept graph using YAML" << std::endl;
-
-    std::ofstream fout;
-    fout.open("emptyCG.yml");
-    if(fout.good()) {
-        fout << YAML::StringFrom(universe) << std::endl;
-    } else {
-        std::cout << "FAILED\n";
-    }
-    fout.close();
-
-    std::cout << "> Create concept" << std::endl;
-    universe.concept("3", "First concept");
-
-    std::cout << "> All concepts" << std::endl;
-    auto concepts = universe.concepts();
-    for (auto conceptId : concepts)
-    {
-        std::cout << conceptId << " " << universe.access(conceptId).label() << std::endl;
-    }
-
-    std::cout << "> Create another concept and check it" << std::endl;
-    universe.concept("4", "Second concept");
-    concepts = universe.concepts("Second concept");
-    assert(concepts.size() > 0);
-
-    std::cout << "> Relate the first and the second concept\n";
-    universe.relate("5", Hyperedges{"3"}, Hyperedges{"4"}, "relatedTo");
-
-    std::cout << "> Create a tree of concepts related by a common relation\n";
-    universe.concept("6", "Root");
-    universe.concept("11","I");
-    universe.concept("12","You");
-    universe.concept("13","It"); 
-    universe.concept("14","Huh?");
-    universe.concept("15", "Plural");
-    universe.concept("20", "We"); 
-    universe.concept("21", "You");
-    universe.concept("22", "They");
-    auto hashedId = universe.concept("Doh?");
-
-    universe.relate("7",  Hyperedges{"6"}, Hyperedges{"11"}, "R");
-    universe.relate("8",  Hyperedges{"6"}, Hyperedges{"12"}, "R");
-    universe.relate("9",  Hyperedges{"6"}, Hyperedges{"13"}, "R");
-    universe.relate("10", Hyperedges{"6"}, Hyperedges{"14"}, "A");
-    universe.relate("16", Hyperedges{"15"}, Hyperedges{"20"}, "R");
-    universe.relate("17", Hyperedges{"15"}, Hyperedges{"21"}, "R");
-    universe.relate("18", Hyperedges{"15"}, Hyperedges{"22"}, "R");
-    universe.relate("19", Hyperedges{"15"}, hashedId, "B");
-    universe.relate("24", Hyperedges{"6"}, Hyperedges{"15"}, "R");
-
-    std::cout << "> All concepts" << std::endl;
-    concepts = universe.concepts();
-    for (auto conceptId : concepts)
-    {
-        std::cout << conceptId << " " << universe.access(conceptId).label() << std::endl;
-    }
-
-    std::cout << "> Store concept graph using YAML" << std::endl;
-
-    fout.open("universe.yml");
-    if(fout.good()) {
-        fout << YAML::StringFrom(universe) << std::endl;
-    } else {
-        std::cout << "FAILED\n";
-    }
-    fout.close();
-
-    std::cout << "> Create new hypergraph from YAML" << std::endl;
-    Hypergraph restoredGraph(YAML::LoadFile("universe.yml").as<Hypergraph>());
-
-    std::cout << "> All edges of restored graph" << std::endl;
-    auto edges = restoredGraph.findByLabel();
-    for (auto edgeId : edges)
-    {
-        std::cout << restoredGraph.access(edgeId) << std::endl;
-    }
-
-    std::cout << "> Make it a concept graph" << std::endl;
-    Conceptgraph universe2(restoredGraph);
-
-    std::cout << "> All concepts" << std::endl;
-    concepts = universe2.concepts();
-    for (auto conceptId : concepts)
-    {
-        std::cout << universe2.access(conceptId) << std::endl;
-        auto relations = universe2.relationsOf(Hyperedges{conceptId});
-        for (auto relId : relations)
-        {
-            std::cout << "\t" << universe2.access(relId) << std::endl;
+    Conceptgraph cg;
+    REQUIRE(cg.exists(Conceptgraph::IsRelationId) == true);
+    REQUIRE(cg.isPointingFrom(Hyperedges{Conceptgraph::IsRelationId}) == Hyperedges{Conceptgraph::IsConceptId});
+    REQUIRE(cg.concept("1", "My first concept") == Hyperedges{"1"});
+    REQUIRE(cg.concept("2", "My second concept") == Hyperedges{"2"});
+    REQUIRE(cg.concepts() == Hyperedges{"1", "2"});
+    REQUIRE(cg.relate("R", Hyperedges{"1"}, Hyperedges{"2"}, "relatedTo") == Hyperedges{"R"});
+    REQUIRE(intersect(cg.relationsFrom(Hyperedges{"1"}), Hyperedges{"R"}) == Hyperedges{"R"});
+    REQUIRE(cg.isPointingTo(cg.relationsFrom(Hyperedges{"1"})) == Hyperedges{"2"});
+    REQUIRE(cg.traverse(
+        "1",
+        [](const Conceptgraph& cg, const UniqueId& c, const Hyperedges& p) -> bool { return true; },
+        [](const Conceptgraph& cg, const UniqueId& c, const UniqueId& r) -> bool {
+            if (cg.access(r).label() == "relatedTo")
+                return true;
+            return false;
         }
-    }
-
-    std::cout << "> Make a traversal returning concepts connected by a certain relation\n";
-    auto cf = [](const Conceptgraph& cg, const UniqueId& c, const Hyperedges& p) -> bool { return true; };
-    auto rf = [](const Conceptgraph& cg, const UniqueId& c, const UniqueId& r) -> bool {
-        // For simplicity we just check the label
-        if (cg.access(r).label() == "R")
-            return true;
-        return false;
-    };
-    concepts = universe2.traverse(*universe2.concepts("Root").begin(), cf, rf);
-    for (auto conceptId : concepts)
-    {
-        std::cout << conceptId << " " << universe2.access(conceptId).label() << std::endl;
-        auto relations = universe2.relationsOf(Hyperedges{conceptId});
-        for (auto relId : relations)
-        {
-            std::cout << "\t" << relId << " " << universe2.access(relId).label() << std::endl;
-        }
-    }
-
-    std::cout << "> Create another concept graph for inexact pattern matching\n";
-    Conceptgraph query;
-    query.relate("A", query.concept("Root"), query.concept("*",""), "A");
-    concepts = query.Hypergraph::findByLabel();
-    for (auto conceptId : concepts)
-    {
-        std::cout << "\t" << query.access(conceptId) << std::endl;
-    }
-
-    fout.open("query.yml");
-    if(fout.good()) {
-        fout << YAML::StringFrom(query) << std::endl;
-    } else {
-        std::cout << "FAILED\n";
-    }
-    fout.close();
-
-    std::cout << "> Try to find a match of the query graph in the data graph\n";
-    std::stack< Mapping > searchSpace;
-    Mapping mapping = universe2.match(query, searchSpace, Hypergraph::defaultMatchFunc);
-    for (auto it : mapping)
-    {
-        std::cout << "\t" << query.access(it.first) << " -> " << universe2.access(it.second) << std::endl;
-    }
-
-    std::cout << "> Create another concept graph which serves as a replacement for the matched subgraph\n";
-    Conceptgraph replacement;
-    replacement.relate("A^-1", replacement.concept("**",""), replacement.concept("Root"), "A^-1");
-    concepts = replacement.Hypergraph::findByLabel();
-    for (auto conceptId : concepts)
-    {
-        std::cout << "\t" << replacement.access(conceptId) << std::endl;
-    }
-    fout.open("replacement.yml");
-    if(fout.good()) {
-        fout << YAML::StringFrom(replacement) << std::endl;
-    } else {
-        std::cout << "FAILED\n";
-    }
-    fout.close();
-
-    std::cout << "> Define the mapping between query and replacement\n";
-    Mapping repl(fromHyperedges(query.Hypergraph::findByLabel()));
-    repl.erase("*");
-    repl.erase("A");
-    repl.insert({"*", "**"});
-    repl.insert({"A", "A^-1"});
-    for (auto it : repl)
-    {
-        std::cout << "\t" << query.access(it.first) << " -> " << replacement.access(it.second) << std::endl;
-    }
-
-    std::cout << "> Rewrite (using previous search space)\n";
-    searchSpace.push(mapping);
-    Hypergraph rewritten = universe2.rewrite(query, replacement, repl, searchSpace, Hypergraph::defaultMatchFunc);
-    std::cout << rewritten.findByLabel() << std::endl;
-
-    std::cout << "> All edges of rewritten graph" << std::endl;
-    edges = rewritten.findByLabel();
-    for (auto edgeId : edges)
-    {
-        std::cout << rewritten.access(edgeId) << std::endl;
-    }
-
-    std::cout << "> All relations" << std::endl;
-    Conceptgraph fin(rewritten);
-    Hyperedges allRels(fin.relations());
-    for (UniqueId relId : allRels)
-    {
-        std::cout << fin.access(relId) << std::endl;
-    }
-
-    std::cout << "> All concepts" << std::endl;
-    concepts = fin.concepts();
-    for (auto conceptId : concepts)
-    {
-        std::cout << fin.access(conceptId) << std::endl;
-        auto relations = fin.relationsOf(Hyperedges{conceptId});
-        for (auto relId : relations)
-        {
-            std::cout << "\t" << fin.access(relId) << std::endl;
-        }
-    }
-
-    std::cout << "*** TESTS DONE ***" << std::endl;
-
-    return 0;
+    ) == Hyperedges{"1", "2"});
 }
