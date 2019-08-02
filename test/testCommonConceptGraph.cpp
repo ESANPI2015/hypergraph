@@ -25,7 +25,7 @@ TEST_CASE("Construct a conceptual graph with fundamental relations", "[CommonCon
     REQUIRE(ccg.instantiateFrom("PERSON", "Jesus").size() == 1);
     REQUIRE(ccg.hasA(ccg.instancesOf(Hyperedges{"PERSON"}, "Mary"), ccg.instancesOf(Hyperedges{"PERSON"}, "Jesus")).size() == 1);
     REQUIRE(ccg.childrenOf(ccg.instancesOf(Hyperedges{"PERSON"}, "Mary"), "Jesus").size() == 1);
-    // subrelations
+    // subrelations-facts and dependent queries
     ccg.relate("LOVES", Hyperedges{"PERSON"}, Hyperedges{"PERSON"}, "loves");
     ccg.relate("LIKES", Hyperedges{"PERSON"}, Hyperedges{"PERSON"}, "likes");
     ccg.subrelationOf("LOVES", "LIKES"); // if x loves y then x likes y
@@ -33,102 +33,82 @@ TEST_CASE("Construct a conceptual graph with fundamental relations", "[CommonCon
     ccg.factFrom(ccg.instancesOf(Hyperedges{"PERSON"}, "Mary"), ccg.instancesOf(Hyperedges{"PERSON"}, "Jesus"), "LIKES");
     REQUIRE(ccg.relatedTo(ccg.instancesOf(Hyperedges{"PERSON"}, "Mary"), Hyperedges{"LOVES"}).size() == 1);
     REQUIRE(ccg.relatedTo(ccg.instancesOf(Hyperedges{"PERSON"}, "Mary"), Hyperedges{"LIKES"}).size() == 2);
-    // TODO: test mapping
+    // TODO: Part-Whole
+    // TODO: Connectivity
+    // TODO: Test mapping
 }
 
-//int main(void)
-//{
-//    std::cout << "*** COMMON CONCEPT GRAPH TEST ***" << std::endl;
-//
-//    CommonConceptGraph universe;
-//
-//    std::cout << "> Store empty common concept graph\n";
-//    std::ofstream fout;
-//    fout.open("emptyCCG.yml");
-//    if(fout.good()) {
-//        fout << YAML::StringFrom(universe) << std::endl;
-//    } else {
-//        std::cout << "FAILED\n";
-//    }
-//    fout.close();
-//
-//    std::cout << "> Create a common concept graph\n";
-//
-//    /* Create classes */
-//    universe.concept("PERSON", "Person");
-//    universe.concept("OBJECT", "Object");
-//    universe.concept("CAR", "Car");
-//    universe.isA(universe.concepts("Person"), universe.concepts("Object"));
-//    universe.isA(universe.concepts("Car"), universe.concepts("Object"));
-//
-//    /* Create relation classes */
-//    universe.relate(universe.concepts("Person"), universe.concepts("Car"), "drive");
-//    universe.relate(universe.concepts("Person"), universe.concepts("Person"), "like");
-//    Hyperedges loveRelClassId = universe.relate(universe.concepts("Person"), universe.concepts("Person"), "love");
-//    loveRelClassId = subtract(loveRelClassId, universe.concepts("Person"));
-//    universe.subrelationOf(universe.relations("love"), universe.relations("like")); // If x loves y, x also likes y but not vice versa
-//
-//    /* Create some persons and cars */
-//    std::cout << universe.instantiateFrom(universe.concepts("Person"), "John") << "\n";
-//    universe.instantiateFrom(universe.concepts("Person"), "Mary");
-//    universe.instantiateFrom(universe.concepts("Person"), "Alice");
-//    universe.instantiateFrom(universe.concepts("Person"), "Bob");
-//    universe.instantiateFrom(universe.concepts("Car"), "BMW");
-//    universe.instantiateFrom(universe.concepts("Car"), "VW T4");
-//    universe.instantiateFrom(universe.concepts("Car"), "Fiat Punto");
-//
-//    /* Relate some people */
-//    std::cout << universe.concepts("Person") << "\n";
-//    std::cout << universe.instancesOf(universe.concepts("Person"), "Mary") << "\n";
-//    std::cout << universe.instancesOf(universe.concepts("Person"), "John") << "\n";
-//    std::cout << universe.factFrom(universe.instancesOf(universe.concepts("Person"), "Mary"), universe.instancesOf(universe.concepts("Person"), "John"), loveRelClassId) << "\n";
-//    universe.factFrom(universe.instancesOf(universe.concepts("Person"), "Alice"), universe.instancesOf(universe.concepts("Person"), "John"), loveRelClassId);
-//
-//    std::cout << "> Create a query for a person loving another person\n";
-//    /* Create a query */
-//    CommonConceptGraph queryGraph;
-//    auto personA = queryGraph.concept("*","");
-//    auto personB = queryGraph.concept("**","");
-//    queryGraph.concept("personas", "Person");
-//    queryGraph.instanceOf(personA, queryGraph.concepts("Person"));
-//    queryGraph.instanceOf(personB, queryGraph.concepts("Person"));
-//    queryGraph.relate(queryGraph.concepts("Person"), queryGraph.concepts("Person"), "love");
-//    queryGraph.factFrom(personA, personB, queryGraph.relations("love"));
-//    /* Find query in unsiverse*/
-//    std::stack< Mapping > searchSpace;
-//    Mapping mapping = universe.match(queryGraph, searchSpace, Hypergraph::defaultMatchFunc);
-//    for (const auto &pair : mapping)
-//    {
-//        std::cout << queryGraph.access(pair.first) << " -> " << universe.access(pair.second) << "\n";
-//    }
-//
-//    std::cout << "> Find all matches for some person loving another person\n";
-//    searchSpace = std::stack< Mapping >();
-//    while ((mapping = universe.match(queryGraph, searchSpace, Hypergraph::defaultMatchFunc)).size())
-//    {
-//        std::cout << "\n";
-//        for (const auto &pair : mapping)
-//        {
-//            std::cout << queryGraph.access(pair.first) << " -> " << universe.access(pair.second) << "\n";
-//        }
-//    }
-//
-//    //std::cout << "> Create a replacement for a person loving another person\n";
-//    //CommonConceptGraph replacementGraph(queryGraph);
-//    //replacementGraph.relate(replacementGraph.concepts("Person"), replacementGraph.concepts("Person"), "like");
-//    //replacementGraph.factFrom(personA, personB, replacementGraph.relations("like"));
-//    // TODO: The replacement graph is now the query graph PLUS some additional nodes! These have to be added although they are not in the replacement Mapping
-//    // This has to be added somehow to the rewrite algorithm
-//
-//    fout.open("commonUniverse.yml");
-//    if(fout.good()) {
-//        fout << YAML::StringFrom(universe) << std::endl;
-//    } else {
-//        std::cout << "FAILED\n";
-//    }
-//    fout.close();
-//
-//    std::cout << "*** TESTS DONE ***" << std::endl;
-//
-//    return 0;
-//}
+TEST_CASE("Map some concepts to others constructing a new conceptual graph", "[Mapping]")
+{
+    CommonConceptGraph universe;
+
+    // At first we need two superclasses
+    universe.concept("TypeA", "TypeA");
+    universe.concept("TypeB", "TypeB");
+
+    // Then we need a mapping relation
+    universe.relate("mappingRelation", universe.concepts("TypeA"), universe.concepts("TypeB"), "mappedTo");
+
+    // Create some individuals of the two classes
+    universe.instantiateFrom(universe.concepts("TypeA"), "A");
+    universe.instantiateFrom(universe.concepts("TypeA"), "B");
+    universe.instantiateFrom(universe.concepts("TypeA"), "C");
+
+    universe.instantiateFrom(universe.concepts("TypeB"), "X");
+    universe.instantiateFrom(universe.concepts("TypeB"), "Y");
+    universe.instantiateFrom(universe.concepts("TypeB"), "Z");
+
+    // Each B shall have resources of 1.f initially
+    std::map< std::string, float > resources = {{"X", 1.f}, {"Y", 1.f}, {"Z", 1.f}};
+
+    // Define mapping functions
+    auto partitionFuncLeft = [] (const CommonConceptGraph& g) -> Hyperedges {
+        return g.instancesOf("TypeA");
+    };
+    auto partitionFuncRight = [] (const CommonConceptGraph& g) -> Hyperedges {
+        return g.instancesOf("TypeB");
+    };
+
+    auto matchFunc = [&] (const CommonConceptGraph& g, const UniqueId& a, const UniqueId& b) -> float {
+        // Here we assign some arbitrary costs
+        const std::string& labelA(g.access(a).label());
+        const std::string& labelB(g.access(b).label());
+        if ((labelA == "A") && (labelB == "X"))
+            return resources["X"] - 0.1f;
+        if ((labelA == "A") && (labelB == "Y"))
+            return resources["Y"] - 0.2f;
+        if ((labelA == "A") && (labelB == "Z"))
+            return resources["Z"] - 0.3f;
+        if (labelA == "B")
+            return resources[labelB] - 0.1f;
+        if ((labelA == "C") && (labelB == "Y"))
+            return resources["Y"] - 0.5f;
+        return resources[labelB] - 1.0f;
+    };
+
+    auto mapFunc = [&] (CommonConceptGraph& g, const UniqueId& a, const UniqueId& b) -> void {
+        const std::string& labelA(g.access(a).label());
+        const std::string& labelB(g.access(b).label());
+        if ((labelA == "A") && (labelB == "X"))
+            resources["X"] -= 0.1f;
+        else if ((labelA == "A") && (labelB == "Y"))
+            resources["Y"] -= 0.2f;
+        else if ((labelA == "A") && (labelB == "Z"))
+            resources["Z"] -= 0.3f;
+        else if (labelA == "B")
+            resources[labelB] -= 0.1f;
+        else if ((labelA == "C") && (labelB == "Y"))
+            resources["Y"] -= 0.5f;
+        else
+            resources[labelB] -= 1.0f;
+        g.factFrom(Hyperedges{a}, Hyperedges{b}, "mappingRelation");
+    };
+
+    universe.importFrom(universe.map(partitionFuncLeft, partitionFuncRight, matchFunc, mapFunc));
+
+    // Now check if each (A,B,C) has been mapped to one of (X,Y,Z)
+    for (const UniqueId& src : universe.instancesOf(Hyperedges{"TypeA"}))
+    {
+        REQUIRE(universe.relatedTo(Hyperedges{src}, Hyperedges{"mappingRelation"}).size() == 1);
+    }
+}

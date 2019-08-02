@@ -20,12 +20,6 @@ install(TARGETS testCommonConceptGraph RUNTIME DESTINATION bin)
 add_test(testCommonConceptGraph testCommonConceptGraph)
 add_custom_command(TARGET testCommonConceptGraph POST_BUILD COMMAND testCommonConceptGraph)
 
-add_executable(testMap testMap.cpp)
-target_link_libraries(testMap ${PROJECT_NAME})
-install(TARGETS testMap RUNTIME DESTINATION bin)
-add_test(testMap testMap)
-add_custom_command(TARGET testMap POST_BUILD COMMAND testMap)
-
 add_executable(testHypergraphDB testHypergraphDB.cpp)
 target_link_libraries(testHypergraphDB ${PROJECT_NAME})
 install(TARGETS testHypergraphDB RUNTIME DESTINATION bin)

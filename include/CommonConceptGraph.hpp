@@ -102,9 +102,6 @@ class CommonConceptGraph : public Conceptgraph
         Hyperedges relatedTo(const Hyperedges& conceptUids, const Hyperedges& relationUids, const std::string& label="", const TraversalDirection dir=FORWARD) const; // non-transitive
         Hyperedges transitivelyRelatedTo(const Hyperedges& conceptUids, const Hyperedges& relationUids, const std::string& label="", const TraversalDirection dir=FORWARD) const; // transitive
 
-        // TODO: We need traverse(const UniqueId& rootId, const Hyperedges& classUids, const Hyperedges& superRelUids, const TraversalDirection dir)
-        // This allows us to traverse by looking to isA/instanceOf, subrelOf/factOf relationships?
-
         /*Derived queries using either relatedTo or transitivelyRelatedTo*/
         /*NOTE: The traversal direction tells if the basic relation is to be followed in its direction(FORWARD) or against it(INVERSE)*/
         Hyperedges subclassesOf(const Hyperedges& ids, const std::string& label="", const TraversalDirection dir=INVERSE) const;      //transitive isA
