@@ -338,61 +338,6 @@ Hyperedges CommonConceptGraph::subrelationsOf(const UniqueId superRelId, const s
     return Conceptgraph::traverse(superRelId, cf, rf, dir);
 }
 
-Hyperedges CommonConceptGraph::transitiveClosure(const UniqueId& rootId, const UniqueId& relId, const std::string& label, const TraversalDirection dir) const
-{
-    // At first, find all relations we have to consider during traversal:
-    // These are all subrelations of relId including relId itself
-    Hyperedges relationsToFollow(subrelationsOf(relId));
-
-    // The filter function is like the one in subrelationsOf
-    auto cf = [&](const Conceptgraph& cg, const UniqueId& c, const Hyperedges& p) -> bool {
-        if (label.empty() || (cg.access(c).label() == label))
-            return true;
-        return false;
-    };
-
-    // For the relation filter function, we have to check that
-    // r <- FACT-OF -> R where R is element of relationsToFollow
-    auto rf = [&](const Conceptgraph& cg, const UniqueId& c, const UniqueId& r) -> bool {
-        Hyperedges toSearch(cg.isPointingTo(cg.relationsFrom(Hyperedges{r}, cg.access(CommonConceptGraph::FactOfId).label())));
-        if (intersect(toSearch, relationsToFollow).empty())
-            return false;
-        return true;
-    };
-
-    return Conceptgraph::traverse(rootId, cf, rf, dir);
-}
-
-Hyperedges CommonConceptGraph::subclassesOf(const Hyperedges& superIds, const std::string& label, const TraversalDirection dir) const
-{
-    Hyperedges result;
-    for (UniqueId id : superIds)
-    {
-        result = unite(result, transitiveClosure(id, CommonConceptGraph::IsAId, label, dir));
-    }
-    return result;
-}
-
-Hyperedges CommonConceptGraph::partsOf(const Hyperedges& wholeIds, const std::string& label, const TraversalDirection dir) const
-{
-    Hyperedges result;
-    for (UniqueId id : wholeIds)
-    {
-        result = unite(result, transitiveClosure(id, CommonConceptGraph::PartOfId, label, dir));
-    }
-    return result;
-}
-
-Hyperedges CommonConceptGraph::descendantsOf(const Hyperedges& ancestorIds, const std::string& label, const TraversalDirection dir) const
-{
-    Hyperedges result;
-    for (UniqueId id : ancestorIds)
-    {
-        result = unite(result, transitiveClosure(id, CommonConceptGraph::HasAId, label, dir));
-    }
-    return result;
-}
-
 Hyperedges CommonConceptGraph::directSubrelationsOf(const Hyperedges& ids, const std::string& label, const TraversalDirection dir) const
 {
     Hyperedges result;
@@ -434,217 +379,99 @@ Hyperedges CommonConceptGraph::directSubrelationsOf(const Hyperedges& ids, const
     return result;
 }
 
-Hyperedges CommonConceptGraph::directSubclassesOf(const Hyperedges& ids, const std::string& label, const TraversalDirection dir) const
+Hyperedges CommonConceptGraph::relatedTo(const Hyperedges& conceptUids, const Hyperedges& relationUids, const std::string& label, const TraversalDirection dir) const
 {
     Hyperedges result;
-    // Get all subrelationsOf IS-A
-    Hyperedges subRels(subrelationsOf(CommonConceptGraph::IsAId));
-    // Get all factsOf these subrelations
-    Hyperedges facts(factsOf(subRels));
+    // For empty uids, return empty result
+    if (conceptUids.empty())
+        return result;
 
+    Hyperedges subRelUids(subrelationsOf(relationUids));
+    Hyperedges factUids;
     switch (dir)
     {
-        case FORWARD:
-        {
-            // Get all relationsFrom id
-            Hyperedges relsFromSubs = Conceptgraph::relationsFrom(ids);
-            // Contains all (id <-- factFromSubRelOfIsA --> X) relations
-            Hyperedges relevantRels = intersect(relsFromSubs, facts);
-            // Get all these X matching the label
-            result = unite(result, Hypergraph::isPointingTo(relevantRels, label));
-        }
-        break;
-        case BOTH:
-        {
-            // Get all relationsFrom id
-            Hyperedges relsFromSubs = Conceptgraph::relationsFrom(ids);
-            // Contains all (id <-- factFromSubRelOfIsA --> X) relations
-            Hyperedges relevantRels = intersect(relsFromSubs, facts);
-            // Get all these X matching the label
-            result = unite(result, Hypergraph::isPointingTo(relevantRels, label));
-        }
         case INVERSE:
-        {
-            // Get all relationsTo id
-            Hyperedges relsToSupers = Conceptgraph::relationsTo(ids);
-            // Contains all (X <-- factFromSubRelOfIsA --> id) relations
-            Hyperedges relevantRels = intersect(relsToSupers, facts);
-            // Get all these X matching the label
-            result = unite(result, Hypergraph::isPointingFrom(relevantRels, label));
-        }
-        break;
+            factUids = unite(factUids, factsOf(subRelUids, Hyperedges(), conceptUids));
+            result = unite(result, isPointingFrom(factUids, label));
+            break;
+        case BOTH:
+            factUids = unite(factUids, factsOf(subRelUids, Hyperedges(), conceptUids));
+            result = unite(result, isPointingFrom(factUids, label));
+        case FORWARD:
+            factUids = unite(factUids, factsOf(subRelUids, conceptUids, Hyperedges()));
+            result = unite(result, isPointingTo(factUids, label));
+            break;
     }
     return result;
+}
+
+Hyperedges CommonConceptGraph::transitivelyRelatedTo(const Hyperedges& conceptUids, const Hyperedges& relationUids, const std::string& label, const TraversalDirection dir) const
+{
+    // At first, find all relations we have to consider during traversal:
+    // These are all subrelations of relId including relId itself
+    Hyperedges relationsToFollow(subrelationsOf(relationUids));
+
+    // The filter function is like the one in subrelationsOf
+    auto cf = [&](const Conceptgraph& cg, const UniqueId& c, const Hyperedges& p) -> bool {
+        if (label.empty() || (cg.access(c).label() == label))
+            return true;
+        return false;
+    };
+
+    // For the relation filter function, we have to check that
+    // r <- FACT-OF -> R where R is element of relationsToFollow
+    auto rf = [&](const Conceptgraph& cg, const UniqueId& c, const UniqueId& r) -> bool {
+        Hyperedges toSearch(cg.isPointingTo(cg.relationsFrom(Hyperedges{r}, cg.access(CommonConceptGraph::FactOfId).label())));
+        if (intersect(toSearch, relationsToFollow).empty())
+            return false;
+        return true;
+    };
+
+    // For each given concept, start a graph traversal with the defined filter functions
+    Hyperedges result;
+    for (const UniqueId& c : conceptUids)
+    {
+        result = unite(result, Conceptgraph::traverse(c, cf, rf, dir));
+    }
+    return result;
+}
+
+Hyperedges CommonConceptGraph::subclassesOf(const Hyperedges& superIds, const std::string& label, const TraversalDirection dir) const
+{
+    return transitivelyRelatedTo(superIds, Hyperedges{CommonConceptGraph::IsAId}, label, dir);
+}
+
+Hyperedges CommonConceptGraph::partsOf(const Hyperedges& wholeIds, const std::string& label, const TraversalDirection dir) const
+{
+    return transitivelyRelatedTo(wholeIds, Hyperedges{CommonConceptGraph::PartOfId}, label, dir);
+}
+
+Hyperedges CommonConceptGraph::descendantsOf(const Hyperedges& ancestorIds, const std::string& label, const TraversalDirection dir) const
+{
+    return transitivelyRelatedTo(ancestorIds, Hyperedges{CommonConceptGraph::HasAId}, label, dir);
+}
+
+Hyperedges CommonConceptGraph::directSubclassesOf(const Hyperedges& ids, const std::string& label, const TraversalDirection dir) const
+{
+    return relatedTo(ids, Hyperedges{CommonConceptGraph::IsAId}, label, dir);
 }
 
 Hyperedges CommonConceptGraph::instancesOf(const Hyperedges& ids, const std::string& label, const TraversalDirection dir) const
 {
-    Hyperedges result;
-    // Get all subrelationsOf INSTANCE-OF
-    Hyperedges subRels(subrelationsOf(CommonConceptGraph::InstanceOfId));
-    // Get all factsOf these subrelations
-    Hyperedges facts(factsOf(subRels));
-
-    switch (dir)
-    {
-        case FORWARD:
-        {
-            // Get all relationsFrom id
-            Hyperedges relsFromIndividuals = Conceptgraph::relationsFrom(ids);
-            // Contains all (id <-- factFromSubRelOfInstanceOf --> X) relations
-            Hyperedges relevantRels = intersect(relsFromIndividuals, facts);
-            // Get all these X matching the label
-            result = unite(result, Hypergraph::isPointingTo(relevantRels, label));
-        }
-        break;
-        case BOTH:
-        {
-            // Get all relationsFrom id
-            Hyperedges relsFromIndividuals = Conceptgraph::relationsFrom(ids);
-            // Contains all (id <-- factFromSubRelOfInstanceOf --> X) relations
-            Hyperedges relevantRels = intersect(relsFromIndividuals, facts);
-            // Get all these X matching the label
-            result = unite(result, Hypergraph::isPointingTo(relevantRels, label));
-        }
-        case INVERSE:
-        {
-            // Get all relationsTo id
-            Hyperedges relsToSupers = Conceptgraph::relationsTo(ids);
-            // Contains all (X <-- factFromSubRelOfInstanceOf --> id) relations
-            Hyperedges relevantRels = intersect(relsToSupers, facts);
-            // Get all these X matching the label
-            result = unite(result, Hypergraph::isPointingFrom(relevantRels, label));
-        }
-        break;
-    }
-    return result;
+    return relatedTo(ids, Hyperedges{CommonConceptGraph::InstanceOfId}, label, dir);
 }
 
 Hyperedges CommonConceptGraph::componentsOf(const Hyperedges& ids, const std::string& label, const TraversalDirection dir) const
 {
-    Hyperedges result;
-    // Get all subrelationsOf partOf
-    Hyperedges subRels(subrelationsOf(CommonConceptGraph::PartOfId));
-    // Get all factsOf these subrelations
-    Hyperedges facts(factsOf(subRels));
-
-    switch (dir)
-    {
-        case FORWARD:
-        {
-            // Get all relationsFrom id
-            Hyperedges relsFromParts = Conceptgraph::relationsFrom(ids);
-            // Contains all (id <-- factFromSubRelOfPartOf --> X) relations
-            Hyperedges relevantRels = intersect(relsFromParts, facts);
-            // Get all these X matching the label
-            result = unite(result, Hypergraph::isPointingTo(relevantRels, label));
-        }
-        break;
-        case BOTH:
-        {
-            // Get all relationsFrom id
-            Hyperedges relsFromParts = Conceptgraph::relationsFrom(ids);
-            // Contains all (id <-- factFromSubRelOfPartOf --> X) relations
-            Hyperedges relevantRels = intersect(relsFromParts, facts);
-            // Get all these X matching the label
-            result = unite(result, Hypergraph::isPointingTo(relevantRels, label));
-        }
-        case INVERSE:
-        {
-            // Get all relationsTo id
-            Hyperedges relsToWholes = Conceptgraph::relationsTo(ids);
-            // Contains all (X <-- factFromSubRelOfPartOf --> id) relations
-            Hyperedges relevantRels = intersect(relsToWholes, facts);
-            // Get all these X matching the label
-            result = unite(result, Hypergraph::isPointingFrom(relevantRels, label));
-        }
-        break;
-    }
-    return result;
+    return relatedTo(ids, Hyperedges{CommonConceptGraph::PartOfId}, label, dir);
 }
 
 Hyperedges CommonConceptGraph::childrenOf(const Hyperedges& ids, const std::string& label, const TraversalDirection dir) const
 {
-    Hyperedges result;
-    // Get all subrelationsOf HAS-A
-    Hyperedges subRels(subrelationsOf(CommonConceptGraph::HasAId));
-    // Get all factsOf these subrelations
-    Hyperedges facts(factsOf(subRels));
-
-    switch (dir)
-    {
-        case FORWARD:
-        {
-            // Get all relationsFrom ids
-            Hyperedges relsFromParents = Conceptgraph::relationsFrom(ids);
-            // Contains all (id <-- factFromSubRelOfHasA --> X) relations
-            Hyperedges relevantRels = intersect(relsFromParents, facts);
-            // Get all these X matching the label
-            result = unite(result, Hypergraph::isPointingTo(relevantRels, label));
-        }
-        break;
-        case BOTH:
-        {
-            // Get all relationsFrom ids
-            Hyperedges relsFromParents = Conceptgraph::relationsFrom(ids);
-            // Contains all (id <-- factFromSubRelOfHasA --> X) relations
-            Hyperedges relevantRels = intersect(relsFromParents, facts);
-            // Get all these X matching the label
-            result = unite(result, Hypergraph::isPointingTo(relevantRels, label));
-        }
-        case INVERSE:
-        {
-            // Get all relationsTo id
-            Hyperedges relsToParents = Conceptgraph::relationsTo(ids);
-            // Contains all (X <-- factFromSubRelOfHasA --> id) relations
-            Hyperedges relevantRels = intersect(relsToParents, facts);
-            // Get all these X matching the label
-            result = unite(result, Hypergraph::isPointingFrom(relevantRels, label));
-        }
-        break;
-    }
-    return result;
+    return relatedTo(ids, Hyperedges{CommonConceptGraph::HasAId}, label, dir);
 }
 
 Hyperedges CommonConceptGraph::endpointsOf(const Hyperedges& ids, const std::string& label, const TraversalDirection dir) const
 {
-    Hyperedges result;
-    // Get all subrelationsOf CONNECTS
-    Hyperedges subRels(subrelationsOf(CommonConceptGraph::ConnectsId));
-    // Get all factsOf these subrelations
-    Hyperedges facts(factsOf(subRels));
-
-    switch (dir)
-    {
-        case FORWARD:
-        {
-            // Get all relationsFrom ids
-            Hyperedges relsFromConnectors = Conceptgraph::relationsFrom(ids);
-            // Contains all (id <-- factFromSubRelOfHasA --> X) relations
-            Hyperedges relevantRels = intersect(relsFromConnectors, facts);
-            // Get all these X matching the label
-            result = unite(result, Hypergraph::isPointingTo(relevantRels, label));
-        }
-        break;
-        case BOTH:
-        {
-            // Get all relationsFrom ids
-            Hyperedges relsFromConnectors = Conceptgraph::relationsFrom(ids);
-            // Contains all (id <-- factFromSubRelOfHasA --> X) relations
-            Hyperedges relevantRels = intersect(relsFromConnectors, facts);
-            // Get all these X matching the label
-            result = unite(result, Hypergraph::isPointingTo(relevantRels, label));
-        }
-        case INVERSE:
-        {
-            // Get all relationsTo id
-            Hyperedges relsToConnectors = Conceptgraph::relationsTo(ids);
-            // Contains all (X <-- factFromSubRelOfHasA --> id) relations
-            Hyperedges relevantRels = intersect(relsToConnectors, facts);
-            // Get all these X matching the label
-            result = unite(result, Hypergraph::isPointingFrom(relevantRels, label));
-        }
-        break;
-    }
-    return result;
+    return relatedTo(ids, Hyperedges{CommonConceptGraph::ConnectsId}, label, dir);
 }
