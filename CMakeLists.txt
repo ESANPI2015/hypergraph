@@ -1,5 +1,15 @@
 cmake_minimum_required(VERSION 3.2)
 project(hypergraph)
+
+# Use a .in file to get a correct installation of yaml-cpp
+configure_file(CMakeLists.yaml-cpp.txt.in ext/yaml-cpp/CMakeLists.txt)
+execute_process(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/ext/yaml-cpp" )
+execute_process(COMMAND "${CMAKE_COMMAND}" --build .
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/ext/yaml-cpp" )
+add_subdirectory("${CMAKE_BINARY_DIR}/yaml-cpp-src"
+                 "${CMAKE_BINARY_DIR}/yaml-cpp-build")
+
 set(CMAKE_CXX_STANDARD 11)
 include_directories(include)
 add_subdirectory(src)
