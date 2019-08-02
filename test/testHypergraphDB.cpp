@@ -1,45 +1,36 @@
+#define CATCH_CONFIG_MAIN
+#include "catch.hpp"
 #include "CommonConceptGraph.hpp"
 #include "HypergraphDB.hpp"
 #include "HypergraphYAML.hpp"
 
-#ifdef NDEBUG
-#undef NDEBUG
-#endif
-
-#include <fstream>
-#include <iostream>
-#include <cassert>
-
-int main(void)
+TEST_CASE("Create and update a small, local HypergraphDB", "[HypergraphDB]")
 {
-    std::cout << "*** HYPERGRAPH DB TEST ***" << std::endl;
-
-    std::cout << "> Create DB\n";
     HypergraphDB myDB;
 
-    std::cout << "> Create common concept graph\n";
     CommonConceptGraph universe;
     universe.concept("PERSON", "Person");
-    universe.instantiateFrom("PERSON", "Moritz Schilling");
-    universe.instantiateFrom("PERSON", "and his colleague");
+    universe.relate("WORKS-WITH", Hyperedges{"PERSON"}, Hyperedges{"PERSON"}, "works-with");
+    universe.instantiateFrom("PERSON", "Moritz");
+    universe.instantiateFrom("PERSON", "his colleague");
+    universe.factFrom(universe.instancesOf(Hyperedges{"PERSON"}, "Moritz"), universe.instancesOf(Hyperedges{"PERSON"}, "his colleague"), "WORKS-WITH");
+    REQUIRE(universe.relatedTo(universe.instancesOf(Hyperedges{"PERSON"}), Hyperedges{"WORKS-WITH"}).size() == 1);
 
-    std::cout << "> Commit to DB\n";
-    myDB.commit("myUniverse", universe);
-
-    std::cout << "> Open from DB\n";
+    REQUIRE(myDB.commit("myUniverse", universe) == true);
     CommonConceptGraph otherUniverse(myDB.open("myUniverse"));
-
-    std::cout << "> Modify graph\n";
-    Hyperedges colleagues(otherUniverse.concepts("and his colleague"));
-    for (UniqueId colleague : colleagues)
+    // Check that graphs are equal
+    for (const UniqueId& a : universe.findByLabel())
+    {
+        REQUIRE(otherUniverse.exists(a) == true);
+        REQUIRE(universe.isPointingFrom(Hyperedges{a}) == otherUniverse.isPointingFrom(Hyperedges{a}));
+        REQUIRE(universe.isPointingTo(Hyperedges{a}) == otherUniverse.isPointingTo(Hyperedges{a}));
+    }
+    Hyperedges colleagues(otherUniverse.concepts("his colleague"));
+    for (const UniqueId& colleague : colleagues)
     {
         otherUniverse.access(colleague).updateLabel("Tobi");
     }
+    REQUIRE(myDB.commit("myUniverse", otherUniverse) == true);
 
-    std::cout << "> Recommit to DB\n";
-    myDB.commit("myUniverse", otherUniverse);
-    
-    std::cout << "*** TESTS DONE ***" << std::endl;
-
-    return 0;
+    // TODO: Open a new DB instance, open the same graph and check for equality?
 }
