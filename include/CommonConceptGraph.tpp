@@ -11,7 +11,7 @@ template<typename PartitionFuncLeft, typename PartitionFuncRight,  typename Matc
 
     // First, we have to get the candidates to be mapped to other candidates
     Hyperedges toBeMapped(pl(result));
-    Hyperedges toBeMappedTo(pr(result));
+    const Hyperedges& toBeMappedTo(pr(result));
 
     // As long as we have mappable concepts, we try to greedily find a (sub-)optimal mapping
     auto cmp = [] (std::pair< float, std::pair< UniqueId, UniqueId > > a, std::pair< float, std::pair< UniqueId, UniqueId > > b) -> bool { return (a.first < b.first);};

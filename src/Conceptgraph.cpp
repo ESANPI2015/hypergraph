@@ -130,7 +130,7 @@ void     Conceptgraph::destroy(const UniqueId& id)
     // Before we can destroy any relation, we have to check all other relations referring to us
     std::set< UniqueId > toBeDestroyed;
     // Mark all relations pointingFrom us to be deleted iff they do not point from something else
-    Hyperedges relsFromUs(relationsFrom(Hyperedges{id}));
+    const Hyperedges& relsFromUs(relationsFrom(Hyperedges{id}));
     for (const UniqueId& relId : relsFromUs)
     {
         // Avoid bad ids
@@ -142,7 +142,7 @@ void     Conceptgraph::destroy(const UniqueId& id)
             toBeDestroyed.insert(relId);
     }
     // Mark all relations pointingTo us to be deleted iff they do not point to something else
-    Hyperedges relsToUs(relationsTo(Hyperedges{id}));
+    const Hyperedges& relsToUs(relationsTo(Hyperedges{id}));
     for (const UniqueId& relId : relsToUs)
     {
         // Avoid bad ids
@@ -166,12 +166,12 @@ void     Conceptgraph::destroy(const UniqueId& id)
 Hyperedges Conceptgraph::relationsFrom(const Hyperedges& ids, const std::string& label) const
 {
     // All relations with a certain label
-    Hyperedges all(relations(label));
+    const Hyperedges& all(relations(label));
     // All hyperedges pointing from us
     Hyperedges pointingFromUs;
     for (const UniqueId& id : ids)
     {
-        Hyperedges cache(access(id)._fromOthers);
+        const Hyperedges& cache(access(id)._fromOthers);
         pointingFromUs = unite(pointingFromUs, cache);
     }
     // All relations with a certain label pointing from us
@@ -181,12 +181,12 @@ Hyperedges Conceptgraph::relationsFrom(const Hyperedges& ids, const std::string&
 Hyperedges Conceptgraph::relationsTo(const Hyperedges& ids, const std::string& label) const
 {
     // All relations with a certain label
-    Hyperedges all(relations(label));
+    const Hyperedges& all(relations(label));
     // All hyperedges pointing to us
     Hyperedges pointingToUs;
     for (const UniqueId& id : ids)
     {
-        Hyperedges cache(access(id)._toOthers);
+        const Hyperedges& cache(access(id)._toOthers);
         pointingToUs = unite(pointingToUs, cache);
     }
     // All relations with a certain label pointing to us

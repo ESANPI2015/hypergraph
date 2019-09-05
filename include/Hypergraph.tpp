@@ -19,14 +19,14 @@ template< typename MatchFunc > Hypergraph Hypergraph::rewrite(const Hypergraph& 
     Mapping replacement2new;
 
     // First step: Find a match of lhs in this graph
-    Mapping m(match(lhs, searchSpace, mf));
+    const Mapping& m(match(lhs, searchSpace, mf));
     // No match? Return empty graph
     if (!m.size())
         return result;
 
     // Second step: recreate all HYPEREDGES which are NOT PART of the match! (G\lhs)
-    Hyperedges originals(findByLabel());
-    Mapping mInv(invert(m));
+    const Hyperedges& originals(findByLabel());
+    const Mapping& mInv(invert(m));
     for (const UniqueId& originalId : originals)
     {
         if (mInv.count(originalId))
@@ -40,24 +40,24 @@ template< typename MatchFunc > Hypergraph Hypergraph::rewrite(const Hypergraph& 
     // Here, we either delete OR preserve & alter originals
     // NOTE: Deletion here is IMPLICIT (by not creating it)
     // m : matchedId -> originalId, partialMap : matchedId -> replacementId
-    Mapping original2replacement(join(m, partialMap));
+    const Mapping& original2replacement(join(m, partialMap));
     for (const auto& pair : original2replacement)
     {
-	    UniqueId originalId(pair.first);
-	    UniqueId replacementId(pair.second);
+        const UniqueId& originalId(pair.first);
+        const UniqueId& replacementId(pair.second);
 
-	    // Handle label
-	    std::string label(rhs.access(replacementId).label());
-	    if (label.empty())
-	    {
-	        label = access(originalId).label();
-	    }
+        // Handle label
+        std::string label(rhs.access(replacementId).label());
+        if (label.empty())
+        {
+            label = access(originalId).label();
+        }
 
-	    // Handle uid
+        // Handle uid
         // We want to keep the original UID unless ...
         UniqueId uid(originalId);
 
-	    // ... multiple originals shall be replaced by one. Then we have to map to the SAME UID (merge)
+        // ... multiple originals shall be replaced by one. Then we have to map to the SAME UID (merge)
         Mapping::const_iterator it(replacement2new.find(replacementId));
         if (it != replacement2new.end())
         {
@@ -65,13 +65,13 @@ template< typename MatchFunc > Hypergraph Hypergraph::rewrite(const Hypergraph& 
             uid = it->second;
         }
 
-	    // ... one original shall be replaced by multiple replacements
-	    it = original2new.find(originalId);
-	    if (it != original2new.end())
-	    {
-	        // If a completely new hedge has to be created we have to generate a UID by ourselves ... The best we could do is concatenating the known UIDs?!
-	        uid = originalId + replacementId;
-	    }
+        // ... one original shall be replaced by multiple replacements
+        it = original2new.find(originalId);
+        if (it != original2new.end())
+        {
+            // If a completely new hedge has to be created we have to generate a UID by ourselves ... The best we could do is concatenating the known UIDs?!
+            uid = originalId + replacementId;
+        }
 
         // Here, we know everything we need to perform the replacement
         result.create(uid, label);
@@ -80,9 +80,9 @@ template< typename MatchFunc > Hypergraph Hypergraph::rewrite(const Hypergraph& 
     }
 
     // Fourth step: Now all hedges in rhs which are not in result yet, have to be created
-    Hyperedges replacements(rhs.findByLabel());
-    Mapping rInv(invert(partialMap));
-    for (const UniqueId replacementId : replacements)
+    const Hyperedges& replacements(rhs.findByLabel());
+    const Mapping& rInv(invert(partialMap));
+    for (const UniqueId& replacementId : replacements)
     {
         if (rInv.count(replacementId))
             continue;
@@ -97,15 +97,15 @@ template< typename MatchFunc > Hypergraph Hypergraph::rewrite(const Hypergraph& 
     Mapping::const_iterator srcPair;
     for (srcPair = original2new.begin(); srcPair != original2new.end(); srcPair++)
     {
-        UniqueId firstIdOld(srcPair->first);
-        UniqueId firstId(srcPair->second);
+        const UniqueId& firstIdOld(srcPair->first);
+        const UniqueId& firstId(srcPair->second);
 
         // Remember that we only have to handle the pairs (first, *) once, so the next loop can start at srcPair!
         Mapping::const_iterator destPair;
         for (destPair = srcPair; destPair != original2new.end(); destPair++)
         {
-            UniqueId secondIdOld(destPair->first);
-            UniqueId secondId(destPair->second);
+            const UniqueId& secondIdOld(destPair->first);
+            const UniqueId& secondId(destPair->second);
 
 	    // If both hedges are part of the MATCH we should not reconstruct the wiring
             if (mInv.count(firstIdOld) && mInv.count(secondIdOld))
@@ -126,15 +126,15 @@ template< typename MatchFunc > Hypergraph Hypergraph::rewrite(const Hypergraph& 
     // B) Reconstruct wiring of the replacement graph
     for (srcPair = replacement2new.begin(); srcPair != replacement2new.end(); srcPair++)
     {
-        UniqueId firstIdOld(srcPair->first);
-        UniqueId firstId(srcPair->second);
+        const UniqueId& firstIdOld(srcPair->first);
+        const UniqueId& firstId(srcPair->second);
 
         // Remember that we only have to handle the pairs (first, *) once, so the next loop can start at srcPair!
         Mapping::const_iterator destPair;
         for (destPair = srcPair; destPair != replacement2new.end(); destPair++)
         {
-            UniqueId secondIdOld(destPair->first);
-            UniqueId secondId(destPair->second);
+            const UniqueId& secondIdOld(destPair->first);
+            const UniqueId& secondId(destPair->second);
 
             // Reconstruct wiring
             if (rhs.access(firstIdOld).isPointingTo(secondIdOld))
@@ -166,7 +166,7 @@ template< typename MatchFunc > Mapping Hypergraph::match(const Hypergraph& other
     unsigned int maxDegree = 0;
     int bestValue = INT_MIN;
     UniqueId startUid;
-    Hyperedges otherIds(other.findByLabel());
+    const Hyperedges& otherIds(other.findByLabel());
     std::unordered_map< UniqueId, Hyperedges > candidateIds;
     for (const UniqueId& otherId : otherIds)
     {
@@ -206,7 +206,7 @@ template< typename MatchFunc > Mapping Hypergraph::match(const Hypergraph& other
     while (!searchSpace.empty())
     {
         // Get top of stack
-        Mapping currentMapping(searchSpace.top());
+        const Mapping currentMapping(searchSpace.top());
         searchSpace.pop();
 
         // Check if we can stop the search
@@ -240,7 +240,7 @@ template< typename MatchFunc > Mapping Hypergraph::match(const Hypergraph& other
                 maxDegree = degree;
 
             // Check neighbourhood to already mapped hedges
-	    Hyperedges neighbourhood(other.allNeighboursOf(Hyperedges{otherId}));
+	    const Hyperedges& neighbourhood(other.allNeighboursOf(Hyperedges{otherId}));
             unsigned overlap = 0;
             for (const UniqueId& neighbourId : neighbourhood)
             {
@@ -260,10 +260,10 @@ template< typename MatchFunc > Mapping Hypergraph::match(const Hypergraph& other
 
         // Found unmapped hedge
         // NOTE: This is actually what makes this method an Ullmann algorithm
-        Mapping currentMappingInv(invert(currentMapping));
-        Hyperedges candidates(candidateIds[unmappedId]);
-        Hyperedges unmappedNextNeighbours(other.isPointingTo(Hyperedges{unmappedId}));
-        Hyperedges unmappedPrevNeighbours(other.isPointingFrom(Hyperedges{unmappedId}));
+        const Mapping& currentMappingInv(invert(currentMapping));
+        const Hyperedges& candidates(candidateIds[unmappedId]);
+        const Hyperedges& unmappedNextNeighbours(other.isPointingTo(Hyperedges{unmappedId}));
+        const Hyperedges& unmappedPrevNeighbours(other.isPointingFrom(Hyperedges{unmappedId}));
         for (const UniqueId& candidateId : candidates)
         {
             // If we want a bijective matching, we have to make sure that candidates are not mapped multiple times!!!
@@ -271,8 +271,8 @@ template< typename MatchFunc > Mapping Hypergraph::match(const Hypergraph& other
                 continue;
 
             // We have now the neighbourhood of the unmapped hedge and the neighbourhood of the candidate
-            Hyperedges candidateNextNeighbours(isPointingTo(Hyperedges{candidateId}));
-            Hyperedges candidatePrevNeighbours(isPointingFrom(Hyperedges{candidateId}));
+            const Hyperedges& candidateNextNeighbours(isPointingTo(Hyperedges{candidateId}));
+            const Hyperedges& candidatePrevNeighbours(isPointingFrom(Hyperedges{candidateId}));
             // If the candidate neighbourhood is less than the unmapped neighbourhood, a future match is IMPOSSIBLE
             if (candidateNextNeighbours.size() < unmappedNextNeighbours.size())
                 continue;
@@ -289,16 +289,16 @@ template< typename MatchFunc > Mapping Hypergraph::match(const Hypergraph& other
             bool valid = true;
             for (const auto& pair : newMapping)
             {
-                Hyperedges templatePointsTo(other.isPointingTo(Hyperedges{pair.first}));
-                Hyperedges templatePointsFrom(other.isPointingFrom(Hyperedges{pair.first}));
-                Hyperedges matchPointsTo(isPointingTo(Hyperedges{pair.second}));
-                Hyperedges matchPointsFrom(isPointingFrom(Hyperedges{pair.second}));
+                const Hyperedges& templatePointsTo(other.isPointingTo(Hyperedges{pair.first}));
+                const Hyperedges& templatePointsFrom(other.isPointingFrom(Hyperedges{pair.first}));
+                const Hyperedges& matchPointsTo(isPointingTo(Hyperedges{pair.second}));
+                const Hyperedges& matchPointsFrom(isPointingFrom(Hyperedges{pair.second}));
                 for (const UniqueId& templateId : templatePointsTo)
                 {
                     Mapping::const_iterator it(newMapping.find(templateId));
                     if (it == newMapping.end())
                         continue;
-                    UniqueId matchId(it->second);
+                    const UniqueId& matchId(it->second);
                     if (std::find(matchPointsTo.begin(), matchPointsTo.end(), matchId) == matchPointsTo.end())
                     {
                         valid = false;
@@ -312,7 +312,7 @@ template< typename MatchFunc > Mapping Hypergraph::match(const Hypergraph& other
                     Mapping::const_iterator it(newMapping.find(templateId));
                     if (it == newMapping.end())
                         continue;
-                    UniqueId matchId(it->second);
+                    const UniqueId& matchId(it->second);
                     if (std::find(matchPointsFrom.begin(), matchPointsFrom.end(), matchId) == matchPointsFrom.end())
                     {
                         valid = false;

@@ -43,7 +43,7 @@ template< typename ConceptFilterFunc, typename RelationFilterFunc > Hyperedges C
         {
             case FORWARD:
                 {
-                    Hyperedges relations(relationsFrom(Hyperedges{currentUid}));
+                    const Hyperedges& relations(relationsFrom(Hyperedges{currentUid}));
                     for (const UniqueId& relUid : relations)
                     {
                         // If RelationFilterFunc returns true, we push all targets of it to the toVisit queue
@@ -61,7 +61,7 @@ template< typename ConceptFilterFunc, typename RelationFilterFunc > Hyperedges C
                 break;
             case BOTH:
                 {
-                    Hyperedges relations(relationsFrom(Hyperedges{currentUid}));
+                    const Hyperedges& relations(relationsFrom(Hyperedges{currentUid}));
                     for (const UniqueId& relUid : relations)
                     {
                         // If RelationFilterFunc returns true, we push all targets of it to the toVisit queue
@@ -78,7 +78,7 @@ template< typename ConceptFilterFunc, typename RelationFilterFunc > Hyperedges C
                 }
             case INVERSE:
                 {
-                    Hyperedges relations(relationsTo(Hyperedges{currentUid}));
+                    const Hyperedges& relations(relationsTo(Hyperedges{currentUid}));
                     for (const UniqueId& relUid : relations)
                     {
                         // If RelationFilterFunc returns true, we push all sources of it to the toVisit queue

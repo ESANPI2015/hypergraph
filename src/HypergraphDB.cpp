@@ -29,7 +29,7 @@ HypergraphDB::~HypergraphDB()
     publish();
 }
 
-const bool HypergraphDB::connect(const std::string& name, const std::string& uri)
+bool HypergraphDB::connect(const std::string& name, const std::string& uri)
 {
     // Store parameters
     databaseUri = uri;
@@ -71,7 +71,7 @@ Hypergraph HypergraphDB::open(const std::string& name) const
     return YAML::LoadFile(localDir+"/"+name).as<Hypergraph>();
 }
 
-const bool HypergraphDB::commit(const std::string& name, const Hypergraph& graph) const
+bool HypergraphDB::commit(const std::string& name, const Hypergraph& graph) const
 {
     // Store the graph in localDir
     std::ofstream hg;
@@ -101,7 +101,7 @@ const bool HypergraphDB::commit(const std::string& name, const Hypergraph& graph
     return true;
 }
 
-const bool HypergraphDB::publish() const
+bool HypergraphDB::publish() const
 {
     // Check
     if (databaseName.empty() || databaseUri.empty())

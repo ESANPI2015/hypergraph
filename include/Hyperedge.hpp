@@ -37,12 +37,12 @@ class Hyperedge
         /*Read Access*/
         const UniqueId& id() const; 
         const std::string& label() const; 
-        const unsigned indegree() const;
-        const unsigned outdegree() const;
+        unsigned indegree() const;
+        unsigned outdegree() const;
         const Hyperedges& pointingTo() const;
         const Hyperedges& pointingFrom() const;
-        const bool isPointingTo(const UniqueId& id) const;
-        const bool isPointingFrom(const UniqueId& id) const;
+        bool isPointingTo(const UniqueId& id) const;
+        bool isPointingFrom(const UniqueId& id) const;
 
         /*Write access*/
         void updateLabel(const std::string& label);
@@ -53,7 +53,7 @@ class Hyperedge
         friend std::ostream& operator<< (std::ostream& stream, const Hyperedge& edge);
 
         /*Graph dependent operations*/
-        const bool isPartOf(Hypergraph &graph) const;
+        bool isPartOf(Hypergraph &graph) const;
 
     protected:
         /*Private members*/

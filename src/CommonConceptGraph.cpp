@@ -45,14 +45,14 @@ void CommonConceptGraph::createCommonConcepts()
 Hyperedges CommonConceptGraph::factOf(const Hyperedges& factIds, const Hyperedges& superRelIds)
 {
     Hyperedges ids;
-    Hyperedges fromIds = intersect(Conceptgraph::relations(), factIds);
-    Hyperedges toIds = intersect(Conceptgraph::relations(), superRelIds);
+    const Hyperedges& fromIds(intersect(Conceptgraph::relations(), factIds));
+    const Hyperedges& toIds(intersect(Conceptgraph::relations(), superRelIds));
     // Bacause FACT-OF is a BINARY relation we have to create one entity per pair
     for (const UniqueId& fromId : fromIds)
     {
         for (const UniqueId& toId : toIds)
         {
-            Hyperedges id(Conceptgraph::relateFrom(Hyperedges{fromId}, Hyperedges{toId}, CommonConceptGraph::FactOfId));
+            const Hyperedges& id(Conceptgraph::relateFrom(Hyperedges{fromId}, Hyperedges{toId}, CommonConceptGraph::FactOfId));
             if (!id.empty())
             {
                 // If we have created a factOf a factOf superrelation :D , we have to link them
@@ -98,7 +98,7 @@ Hyperedges CommonConceptGraph::factFromAnother(const Hyperedges& fromIds, const 
     for (UniqueId otherId : otherIds)
     {
         // Get the superRels
-        Hyperedges superRels(factsOf(otherId, Hyperedges(), Hyperedges(), TraversalDirection::FORWARD));
+        const Hyperedges& superRels(factsOf(otherId, Hyperedges(), Hyperedges(), TraversalDirection::FORWARD));
         // Create new facts from these superRels
         result = unite(result, factFrom(fromIds, toIds, superRels));
     }
@@ -108,8 +108,8 @@ Hyperedges CommonConceptGraph::factFromAnother(const Hyperedges& fromIds, const 
 Hyperedges CommonConceptGraph::subrelationOf(const Hyperedges& subRelIds, const Hyperedges& superRelIds)
 {
     Hyperedges id;
-    Hyperedges fromIds = intersect(Conceptgraph::relations(), subRelIds);
-    Hyperedges toIds = intersect(Conceptgraph::relations(), superRelIds);
+    const Hyperedges& fromIds(intersect(Conceptgraph::relations(), subRelIds));
+    const Hyperedges& toIds(intersect(Conceptgraph::relations(), superRelIds));
     if (fromIds.size() && toIds.size())
     {
         // NOTE: This will fail if fromIds.size() and toIds.size() do not match the in- and outdegree of SUBREL-OF (which are 1,1)
@@ -202,7 +202,7 @@ Hyperedges CommonConceptGraph::instanceOf(const Hyperedges& individualIds, const
 
 Hyperedges CommonConceptGraph::createSubclassOf(const UniqueId& subId, const Hyperedges& superIds, const std::string& label)
 {
-    Hyperedges result(Conceptgraph::concept(subId, label));
+    const Hyperedges& result(Conceptgraph::concept(subId, label));
     isA(result, superIds);
     return result;
 }
@@ -248,7 +248,7 @@ Hyperedges CommonConceptGraph::instantiateAnother(const Hyperedges& otherIds, co
             theLabel = Hypergraph::access(otherId).label();
         }
         // Get superclass of other
-        Hyperedges superclasses = instancesOf(otherId,"",TraversalDirection::FORWARD);
+        const Hyperedges& superclasses(instancesOf(otherId,"",TraversalDirection::FORWARD));
         // Instantiate from superclass of other
         result = unite(result, instantiateFrom(superclasses, theLabel));
     }
@@ -258,7 +258,7 @@ Hyperedges CommonConceptGraph::instantiateAnother(const Hyperedges& otherIds, co
 Hyperedges CommonConceptGraph::factsOf(const UniqueId& superRelId, const Hyperedges& fromIds, const Hyperedges& toIds, const TraversalDirection dir, const std::string& label) const
 {
     Hyperedges result;
-    Hyperedges allFacts(access(CommonConceptGraph::FactOfId).pointingFrom()); // * <- FACT-OF -> ** ...  Either * or ** have to be intersected depending on dir
+    const Hyperedges& allFacts(access(CommonConceptGraph::FactOfId).pointingFrom()); // * <- FACT-OF -> ** ...  Either * or ** have to be intersected depending on dir
 
     // The direction defines if we return FACTS or RELATION DEFINITIONS
     switch (dir)
@@ -266,24 +266,24 @@ Hyperedges CommonConceptGraph::factsOf(const UniqueId& superRelId, const Hypered
         case INVERSE:
             {
                 // Since FACT-OF points from a FACT to a RELATION DEF, the inverse dir will return the FACTS
-                Hyperedges relationsToSuperRel(Conceptgraph::relationsTo(Hyperedges{superRelId})); // * <- REL -> superRel
-                Hyperedges allFactsToSuperRel(intersect(allFacts, relationsToSuperRel)); // * <- FACT-OF -> superRel
+                const Hyperedges& relationsToSuperRel(Conceptgraph::relationsTo(Hyperedges{superRelId})); // * <- REL -> superRel
+                const Hyperedges& allFactsToSuperRel(intersect(allFacts, relationsToSuperRel)); // * <- FACT-OF -> superRel
                 result = unite(result, Hypergraph::isPointingFrom(allFactsToSuperRel));
             }
             break;
         case BOTH:
             {
                 // INVERSE first ... then fall through to FORWARD
-                Hyperedges relationsToSuperRel(Conceptgraph::relationsTo(Hyperedges{superRelId})); // * <- REL -> superRel
-                Hyperedges allFactsToSuperRel(intersect(allFacts, relationsToSuperRel)); // * <- FACT-OF -> superRel
+                const Hyperedges& relationsToSuperRel(Conceptgraph::relationsTo(Hyperedges{superRelId})); // * <- REL -> superRel
+                const Hyperedges& allFactsToSuperRel(intersect(allFacts, relationsToSuperRel)); // * <- FACT-OF -> superRel
                 result = unite(result, Hypergraph::isPointingFrom(allFactsToSuperRel));
             }
         case FORWARD:
             {
                 // Now FORWARD. IMPORTANT: Although the variable is calles superRelId, it is treated HERE as factId!
-                const UniqueId factId(superRelId);
-                Hyperedges relationsFromFact(Conceptgraph::relationsFrom(Hyperedges{factId})); // fact <- REL -> *
-                Hyperedges allSuperRelsFromFact(intersect(allFacts, relationsFromFact)); // fact <- FACT-OF -> *
+                const UniqueId& factId(superRelId);
+                const Hyperedges& relationsFromFact(Conceptgraph::relationsFrom(Hyperedges{factId})); // fact <- REL -> *
+                const Hyperedges& allSuperRelsFromFact(intersect(allFacts, relationsFromFact)); // fact <- FACT-OF -> *
                 result = unite(result, Hypergraph::isPointingTo(allSuperRelsFromFact));
             }
             break;
@@ -291,9 +291,9 @@ Hyperedges CommonConceptGraph::factsOf(const UniqueId& superRelId, const Hypered
 
     // In the next step we have to filter the resulting facts or relation definitions by the concepts they relate!
     // If either one (or both) concept sets are empty, we just pass the complete result set.
-    Hyperedges relationsFromIds(fromIds.size() > 0 ? Conceptgraph::relationsFrom(fromIds, label) : result); // fromIds <- REL(label) -> *
-    Hyperedges relationsToIds(toIds.size() > 0 ? Conceptgraph::relationsTo(toIds, label) : result); // * <- REL(label) -> toIds
-    Hyperedges relationsMatchFromAndToIds(intersect(relationsFromIds, relationsToIds)); // fromIds <- REL(label) -> toIds
+    const Hyperedges& relationsFromIds(fromIds.size() > 0 ? Conceptgraph::relationsFrom(fromIds, label) : result); // fromIds <- REL(label) -> *
+    const Hyperedges& relationsToIds(toIds.size() > 0 ? Conceptgraph::relationsTo(toIds, label) : result); // * <- REL(label) -> toIds
+    const Hyperedges& relationsMatchFromAndToIds(intersect(relationsFromIds, relationsToIds)); // fromIds <- REL(label) -> toIds
 
     return intersect(result, relationsMatchFromAndToIds);
 }
@@ -304,7 +304,7 @@ Hyperedges CommonConceptGraph::factsOf(const Hyperedges& superRelIds, const Hype
     Hyperedges result;
     for (const UniqueId& superRelId : superRelIds)
     {
-        Hyperedges some = factsOf(superRelId, fromIds, toIds, dir, label);
+        const Hyperedges& some(factsOf(superRelId, fromIds, toIds, dir, label));
         result.insert(result.end(), some.begin(), some.end());
     }
     return result;
@@ -330,7 +330,7 @@ Hyperedges CommonConceptGraph::subrelationsOf(const UniqueId superRelId, const s
     // Then, we define the function to decide which relations to follow
     // The criterium is, that there exists r <- FACT-OF -> CommonConceptGraph::SubrelOfId
     auto rf = [&](const Conceptgraph& cg, const UniqueId& c, const UniqueId& r) -> bool {
-        Hyperedges toSearch(cg.isPointingTo(cg.relationsFrom(Hyperedges{r}, cg.access(CommonConceptGraph::FactOfId).label())));
+        const Hyperedges& toSearch(cg.isPointingTo(cg.relationsFrom(Hyperedges{r}, cg.access(CommonConceptGraph::FactOfId).label())));
         if (std::find(toSearch.begin(), toSearch.end(), CommonConceptGraph::SubrelOfId) != toSearch.end())
             return true;
         return false;
@@ -342,16 +342,16 @@ Hyperedges CommonConceptGraph::directSubrelationsOf(const Hyperedges& ids, const
 {
     Hyperedges result;
     // Get all factsOf these SUBREL-OF
-    Hyperedges facts(factsOf(CommonConceptGraph::SubrelOfId));
+    const Hyperedges& facts(factsOf(CommonConceptGraph::SubrelOfId));
 
     switch (dir)
     {
         case FORWARD:
         {
             // Get all relationsFrom id
-            Hyperedges relsFromSubs = Conceptgraph::relationsFrom(ids);
+            const Hyperedges& relsFromSubs(Conceptgraph::relationsFrom(ids));
             // Contains all (id <-- factFromSubRelOf --> X) relations
-            Hyperedges relevantRels = intersect(relsFromSubs, facts);
+            const Hyperedges& relevantRels(intersect(relsFromSubs, facts));
             // Get all these X matching the label
             result = unite(result, Hypergraph::isPointingTo(relevantRels, label));
         }
@@ -359,18 +359,18 @@ Hyperedges CommonConceptGraph::directSubrelationsOf(const Hyperedges& ids, const
         case BOTH:
         {
             // Get all relationsFrom id
-            Hyperedges relsFromSubs = Conceptgraph::relationsFrom(ids);
+            const Hyperedges& relsFromSubs(Conceptgraph::relationsFrom(ids));
             // Contains all (id <-- factFromSubRelOf --> X) relations
-            Hyperedges relevantRels = intersect(relsFromSubs, facts);
+            const Hyperedges& relevantRels(intersect(relsFromSubs, facts));
             // Get all these X matching the label
             result = unite(result, Hypergraph::isPointingTo(relevantRels, label));
         }
         case INVERSE:
         {
             // Get all relationsTo id
-            Hyperedges relsToSupers = Conceptgraph::relationsTo(ids);
+            const Hyperedges& relsToSupers(Conceptgraph::relationsTo(ids));
             // Contains all (X <-- factFromSubRelOf --> id) relations
-            Hyperedges relevantRels = intersect(relsToSupers, facts);
+            const Hyperedges& relevantRels(intersect(relsToSupers, facts));
             // Get all these X matching the label
             result = unite(result, Hypergraph::isPointingFrom(relevantRels, label));
         }
@@ -386,7 +386,7 @@ Hyperedges CommonConceptGraph::relatedTo(const Hyperedges& conceptUids, const Hy
     if (conceptUids.empty())
         return result;
 
-    Hyperedges subRelUids(subrelationsOf(relationUids));
+    const Hyperedges& subRelUids(subrelationsOf(relationUids));
     Hyperedges factUids;
     switch (dir)
     {
@@ -409,7 +409,7 @@ Hyperedges CommonConceptGraph::transitivelyRelatedTo(const Hyperedges& conceptUi
 {
     // At first, find all relations we have to consider during traversal:
     // These are all subrelations of relId including relId itself
-    Hyperedges relationsToFollow(subrelationsOf(relationUids));
+    const Hyperedges& relationsToFollow(subrelationsOf(relationUids));
 
     // The filter function is like the one in subrelationsOf
     auto cf = [&](const Conceptgraph& cg, const UniqueId& c, const Hyperedges& p) -> bool {
@@ -421,7 +421,7 @@ Hyperedges CommonConceptGraph::transitivelyRelatedTo(const Hyperedges& conceptUi
     // For the relation filter function, we have to check that
     // r <- FACT-OF -> R where R is element of relationsToFollow
     auto rf = [&](const Conceptgraph& cg, const UniqueId& c, const UniqueId& r) -> bool {
-        Hyperedges toSearch(cg.isPointingTo(cg.relationsFrom(Hyperedges{r}, cg.access(CommonConceptGraph::FactOfId).label())));
+        const Hyperedges& toSearch(cg.isPointingTo(cg.relationsFrom(Hyperedges{r}, cg.access(CommonConceptGraph::FactOfId).label())));
         if (intersect(toSearch, relationsToFollow).empty())
             return false;
         return true;

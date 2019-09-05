@@ -19,10 +19,10 @@ class HypergraphDB {
         HypergraphDB(const std::string& dir="hypergraphDB", const std::string& dbName="", const std::string& dbUri="");
         ~HypergraphDB();
 
-        const bool connect(const std::string& name, const std::string& uri);
+        bool connect(const std::string& name, const std::string& uri);
         Hypergraph open(const std::string& name) const;
-        const bool commit(const std::string& name, const Hypergraph& graph) const;
-        const bool publish() const;
+        bool commit(const std::string& name, const Hypergraph& graph) const;
+        bool publish() const;
     protected:
         std::string localDir;
         std::string databaseName;

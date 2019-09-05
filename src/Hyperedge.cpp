@@ -45,22 +45,22 @@ const std::string& Hyperedge::label() const
     return _label;
 }
 
-const unsigned Hyperedge::indegree() const
+unsigned Hyperedge::indegree() const
 {
     return _from.size();
 }
 
-const unsigned Hyperedge::outdegree() const
+unsigned Hyperedge::outdegree() const
 {
     return _to.size();
 }
 
-const bool Hyperedge::isPointingTo(const UniqueId& id) const
+bool Hyperedge::isPointingTo(const UniqueId& id) const
 {
     return std::find(_to.begin(), _to.end(), id) != _to.end() ? true : false;
 }
 
-const bool Hyperedge::isPointingFrom(const UniqueId& id) const
+bool Hyperedge::isPointingFrom(const UniqueId& id) const
 {
     return std::find(_from.begin(), _from.end(), id) != _from.end() ? true : false;
 }
@@ -75,7 +75,7 @@ const Hyperedges& Hyperedge::pointingTo() const
     return _to;
 }
 
-const bool Hyperedge::isPartOf(Hypergraph &graph) const
+bool Hyperedge::isPartOf(Hypergraph &graph) const
 {
     // What does it mean to be part of a hypergraph?
     // At least it means, that <id,label> have to match, right?
