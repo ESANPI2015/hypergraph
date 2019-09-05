@@ -29,11 +29,11 @@ namespace YAML {
                 Node node;
                 node["id"] = rhs.id();
                 node["label"] = rhs.label();
-                for (auto edgeId : rhs.pointingTo())
+                for (const UniqueId& edgeId : rhs.pointingTo())
                 {
                     node["pointingTo"].push_back(edgeId);
                 }
-                for (auto edgeId : rhs.pointingFrom())
+                for (const UniqueId& edgeId : rhs.pointingFrom())
                 {
                     node["pointingFrom"].push_back(edgeId);
                 }
@@ -51,7 +51,10 @@ namespace YAML {
 
             static Node encode(const Hypergraph& rhs) {
                 Node node;
-                for (auto edgeId : rhs.findByLabel())
+                // NOTE: Since we use an unordered map inside Hypergraph, we have to sort them first
+                Hyperedges all(rhs.findByLabel());
+                std::sort(all.begin(), all.end());
+                for (const UniqueId& edgeId : all)
                 {
                     node.push_back(rhs.access(edgeId));
                 }   
@@ -62,10 +65,10 @@ namespace YAML {
                 // First pass: Create nodes
                 for (auto it = node.begin(); it != node.end(); it++)
                 {
-                    Node current = *it;
+                    const Node& current(*it);
                     // Get id and label from file
-                    UniqueId id = current["id"].as<UniqueId>();
-                    std::string label = current["label"].as<std::string>();
+                    const UniqueId& id(current["id"].as<UniqueId>());
+                    const std::string& label(current["label"].as<std::string>());
 
                     // Skip zero
                     if (id == Hypergraph::Zero)
@@ -84,17 +87,17 @@ namespace YAML {
                 // Second pass: Wire nodes
                 for (auto it = node.begin(); it != node.end(); it++)
                 {
-                    Node current = *it;
+                    const Node& current(*it);
                     // Get id and label from file
-                    UniqueId id = current["id"].as<UniqueId>();
-                    std::string label = current["label"].as<std::string>();
+                    const UniqueId& id(current["id"].as<UniqueId>());
+                    const std::string& label(current["label"].as<std::string>());
 
                     // Find the edges we are pointing to
                     if (current["pointingTo"])
                     {
                         // Point from id to otherIds
-                        std::vector<UniqueId> otherIds = current["pointingTo"].as< std::vector<UniqueId> >();
-                        for (auto otherId : otherIds)
+                        const std::vector<UniqueId>& otherIds(current["pointingTo"].as< std::vector<UniqueId> >());
+                        for (const UniqueId& otherId : otherIds)
                         {
                             if (rhs.pointsTo(Hyperedges{id}, Hyperedges{otherId}).empty())
                             {
@@ -108,8 +111,8 @@ namespace YAML {
                     if (current["pointingFrom"])
                     {
                         // Point from id to otherIds
-                        std::vector<UniqueId> otherIds = current["pointingFrom"].as< std::vector<UniqueId> >();
-                        for (auto otherId : otherIds)
+                        const std::vector<UniqueId>& otherIds(current["pointingFrom"].as< std::vector<UniqueId> >());
+                        for (const UniqueId& otherId : otherIds)
                         {
                             if (rhs.pointsFrom(Hyperedges{id}, Hyperedges{otherId}).empty())
                             {
