@@ -91,16 +91,16 @@ bool Hyperedge::isPartOf(Hypergraph &graph) const
 std::ostream& operator<< (std::ostream& stream, const Hyperedge& edge)
 {
     stream << "[";
-    auto fromIds = edge.pointingFrom();
-    for (auto otherId : fromIds)
+    const Hyperedges& fromIds(edge.pointingFrom());
+    for (const auto& otherId : fromIds)
     {
         stream << " " << otherId << " ";
     }
     stream << "] ";
     stream << edge.id() << ":";
     stream << edge.label() << " [";
-    auto toIds = edge.pointingTo();
-    for (auto otherId : toIds)
+    const Hyperedges& toIds(edge.pointingTo());
+    for (const auto& otherId : toIds)
     {
         stream << " " << otherId << " ";
     }
@@ -111,8 +111,7 @@ std::ostream& operator<< (std::ostream& stream, const Hyperedge& edge)
 Hyperedges unite(const Hyperedges& a, const Hyperedges& b)
 {
     Hyperedges result(a);
-    //result.insert(result.end(), b.begin(), b.end());
-    for (auto id : b)
+    for (const auto& id : b)
     {
         if (std::find(a.begin(), a.end(), id) == a.end())
             result.push_back(id);
@@ -123,7 +122,7 @@ Hyperedges unite(const Hyperedges& a, const Hyperedges& b)
 Hyperedges intersect(const Hyperedges& a, const Hyperedges& b)
 {
     Hyperedges result;
-    for (auto id : a)
+    for (const auto& id : a)
     {
         if (std::find(b.begin(), b.end(), id) != b.end())
             result.push_back(id);
@@ -134,7 +133,7 @@ Hyperedges intersect(const Hyperedges& a, const Hyperedges& b)
 Hyperedges subtract(const Hyperedges& a, const Hyperedges& b)
 {
     Hyperedges result;
-    for (auto id : a)
+    for (const auto& id : a)
     {
         if (std::find(b.begin(), b.end(), id) == b.end())
             result.push_back(id);
@@ -145,7 +144,7 @@ Hyperedges subtract(const Hyperedges& a, const Hyperedges& b)
 std::ostream& operator<< (std::ostream& os , const Hyperedges& val)
 {
     os << "{ ";
-    for (auto id : val)
+    for (const auto& id : val)
     {
         os << id << " ";
     }
