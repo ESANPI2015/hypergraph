@@ -28,7 +28,8 @@ TEST_CASE("Create and update a small, local HypergraphDB", "[HypergraphDB]")
     Hyperedges colleagues(otherUniverse.concepts("his colleague"));
     for (const UniqueId& colleague : colleagues)
     {
-        otherUniverse.access(colleague).updateLabel("Tobi");
+        otherUniverse.access(colleague).property("name", "Tobi");
+        otherUniverse.access(colleague).property("age", "42");
     }
     REQUIRE(myDB.commit("myUniverse", otherUniverse) == true);
 
