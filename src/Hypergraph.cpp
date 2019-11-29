@@ -110,7 +110,7 @@ void Hypergraph::disconnect(const UniqueId id)
 
 bool Hypergraph::exists(const UniqueId& uid) const
 {
-    if (_edges.count(uid))
+    if (_edges.find(uid) != _edges.end())
         return true;
     return false;
 }
