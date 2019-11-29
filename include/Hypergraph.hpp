@@ -37,13 +37,14 @@ class Hypergraph {
         static const UniqueId Zero;                  // This hyperedge represents the zero element of the hypergraph formalism.
 
         Hypergraph();
-        Hypergraph(const Hypergraph& other);                            // copy constructor to repopulate the hyperedge cache(s)
+        Hypergraph(const Hypergraph& other);         // copy constructor to repopulate the hyperedge cache(s)
         ~Hypergraph();
 
         /*Factory functions for member edges*/
         Hyperedges create(const UniqueId id, 
-                          const std::string& label="");                 // Tries to create a hyperedge with a given id ... if already taken, returns empty set
-        void destroy(const UniqueId id);                                // Will remove a hyperedge from this hypergraph (and also disconnect it from anybody)
+                          const std::string& label="",            // Tries to create a hyperedge with a given id ... if already taken, returns empty set
+                          const Properties& props=Properties());
+        void destroy(const UniqueId id);                          // Will remove a hyperedge from this hypergraph (and also disconnect it from anybody)
         void importFrom(const Hypergraph& other);                 // Imports all hyperedges from other graph (unless they already exist)
 
         /*Get access to edges*/

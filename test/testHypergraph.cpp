@@ -26,6 +26,9 @@ TEST_CASE("Construct an hypergraph", "[Hypergraph]")
         [](const Hypergraph& hg, const UniqueId& x, const Hyperedges& p) -> bool { return true; },
         [](const Hypergraph& hg, const UniqueId& x, const UniqueId& y) -> bool { return true; }
     ) == Hyperedges{"1", "2"});
+    REQUIRE(hg.create("3", "My hedge with properties", Properties{{"property1", "value1"}, {"property2", "value2"}}).empty() == false);
+    REQUIRE(hg.access("3").hasProperty("property1") == true);
+    REQUIRE(hg.access("3").property("property2") == "value2");
     // TODO: Test pattern matching
     SECTION("Pattern matching")
     {
@@ -41,6 +44,7 @@ TEST_CASE("Construct an hypergraph", "[Hypergraph]")
         for (const UniqueId& a : hg.findByLabel())
         {
             REQUIRE(reconstructed.exists(a) == true);
+            REQUIRE(hg.access(a).properties() == reconstructed.access(a).properties());
             REQUIRE(hg.isPointingFrom(Hyperedges{a}) == reconstructed.isPointingFrom(Hyperedges{a}));
             REQUIRE(hg.isPointingTo(Hyperedges{a}) == reconstructed.isPointingTo(Hyperedges{a}));
         }

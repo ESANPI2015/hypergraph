@@ -28,7 +28,10 @@ namespace YAML {
             static Node encode(const Hyperedge& rhs) {
                 Node node;
                 node["id"] = rhs.id();
-                node["label"] = rhs.label();
+                for (auto const& kv : rhs.properties())
+                {
+                    node[kv.first] = kv.second;
+                }
                 for (const UniqueId& edgeId : rhs.pointingTo())
                 {
                     node["pointingTo"].push_back(edgeId);
@@ -69,13 +72,26 @@ namespace YAML {
                     // Get id and label from file
                     const UniqueId& id(current["id"].as<UniqueId>());
                     const std::string& label(current["label"].as<std::string>());
+                    // Get other properties
+                    Properties props;
+                    for (auto pit = current.begin(); pit != current.end(); pit++)
+                    {
+                        const std::string& key(pit->first.as<std::string>());
+                        if (key == "id")
+                            continue;
+                        if (key == "pointingTo")
+                            continue;
+                        if (key == "pointingFrom")
+                            continue;
+                        props[key] = pit->second.as<std::string>();
+                    }
 
                     // Skip zero
                     if (id == Hypergraph::Zero)
                         continue;
 
                     // Create the edge
-                    if (rhs.create(id, label).empty())
+                    if (rhs.create(id, label, props).empty())
                     {
                         // In case a node with the same id exists, we cannot do anything and also not create a new one!!!
                         // This is because the underlying assumption is that of UNIQUE IDs (even between load & stores!)
@@ -90,7 +106,6 @@ namespace YAML {
                     const Node& current(*it);
                     // Get id and label from file
                     const UniqueId& id(current["id"].as<UniqueId>());
-                    const std::string& label(current["label"].as<std::string>());
 
                     // Find the edges we are pointing to
                     if (current["pointingTo"])

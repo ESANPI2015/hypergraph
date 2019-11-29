@@ -42,13 +42,13 @@ void Hypergraph::importFrom(const Hypergraph& other)
     }
 }
 
-Hyperedges Hypergraph::create(const UniqueId id, const std::string& label)
+Hyperedges Hypergraph::create(const UniqueId id, const std::string& label, const Properties& props)
 {
     if (!exists(id))
     {
         // Create a new hyperedge
         // Give it the desired id
-        _edges[id] = Hyperedge(id, label);
+        _edges[id] = Hyperedge(id, label, props);
         return Hyperedges{id};
     }
     return Hyperedges();
