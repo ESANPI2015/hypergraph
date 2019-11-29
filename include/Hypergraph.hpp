@@ -25,7 +25,7 @@
       NOTE: This will destroy ordering of serialized YAML. Therfore we use normal ordered maps for now.
 */
 
-typedef std::multimap<UniqueId, UniqueId> Mapping;   //< This map stores a many-to-many mapping between hedges (IDs)
+using Mapping = std::multimap<UniqueId, UniqueId>;   //< This map stores a many-to-many mapping between hedges (IDs)
 bool equal(const Mapping& a, const Mapping& b);      //< Check if two mappings are equal or not
 Mapping invert(const Mapping& m);                    //< Returns the inverse mapping
 Mapping fromHyperedges(const Hyperedges& a);         //< Constructs a identity mapping between the elements of a
