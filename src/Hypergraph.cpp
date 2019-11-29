@@ -23,20 +23,20 @@ Hypergraph::~Hypergraph()
 void Hypergraph::importFrom(const Hypergraph& other)
 {
     // When we construct a graph from other, we have to repopulate the cache by rewiring
-    // First pass: Clone hedges
+    // First pass: Clone hedges (if they exist, nothing happens)
     for (const UniqueId& id : other.findByLabel())
     {
-        create(id, other._edges.at(id).label());
+        create(id, other.access(id).label(), other.access(id).properties());
     }
 
     // Second pass: Rewire (see from and to methods which populate the cache(s))
     for (const UniqueId& id : findByLabel())
     {
-        if (!other._edges.count(id))
+        if (!other.exists(id))
             continue;
         // Wire only those things which have not yet been wired before (otherwise we get arity changes)
-        const Hyperedges& newFromUids(subtract(other._edges.at(id).pointingFrom(), _edges.at(id).pointingFrom()));
-        const Hyperedges& newToUids(subtract(other._edges.at(id).pointingTo(), _edges.at(id).pointingTo()));
+        const Hyperedges& newFromUids(subtract(other.access(id).pointingFrom(), access(id).pointingFrom()));
+        const Hyperedges& newToUids(subtract(other.access(id).pointingTo(), access(id).pointingTo()));
         pointsFrom(Hyperedges{id}, newFromUids);
         pointsTo(Hyperedges{id}, newToUids);
     }
@@ -63,7 +63,7 @@ void Hypergraph::destroy(const UniqueId id)
     disconnect(id);
 
     // delete from repository
-    if (_edges.count(id))
+    if (exists(id))
     {
         _edges.erase(id);
     }
