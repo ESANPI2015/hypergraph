@@ -56,7 +56,7 @@ class Hyperedge
 
         /*Write access*/
         void property(const std::string& key, const std::string& val);
-        void updateLabel(const std::string& value)
+        void label(const std::string& value)
         {
             property("label", value);
         }
