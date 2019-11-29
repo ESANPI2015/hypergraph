@@ -9,10 +9,11 @@
 #include <stdexcept>
 
 // PRIVATE CONSTRUCTORS
-Hyperedge::Hyperedge(const UniqueId& id, const std::string& label)
+Hyperedge::Hyperedge(const UniqueId& id, const std::string& label, const Properties& props)
 : _id(id),
-  _label(label)
+  _properties(props)
 {
+    property("label",label);
 }
 
 // DESTRUCTORS
@@ -20,9 +21,26 @@ Hyperedge::~Hyperedge()
 {
 }
 
-void Hyperedge::updateLabel(const std::string& label)
+const Properties& Hyperedge::properties() const 
 {
-    _label = label;
+    return _properties;
+}
+
+const std::string& Hyperedge::property(const std::string& key) const
+{
+    return _properties.at(key);
+}
+
+bool Hyperedge::hasProperty(const std::string& key) const
+{
+    if (_properties.find(key) != _properties.end())
+        return true;
+    return false;
+}
+
+void Hyperedge::property(const std::string& key, const std::string& val)
+{
+    _properties[key] = val;
 }
 
 void Hyperedge::pointsFrom(const UniqueId& id)
@@ -38,11 +56,6 @@ void Hyperedge::pointsTo(const UniqueId& id)
 const UniqueId& Hyperedge::id() const
 {
     return _id;
-}
-
-const std::string& Hyperedge::label() const
-{
-    return _label;
 }
 
 unsigned Hyperedge::indegree() const
@@ -75,36 +88,12 @@ const Hyperedges& Hyperedge::pointingTo() const
     return _to;
 }
 
-bool Hyperedge::isPartOf(Hypergraph &graph) const
-{
-    // What does it mean to be part of a hypergraph?
-    // At least it means, that <id,label> have to match, right?
-    const Hyperedge& ingraph(graph.access(id()));
-    if (ingraph.id() == Hypergraph::Zero)
-        return false;
-    if (ingraph.label() != label())
-        return false;
-    // TODO: Does it also mean, that all nodes in the _from and the _to set have to be part of the graph? I guess so
-    return true;
-}
-
 std::ostream& operator<< (std::ostream& stream, const Hyperedge& edge)
 {
-    stream << "[";
-    const Hyperedges& fromIds(edge.pointingFrom());
-    for (const auto& otherId : fromIds)
-    {
-        stream << " " << otherId << " ";
-    }
-    stream << "] ";
-    stream << edge.id() << ":";
-    stream << edge.label() << " [";
-    const Hyperedges& toIds(edge.pointingTo());
-    for (const auto& otherId : toIds)
-    {
-        stream << " " << otherId << " ";
-    }
-    stream << "]";
+    stream << edge.pointingFrom();
+    stream << " " << edge.id() << ":";
+    stream << edge.label() << " ";
+    stream << edge.pointingTo();
     return stream;
 }
 
@@ -143,11 +132,11 @@ Hyperedges subtract(const Hyperedges& a, const Hyperedges& b)
 
 std::ostream& operator<< (std::ostream& os , const Hyperedges& val)
 {
-    os << "{ ";
+    os << "[";
     for (const auto& id : val)
     {
-        os << id << " ";
+        os << " " << id;
     }
-    os << "} ";
+    os << " ]";
     return os;
 }
