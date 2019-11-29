@@ -34,6 +34,14 @@ void Hypergraph::importFrom(const Hypergraph& other)
     {
         if (!other.exists(id))
             continue;
+        // Update non-existing properties
+        // TODO: Check if that is what we want
+        for (const auto& kv : other.access(id).properties())
+        {
+            if (access(id).hasProperty(kv.first))
+                continue;
+            access(id).property(kv.first, kv.second);
+        }
         // Wire only those things which have not yet been wired before (otherwise we get arity changes)
         const Hyperedges& newFromUids(subtract(other.access(id).pointingFrom(), access(id).pointingFrom()));
         const Hyperedges& newToUids(subtract(other.access(id).pointingTo(), access(id).pointingTo()));
