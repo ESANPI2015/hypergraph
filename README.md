@@ -41,7 +41,7 @@ Instead of defining first the CLASS OF FACTS and the CLASS OF RELATIONS,
 then the CLASS OF CONCEPTS the Conceptual Graph is defined by instroducing just two meta-relations IS-CONCEPT and IS-RELATION.
 This drastically simplifies the minimal model needed to encode concepts & relations.
 However, this model would look like this:
-
+```
 |-F-|               |----F----|
 v   |               v         |
 C[IS-REL] <-T- FACT-OF -F-> IS-REL -F-> Y
@@ -52,3 +52,4 @@ C[IS-REL] <-T- FACT-OF -F-> IS-REL -F-> Y
                     |--- FACT-OF -T-> C[FACT-OF]
                                       ^   ||   ^
                                       |-F-||-T-|
+```
